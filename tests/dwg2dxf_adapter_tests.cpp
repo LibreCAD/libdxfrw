@@ -10733,9 +10733,40 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                     corrupt=true;const bool accepted=prepared&&probe.write(&author,DRW::AC1018,format==1u);
                     std::ifstream prior(target,std::ios::binary);const std::string actual((std::istreambuf_iterator<char>(prior)),{});
                     if(accepted||!called||!checked||actual!=sentinel)return fail("changed legacy LAYER output was published");
+                    prior.close();
                     corrupt=false;called=checked=false;author.ok=true;
                     if(!probe.write(&author,DRW::AC1018,format==1u)||!called||!checked)
                         return fail("corrected legacy LAYER output did not retry");
+                    if(!probe.setDxfTablesWriteInspector({})||!probe.write(&author,DRW::AC1015,format==1u))
+                        return fail("two null-plot legacy LAYER source was not generated");
+                    dx_data eligible;dx_iface eligibleReader;
+                    if(!eligibleReader.fileImport(target.string(),&eligible,false))return fail("null-plot LAYER source import failed");
+                    Exporter eligibleExporter;
+                    if(!eligibleExporter.fileExport(target.string(),DRW::AC1018,format==1u,&eligible,false,true))
+                        return fail("qualified null-plot LAYER cross-version export failed");
+                    dx_data readback;dx_iface readbackReader;
+                    if(!readbackReader.fileImport(target.string(),&readback,false)||readback.layers.size()!=2u)
+                        return fail("qualified null-plot LAYER output did not reopen");
+                    for(const auto& row:readback.layers) {
+                        std::uint32_t plot=0u;bool present=false;
+                        if(!row.getDxfPlotStyleHandle(plot,present)||!present||plot!=0u||row.flags!=64)
+                            return fail("qualified null-plot LAYER output changed its fields");
+                    }
+                    const auto originalEligible=eligible.layers;
+                    for(unsigned fault=0u;fault!=3u;++fault) {
+                        if(fault==0u)eligible.layers.front().color=3;
+                        if(fault==1u)eligibleExporter.afterObjects=[&](){eligible.layers.front().handlePlotS="E";};
+                        if(fault==2u)eligibleExporter.injectUnexpectedLayer=true;
+                        {std::ofstream priorOutput(target,std::ios::binary|std::ios::trunc);priorOutput<<sentinel;}
+                        if(eligibleExporter.fileExport(target.string(),DRW::AC1018,format==1u,&eligible,false,true))
+                            return fail("changed null-plot LAYER source or output was accepted");
+                        std::ifstream unchanged(target,std::ios::binary);
+                        if(std::string((std::istreambuf_iterator<char>(unchanged)),{})!=sentinel)
+                            return fail("changed null-plot LAYER source or output replaced the destination");
+                        unchanged.close();eligible.layers=originalEligible;eligibleExporter.afterObjects={};eligibleExporter.injectUnexpectedLayer=false;
+                        if(!eligibleExporter.fileExport(target.string(),DRW::AC1018,format==1u,&eligible,false,true))
+                            return fail("restored null-plot LAYER source did not retry");
+                    }
                     author.dxfW=nullptr;storage.layers.clear();
                 }
                 const std::string sentinel="MULTI_LAYER_SOURCE_MUST_NOT_REPLACE_DESTINATION";
@@ -10746,6 +10777,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                 std::ifstream prior(target,std::ios::binary);
                 if (std::string((std::istreambuf_iterator<char>(prior)),{})!=sentinel)
                     return fail("multiple legacy LAYER refusal replaced the destination");
+                prior.close();
                 if (!exporter.fileExport(target.string(),DRW::AC1018,format==1u,&data,false,true))
                     return fail("single legacy LAYER source did not retry after refusal");
             }
@@ -12617,7 +12649,7 @@ bool generatedRootCommonReferenceClosure() {
     return true;
 }
 
-bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
+bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false, bool focusedLegacyPair = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     std::filesystem::path directory;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -12686,7 +12718,12 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
     class Exporter final : public dx_iface {
     public:
         unsigned late{0u};
+        bool injectUnexpectedLayer{false},injectedLayerWritten{false};
         std::function<void()> afterObjects, beforeFinalize;
+        void writeLayers() override {
+            dx_iface::writeLayers();
+            if(injectUnexpectedLayer){DRW_Layer extra;extra.name="UNEXPECTED_LAYER";injectedLayerWritten=dxfW->writeLayer(&extra);}
+        }
         void writeObjects() override { dx_iface::writeObjects(); if (afterObjects) afterObjects(); }
         bool finalizeDxfWrite() override {
             if (late == 1u) cData->imageDefinitions.begin()->second.u += 1.0;
@@ -12772,6 +12809,7 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
             return true;
         };
         for (const auto targetVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false, true}) {
+            if(focusedLegacyPair&&targetVersion!=DRW::AC1015)continue;
             if (version == DRW::AC1027) {
                 const std::string sentinel = "AC1027_UNSELECTED_RASTER_DESTINATION";
                 {
@@ -12824,13 +12862,37 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
                 }
                 ++importedSources;
                 for (const auto outputVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool outputBinary : {false, true}) {
+                    if(focusedLegacyPair&&outputVersion!=DRW::AC1018)continue;
                     if (!exporter.fileExport(target.string(), outputVersion, outputBinary, &imported, false, true) || !check(true))
                         return fail("image dictionary actual-DXF common metadata reexport/readback failed: source="
                             + std::to_string(static_cast<int>(targetVersion)) + " output="
                             + std::to_string(static_cast<int>(outputVersion)) + " binary="
                             + std::to_string(outputBinary));
                     ++importedCells;
+                    if(focusedLegacyPair) {
+                        const auto layers=imported.layers;const auto definitions=imported.imageDefinitions;
+                        const std::string sentinel="IMAGE_TWO_LAYER_LEGACY_DESTINATION";
+                        for(unsigned fault=0u;fault!=5u;++fault) {
+                            if(fault==0u)imported.layers.front().handlePlotS="E";
+                            if(fault==1u)imported.layers.push_back(imported.layers.front());
+                            if(fault==2u)exporter.afterObjects=[&](){imported.layers.front().flags^=1;};
+                            if(fault==3u)exporter.beforeFinalize=[&](){imported.imageDefinitions.begin()->second.u+=1.0;};
+                            if(fault==4u){exporter.injectUnexpectedLayer=true;exporter.injectedLayerWritten=false;}
+                            {std::ofstream output(target,std::ios::binary|std::ios::trunc);output<<sentinel;}
+                            if(exporter.fileExport(target.string(),outputVersion,outputBinary,&imported,false,true)
+                                ||(fault==4u&&!exporter.injectedLayerWritten))return fail("changed IMAGE/two-layer source or output was accepted");
+                            std::ifstream output(target,std::ios::binary);
+                            if(std::string((std::istreambuf_iterator<char>(output)),{})!=sentinel)
+                                return fail("changed IMAGE/two-layer attempt replaced the destination");
+                            output.close();imported.layers=layers;imported.imageDefinitions=definitions;
+                            exporter.afterObjects={};exporter.beforeFinalize={};exporter.injectUnexpectedLayer=false;
+                            if(!exporter.fileExport(target.string(),outputVersion,outputBinary,&imported,false,true)||!check(true))
+                                return fail("restored IMAGE/two-layer source did not retry");
+                            ++importedRetries;
+                        }
+                    }
                 }
+                if(focusedLegacyPair)continue;
                 if (targetVersion != DRW::AC1032 || !binary) continue;
                 const auto sourceDictionaries = imported.dictionaries;
                 const auto sourceDefinitions = imported.imageDefinitions;
@@ -13043,6 +13105,11 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
         }
     }
     if (importedCommonOnly) {
+        if(focusedLegacyPair) {
+            if(cells!=2u||importedSources!=2u||importedCells!=4u||importedRetries!=20u)
+                return fail("focused IMAGE/two-layer matrix skipped a control");
+            std::cout<<"IMAGE/two-layer legacy cells="<<importedCells<<" atomic retries="<<importedRetries<<'\n';return true;
+        }
         if (cells != 12u || importedSources != 12u || importedCells != 144u || importedRetries != 20u || importedLateRetries != 24u || compatibleCells != 4u
             || wireRetries != 176u || guardRetries != 10u || isolationCells != 2u || outputBudgets != 2u)
             return fail("imported image dictionary common matrix skipped a cell");
@@ -95366,6 +95433,8 @@ int main(int argc, char** argv) {
         return generatedDictionaryScalarTransport(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--image-dictionary-imported-common")
         return rootedImageDictionaryUnselectedControls(true) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--image-dictionary-legacy-two-layers")
+        return rootedImageDictionaryUnselectedControls(true,true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--selected-raster-reactor-metadata")
         return rasterDxfLiteralControls() && selectedRasterReactorMetadata() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-image-dictionary-source-identity")

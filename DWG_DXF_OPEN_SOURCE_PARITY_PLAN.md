@@ -697,7 +697,7 @@ dictionary and entity identities to the preplanned graph; focused system and
 bundled codec checks, refusal/retry controls and independent ezdxf readback
 cover that profile; see the [bounded IMAGE receipt](docs/research/p8d-librecad-bounded-image-resave-2026-11-25.json). Remain fail-closed for multi-image or orphan graphs, unknown
 physical fields, nondefault entity attributes, unsupported clipping, source
-files over the capture bound, and cross-version IMAGE graphs. Extend one profile
+files over the capture bound, and unqualified cross-version IMAGE graphs. Extend one profile
 at a time with physical source, reference, destination-preservation, retry and
 independent readback proof before claiming broader support.
 The shared dictionary metadata now retains 350/360 edge roles for typed output;
@@ -706,23 +706,28 @@ The [MATERIAL admission follow-up](docs/research/p8d-librecad-material-dictionar
 Use the [shared version-aware carrier frame check](docs/research/p8d-librecad-shared-dxf-carrier-frame-2026-11-25.json) for the remaining IMAGE dictionary source admission.
 The [shared dictionary carrier check](docs/research/p8d-librecad-dictionary-common-fields-2026-11-25.json) validates the selected common fields and exact key spelling, order, target and role. The single-IMAGE admission also checks its definition, reactor, incoming references and physical entity/definition fields. Native consumer qualification remains open.
 
-The focused `dwg2dxf_image_dictionary_imported_common` regression still fails
-for generated AC1015 input exported strictly to AC1018. A captured generated
-source has two CLASS rows; its dictionary class uses the `DICTIONARYWDFLT` alias
-while the plot-style source check accepts only `ACDBDICTIONARYWDFLT`. It also has
-two physical LAYER rows whose flags and plot-style references differ from the
-single fixed default layer required by that check. ezdxf additionally presents a
-`Defpoints` row after loading; the physical scan does not contain that row. See the [diagnosis](docs/research/p8-image-cross-version-plotstyle-diagnosis-2026-11-25.json).
-The source CLASS alias is now bound to the original spelling, with ASCII/binary
-mutation and restoration controls; see the [alias receipt](docs/research/p8-plotstyle-source-class-alias-2026-11-25.json). Target CLASS output still needs proof. The legacy source observer now isolates both physical LAYER rows in the captured
-profile; the [layer-source receipt](docs/research/p8-legacy-multiple-layer-source-observation-2026-11-25.json) includes ASCII/binary refusal and corrected retry. The [bounded layer inventory](docs/research/p8-legacy-layer-source-inventory-2026-11-25.json) now matches each physical source to an immutable observation and its live row, with changed, missing and duplicate live-row controls. The [source-reference check](docs/research/p8-legacy-layer-plot-reference-classification-2026-11-25.json) classifies exactly one group-390 reference per unchanged source row as either zero or the already verified default placeholder; a different source handle is refused by this profile. A [bounded AC1018 output inspector](docs/research/p8-legacy-null-layer-output-inspector-2026-11-25.json) now checks both mapped layer identities, exact fields and zero references, with staged-output corruption refusal and retry. It is not connected to the export gate. Keep the output refusal and destination preservation. Connect this inspector only after binding its expected rows to the immutable source inventory and target mappings; then prove the target CLASS/placeholder and entire IMAGE graph, including extra-output-row refusal and independent readback. A [two-layer scratch projection](docs/research/p8-legacy-two-layer-projection-peer-2026-11-25.json) shows both source rows and zero plot-style references in readable AC1018 output, with the nondefault handle remapped; it omits the IMAGE graph and is not a strict-export qualification. Require the IMAGE graph's existing source and output proofs and independent
-readback before admitting the cross-version graph. The [eight-row CLASS observer](docs/research/p8-class-shape-eight-row-observation-2026-11-25.json) supplies bounded source-shape
-transport for future larger inventories; it grants no output authority.
+A bounded AC1015-to-AC1018 strict profile now accepts exactly two unchanged
+legacy layers with the verified 11-field shape, flags 64 and explicit zero
+plot-style references. It binds source and emitted identities, inspects exact
+TABLES output and retains the existing plot-style, IMAGE dictionary and graph
+gates. The focused regression covers ASCII/binary source and output, changed
+source, late mutation, extra output, destination preservation and corrected
+retry. The [peer receipt](docs/research/p8-image-two-layer-cross-version-peer-2026-11-25.json)
+records the physical image/extension graph readback and the important limitations
+of both independent tools. No format support claim follows.
+
+The full `dwg2dxf_image_dictionary_imported_common` matrix now reaches its next
+unqualified cell: generated AC1015 source exported strictly to AC1021 is refused
+by the plot-style profile. Preserve the refusal and destination until the
+version-specific source, target class/placeholder, layer output and IMAGE graph
+are proved in both encodings with altered-input/output rejection and independent
+readback. Other layer shapes, reference roles and source/target versions remain
+outside the admitted profile. The [eight-row CLASS observer](docs/research/p8-class-shape-eight-row-observation-2026-11-25.json) remains bounded source transport only.
 The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `08b9ef91f7815c839bc67a5a013d12245745b5f099925a43ceb9e9e0e399b6e1` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `db885e0f610451397a9f1c419a680c916e1a453bd25e22555e1653497b307dcc` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).

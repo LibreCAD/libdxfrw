@@ -4823,6 +4823,7 @@ private:
         bool plotActive{false}, plotObjectsInspected{false};
         std::uint32_t plotTarget{0u}, plotOwner{0u};
         bool legacyPlotCrossVersion{false}, legacyTablesInspected{false}, legacyObjectsInspected{false};
+        bool legacyMultipleNullLayers{false};
         DRW::Version legacyPlotTargetVersion{DRW::UNKNOWNV};
         bool defaultPlotSourceActive{false};
         std::uint32_t defaultPlotDictionarySource{0u};
@@ -4833,6 +4834,7 @@ private:
             owner=nullptr; generation=0u; version=DRW::UNKNOWNV;
             bytes=0u; active=false; inspected=false; plotActive=false; plotObjectsInspected=false; plotTarget=plotOwner=0u;
             legacyPlotCrossVersion=legacyTablesInspected=legacyObjectsInspected=false;
+            legacyMultipleNullLayers=false;
             legacyPlotTargetVersion=DRW::UNKNOWNV;defaultPlotSourceActive=false; defaultPlotDictionarySource=0u;
             defaultPlotPlaceholderSource=0u;
         }
@@ -4840,6 +4842,7 @@ private:
     bool prepareDxfLayerMaterials(DRW::Version) noexcept;
     bool hasUnchangedLegacyPlot() const noexcept;
     bool inspectLegacyPlotTables(const dxfRW::DxfTablesWriteView&) noexcept;
+    static bool hasLegacyNullPlotLayerProfile(const dx_data&) noexcept;
     static bool inspectLegacyNullPlotLayers(const dxfRW::DxfTablesWriteView&,
                                            const std::map<std::uint32_t, UTF8STRING>&) noexcept;
     bool inspectLegacyPlotObjects(const dxfRW::DxfObjectsWriteView&) noexcept;

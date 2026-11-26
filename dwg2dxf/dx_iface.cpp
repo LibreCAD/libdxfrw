@@ -97350,6 +97350,26 @@ bool legacyPlotInt(const dx_standard_output::RecordCursor::Token& token,int code
 }
 }
 
+bool dx_iface::hasLegacyNullPlotLayerProfile(const dx_data& data) noexcept {
+    if(data.sourceFormat!=dx_source_format::DXF||data.sourceVersion!=DRW::AC1015||data.layers.size()!=2u)return false;
+    const auto report=plotStyleSourceReport(data);
+    if(!report.legacyLayerInventoryMatched||!report.legacyLiveLayerInventoryMatched||!report.legacyLayerReferencesMatched)return false;
+    try {
+        unsigned zero=0u;std::set<UTF8STRING> names;
+        for(const auto& layer:data.layers) {
+            std::uint32_t plot=0u;bool present=false;
+            if(!layer.handle||layer.handle==DRW::NoHandle||layer.parentHandle!=2u||layer.name.empty()
+                ||!names.insert(layer.name).second||!std::all_of(layer.name.begin(),layer.name.end(),[](unsigned char c) {
+                    return (c>='A'&&c<='Z')||(c>='a'&&c<='z')||(c>='0'&&c<='9')||c=='_'||c=='-';
+                })||layer.flags!=64||layer.color!=7||layer.color24>=0||!layer.colorName.empty()
+                ||layer.lineType!="CONTINUOUS"||!layer.plotF||DRW_LW_Conv::lineWidth2dxfInt(layer.lWeight)!=-3
+                ||!layer.getDxfPlotStyleHandle(plot,present)||!present||plot!=0u)return false;
+            if(layer.name=="0") {if(layer.handle!=0x10u)return false;++zero;}
+        }
+        return zero==1u;
+    } catch (...) {return false;}
+}
+
 bool dx_iface::hasUnchangedLegacyPlot() const noexcept {
     const auto& state=m_dxfLayerMaterialState;
     if(!state.legacyPlotCrossVersion)return true;
@@ -97360,7 +97380,8 @@ bool dx_iface::hasUnchangedLegacyPlot() const noexcept {
         ||state.legacyPlotTargetVersion==cData->sourceVersion)return false;
     const auto r=plotStyleSourceReport(*cData);
     return r.originalSourcesMatched&&r.legacyClassRowsMatched&&r.legacyLiveClassesMatched
-        &&r.legacyBodiesMatched&&r.legacyLiveBodiesMatched&&r.legacyLayerMatched&&r.legacyLiveLayerMatched;
+        &&r.legacyBodiesMatched&&r.legacyLiveBodiesMatched
+        &&(state.legacyMultipleNullLayers?hasLegacyNullPlotLayerProfile(*cData):r.legacyLayerMatched&&r.legacyLiveLayerMatched);
 }
 
 bool dx_iface::inspectLegacyNullPlotLayers(const dxfRW::DxfTablesWriteView& view,
@@ -97406,6 +97427,15 @@ bool dx_iface::inspectLegacyPlotTables(const dxfRW::DxfTablesWriteView& view) no
     auto& state=m_dxfLayerMaterialState;if(!state.legacyPlotCrossVersion)return true;
     if(!hasUnchangedLegacyPlot()||!dxfW||state.legacyTablesInspected||view.version!=state.legacyPlotTargetVersion)return false;
     try {
+        if(state.legacyMultipleNullLayers) {
+            std::map<std::uint32_t,UTF8STRING> rows;
+            for(const auto& layer:cData->layers) {
+                const auto handle=dxfW->dxfWriteEmittedSourceTableHandle(layer.handle);
+                if(!handle||!rows.emplace(handle,layer.name).second)return false;
+            }
+            if(!inspectLegacyNullPlotLayers(view,rows))return false;
+            state.legacyTablesInspected=true;return true;
+        }
         const auto target=dxfW->remapHandle(0xFu);if(!target||target==DRW::NoHandle)return false;
         unsigned layers=0u;
         const bool good=dx_standard_output::inspectSelected(view,[](std::string_view name,std::uint32_t){return name=="LAYER";},
@@ -97507,6 +97537,10 @@ bool dx_iface::finalizeLegacyPlot() const noexcept {
         if(!dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT",dictionaryClass)
             ||!dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER",placeholderClass))return false;
         dictionaryClass.instanceCount=1;placeholderClass.instanceCount=1;
+        if(state.legacyMultipleNullLayers)for(const auto& layer:cData->layers) {
+            const auto emitted=dxfW->dxfWriteEmittedSourceTableHandle(layer.handle);
+            if(!emitted||!dxfW->dxfWriteSourceTableHasIdentity(layer.handle,emitted,"LAYER",2u))return false;
+        }
         return dxfW->dxfWriteClassMatches(dictionaryClass)&&dxfW->dxfWriteClassMatches(placeholderClass)
             &&dxfW->dxfWriteSourceObjectHasIdentity(0xEu,dict,"ACDBDICTIONARYWDFLT","OBJECTS",root)
             &&dxfW->dxfWriteSourceObjectHasIdentity(0xFu,place,"ACDBPLACEHOLDER","OBJECTS",dict)
@@ -97531,10 +97565,14 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                     &&std::any_of(cData->namedObjectDictionary.m_entries.begin(),cData->namedObjectDictionary.m_entries.end(),
                         [](const auto& entry){return asciiIdentifierEquals(entry.m_name,"ACAD_PLOTSTYLENAME");}));
             if(hasPlotGraph) {
+                const bool multipleNullLayers=cData->sourceVersion==DRW::AC1015&&version==DRW::AC1018
+                    &&hasLegacyNullPlotLayerProfile(*cData);
                 if(!source.originalSourcesMatched || !source.legacyClassRowsMatched || !source.legacyLiveClassesMatched
-                    || !source.legacyBodiesMatched || !source.legacyLiveBodiesMatched || !source.legacyLayerMatched || !source.legacyLiveLayerMatched)
+                    || !source.legacyBodiesMatched || !source.legacyLiveBodiesMatched
+                    || (!multipleNullLayers&&(!source.legacyLayerMatched || !source.legacyLiveLayerMatched)))
                     return false;
-                state.legacyPlotCrossVersion=true;state.legacyPlotTargetVersion=version;state.defaultPlotSourceActive=true;
+                state.legacyPlotCrossVersion=true;state.legacyMultipleNullLayers=multipleNullLayers;
+                state.legacyPlotTargetVersion=version;state.defaultPlotSourceActive=true;
                 state.defaultPlotDictionarySource=0xEu;state.defaultPlotPlaceholderSource=0xFu;return true;
             }
         }

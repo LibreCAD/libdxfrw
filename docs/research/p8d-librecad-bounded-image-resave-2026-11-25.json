@@ -55,9 +55,9 @@
   "remaining_failure": {
     "test": "dwg2dxf_image_dictionary_imported_common",
     "source": "AC1015",
-    "target": "AC1018",
-    "observation": "Strict cross-version output refuses at the LAYER plot-style source profile. A captured generated source has two CLASS rows, with DICTIONARYWDFLT as the dictionary class alias, and two physical LAYER rows with flags and plot-style references outside the one-layer profile.",
-    "next": "Bind and verify the exact source CLASS alias and each physical/live/output LAYER and plot-style reference; keep the refusal and transactional checks until the full graph is proven."
+    "target": "AC1021",
+    "observation": "The bounded two-layer AC1015-to-AC1018 profile now passes; the broader matrix reaches and refuses the next target.",
+    "next": "Prove the version-specific source, layer output, target class/placeholder and complete IMAGE graph before extending the profile."
   },
   "claims": "All format claims remain EXPERIMENTAL."
 }

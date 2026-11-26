@@ -4049,6 +4049,10 @@ add_test(NAME dwg2dxf_image_dictionary_imported_common
     COMMAND libdxfrw_dwg2dxf_adapter_tests --image-dictionary-imported-common)
 set_tests_properties(dwg2dxf_image_dictionary_imported_common PROPERTIES
     LABELS "fast;dwg;dxf;image;dictionary;adapter;generated" TIMEOUT 45)
+add_test(NAME dwg2dxf_image_dictionary_legacy_two_layers
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --image-dictionary-legacy-two-layers)
+set_tests_properties(dwg2dxf_image_dictionary_legacy_two_layers PROPERTIES
+    LABELS "fast;dwg;dxf;image;dictionary;adapter;generated;transaction" TIMEOUT 45)
 add_test(NAME dwg2dxf_generated_dictionary_scalar_transport
     COMMAND libdxfrw_dwg2dxf_adapter_tests --generated-dictionary-scalar-transport)
 set_tests_properties(dwg2dxf_generated_dictionary_scalar_transport PROPERTIES
