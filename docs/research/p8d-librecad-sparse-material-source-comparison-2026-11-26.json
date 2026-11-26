@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-source-comparison-2026-11-26",
+  "supportClaimEffect": "none",
+  "consumerCommit": "ea0683de3c3d60f45e045b365573ed82745cd157",
+  "libraryCommit": "4e41aaa5ce0fbc04e26b495bd1ae920963dd3493",
+  "implementationDigestSha256": "1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be",
+  "change": "Before refusing a raw-only MATERIAL export, compare the retained source with the unique live carrier, exact group values and raw spellings, and selected typed identity/owner/reactor fields. Report changed, missing or unverified source separately from an unchanged graph awaiting qualification. An unavailable snapshot retains a conflict marker; clearing the raw-only flag cannot bypass the guard while the snapshot or marker exists. Export is still refused in both cases.",
+  "validation": {
+    "systemMaterial": "PASS: real LibreCAD system-codec MATERIAL selector, 569 assertions in six cases. Locally generated ASCII and binary R2010 controls exercise source capture, unchanged and changed diagnostics, raw spelling, numeric payload, embedded-NUL name, typed name, owner and reactor edits, duplicate carriers, cleared marker, unavailable oversized source, destination preservation and successful same-filter retry with a clean document.",
+    "consumerCompatibility": "PASS: system-codec linetype selector 4967 assertions in 56 cases; bundled-codec selector 1282 assertions in 52 cases.",
+    "build": "Both system and bundled codec targets rebuilt against the changed metadata layout."
+  },
+  "limits": [
+    "The comparison covers a bounded source profile and selected typed identity; it is not complete dictionary, layer, current-material, output or native semantic proof.",
+    "The default consumer still does not opt in and every raw-only material export remains refused.",
+    "No generated drawing was committed and no support claim was promoted.",
+    "Final platform and hosted qualification remain open."
+  ]
+}

@@ -19,8 +19,10 @@ evidence are recorded in `docs/research/` and Git history.
   before enabling consumer capture or weakening the existing export guard.
   The [bounded source-snapshot prerequisite](docs/research/p8d-librecad-sparse-material-source-snapshot-2026-11-26.json)
   retains immutable copies for the explicitly opted-in small-source profile;
-  it does not enable replay. Next compare every live carrier and typed field
-  against its source snapshot and bind the complete dictionary and references.
+  it does not enable replay. The [source comparison](docs/research/p8d-librecad-sparse-material-source-comparison-2026-11-26.json)
+  checks the retained payload, modeled identity and common links in ASCII and
+  binary, and retains an unavailable-source marker if capture fails. Next bind
+  the complete dictionary, layer and current-material references and output.
   Validate the entire ACAD_MATERIAL dictionary, exact raw carriers, source
   identities, owners/reactors, layer and current-material references, handle
   uniqueness and remapping. Refuse missing, replaced, edited, cross-version or
@@ -63,7 +65,7 @@ evidence are recorded in `docs/research/` and Git history.
   including final-head hosted checks and native consumers. Current implementation
   digest: 1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be
   (775 inputs). LibreCAD consumer head:
-  368c6f17117923847247fe9dd03a724e8d989818. Prior platform receipts apply only
+  ea0683de3c3d60f45e045b365573ed82745cd157. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list; rerun that job on
   the pushed head. All format claims remain EXPERIMENTAL.
