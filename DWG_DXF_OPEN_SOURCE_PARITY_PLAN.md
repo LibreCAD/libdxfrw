@@ -47,8 +47,10 @@ evidence are recorded in `docs/research/` and Git history.
   binds the parsed original `$CMATERIAL` presence and handle. The
   [opt-in physical HEADER observer](docs/research/p8d-dxf-header-material-physical-source-2026-11-26.json)
   exposes bounded source spans and original handle spelling, including the
-  [CRLF offset control](docs/research/p8d-dxf-header-material-crlf-2026-11-26.json); connect it to
-  the consumer's parsed snapshot and independently verify source/readback.
+  [CRLF offset control](docs/research/p8d-dxf-header-material-crlf-2026-11-26.json).
+  The [consumer binding](docs/research/p8d-librecad-header-material-physical-binding-2026-11-26.json)
+  checks those observations against its parsed snapshot for the bounded opt-in
+  profile. Independently verify source/readback and the complete graph.
   Next bind references to staged output
   and independent readback.
   Validate the entire ACAD_MATERIAL dictionary, exact raw carriers, source
@@ -98,7 +100,7 @@ evidence are recorded in `docs/research/` and Git history.
   digest: 58dad684a3d7462791c10f98d4c5f3b55aa024fce91dba2474451a95e065709c
   (778 inputs). The physical HEADER observer changes selected inputs,
   so earlier digest-bound results remain historical. LibreCAD consumer head:
-  21600b3931430f2ba757e97b06120f12628ac203. Prior platform receipts apply only
+  b25f463bb529305a9248801b1e18752791ad2365. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`; revalidate the final
