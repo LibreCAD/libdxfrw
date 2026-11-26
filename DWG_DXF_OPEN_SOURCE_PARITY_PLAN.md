@@ -16,7 +16,10 @@ evidence are recorded in `docs/research/` and Git history.
 ## Ready work and cross-cutting dependencies
 
 - **Sparse MATERIAL / LibreCAD:** qualify complete same-version raw replay
-  before enabling consumer capture or weakening the existing export guard.
+  before weakening the consumer export guard. The [converter profile](docs/research/p8d-ac1024-sparse-default-material-converter-2026-11-26.json)
+  now transports the unchanged 61-group AC1024 default-material graph in the
+  original encoding, with staged checks, retry, and independent graph and
+  group readback. Cross-encoding, edits, and broader semantics remain open.
   The [bounded source-snapshot prerequisite](docs/research/p8d-librecad-sparse-material-source-snapshot-2026-11-26.json)
   retains immutable copies for the explicitly opted-in small-source profile;
   it does not enable replay. The [source comparison](docs/research/p8d-librecad-sparse-material-source-comparison-2026-11-26.json)
@@ -75,10 +78,10 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 06ba732933db713765991ea93821f76e28915ba5b9ccc9488dc5499ab55c97c1
+  digest: 79eea461c1de25cf2085efe2e023d7f2695b3ab3e953c684fad7485da16ebbb5
   (775 inputs). The namespace-source feature macro changes the selected header,
   so earlier digest-bound results remain historical. LibreCAD consumer head:
-  d04cf16c7b632f8f0c6e3b3205b942c48904c315 (local; pushed head may lag). Prior platform receipts apply only
+  d04cf16c7b632f8f0c6e3b3205b942c48904c315. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`; revalidate the final
@@ -376,7 +379,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `06ba732933db713765991ea93821f76e28915ba5b9ccc9488dc5499ab55c97c1` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `79eea461c1de25cf2085efe2e023d7f2695b3ab3e953c684fad7485da16ebbb5` (775 inputs); platform and native qualification remain open.
 
 The earlier [focused CI receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 applies to its recorded digest, not this candidate. Recheck current-head CI and

@@ -28950,17 +28950,12 @@ bool dxfRW::processMaterial() {
     bool pendingCompactTail = false;
     bool pendingMinimalChannelTail = false;
     bool pendingEzdxfDefaultMaterial = false;
-    constexpr int ezdxfDefaultCodes[] = {5,102,330,102,330,100,1,2,70,40,
-        71,41,91,42,72,3,73,74,75,44,73,45,46,77,4,78,79,170,
-        48,171,6,172,173,174,140,141,175,7,176,177,178,143,179,
-        8,270,271,272,145,146,273,9,274,275,276,42,72,3,73,74,75,94};
-    constexpr std::size_t ezdxfDefaultPrefixSize = 20u;
     // ezdxf's default AC1024 MATERIAL profile emits a second group 73 after
     // specular gloss, where Autodesk documents group 76. Treat only this
     // bounded shape as opaque; never assign either meaning to the second 73.
     const auto isEzdxfDefaultPrefix = [&]() {
         if (reader->getSourceVersion() != DRW::AC1024
-            || raw.groups.size() != ezdxfDefaultPrefixSize
+            || raw.groups.size() != dxfMaterial::ezdxfDefaultPrefixSize
             || raw.handle == 0u || raw.handle == DRW::NoHandle
             || raw.parentHandle == 0u || raw.parentHandle == DRW::NoHandle
             || data.handle != raw.handle || data.parentHandle != raw.parentHandle
@@ -28971,7 +28966,7 @@ bool dxfRW::processMaterial() {
                 && data.m_name != "Global"))
             return false;
         for (std::size_t i = 0; i != raw.groups.size(); ++i)
-            if (raw.groups[i].code() != ezdxfDefaultCodes[i]) return false;
+            if (raw.groups[i].code() != dxfMaterial::ezdxfDefaultCodes[i]) return false;
         const auto text = [&raw](std::size_t i, const char* value) {
             return raw.groups[i].type() == DRW_Variant::STRING
                 && raw.groups[i].c_str() != nullptr
@@ -28979,16 +28974,6 @@ bool dxfRW::processMaterial() {
         };
         return text(1u, "{ACAD_REACTORS") && text(3u, "}")
             && text(5u, "AcDbMaterial");
-    };
-    const auto hasCompleteEzdxfDefaultShape = [&]() {
-        if (raw.groups.size() != sizeof(ezdxfDefaultCodes) / sizeof(ezdxfDefaultCodes[0])) return false;
-        for (std::size_t i = 0; i != raw.groups.size(); ++i) {
-            const DRW_Variant& group = raw.groups[i];
-            if (group.code() != ezdxfDefaultCodes[i]
-                || (group.type() == DRW_Variant::DOUBLE
-                    && !std::isfinite(group.d_val()))) return false;
-        }
-        return raw.groups.back().i_val() == 63;
     };
     // A bounded R2007 prefix with only common metadata and a material name
     // makes a final group 94 unambiguous without guessing any map fields.
@@ -29084,7 +29069,7 @@ bool dxfRW::processMaterial() {
         if (code == 0) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
-            if (pendingEzdxfDefaultMaterial && !hasCompleteEzdxfDefaultShape())
+            if (pendingEzdxfDefaultMaterial && !dxfMaterial::hasEzdxfDefaultShape(raw.groups))
                 return setError(DRW::BAD_CODE_PARSED);
             // Pending sparse/minimal tails are marked raw-only below. Check
             // their policy before publishing either callback as well.

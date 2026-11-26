@@ -338,6 +338,28 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         const CommonEqual& commonEqual) {
     const bool sourceBinary=!baseline.hasRawValues;
     if (typed.requiresRawDxfMaterialReplay()) {
+        // The AC1024 default shape has an ambiguous second group 73. Replay
+        // only its unchanged source, in the same encoding, after matching the
+        // modeled prefix; staged OBJECTS inspection still verifies output.
+        if (baseline.m_version==DRW::AC1024 && dxfMaterial::hasEzdxfDefaultShape(baseline.groups)) {
+            if (binary!=sourceBinary || raw.name!=baseline.name || raw.handle!=baseline.handle
+                || raw.parentHandle!=baseline.parentHandle || raw.m_version!=baseline.m_version
+                || raw.hasRawValues!=baseline.hasRawValues || raw.rawValues!=baseline.rawValues
+                || raw.groups.size()!=baseline.groups.size()
+                || (baseline.hasRawValues && baseline.rawValues.size()!=baseline.groups.size())
+                || (typed.m_name!="ByBlock" && typed.m_name!="ByLayer" && typed.m_name!="Global"))
+                return false;
+            for (std::size_t i=0;i<raw.groups.size();++i)
+                if (!equal(raw.groups[i],baseline.groups[i])) return false;
+            DRW_RawDxfObject prefix=baseline;
+            prefix.groups.resize(dxfMaterial::ezdxfDefaultPrefixSize);
+            if(prefix.hasRawValues)prefix.rawValues.resize(dxfMaterial::ezdxfDefaultPrefixSize);
+            DRW_Material original;
+            if(!decode(prefix,original,sourceBinary)
+                || !commonEqual(original,typed,baseline.m_version)
+                || !dxfMaterial::sameBodyState(original,typed)) return false;
+            output=raw;name=typed.m_name;return true;
+        }
         constexpr int codes[]={5,102,330,102,330,100,1,72,94};
         if (baseline.m_version!=DRW::AC1027 || baseline.groups.size()!=9u
             || (baseline.hasRawValues && baseline.rawValues.size()!=baseline.groups.size())

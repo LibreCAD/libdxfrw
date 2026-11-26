@@ -10,6 +10,34 @@
 #include "../drw_objects.h"
 #include "dxfwriter.h"
 namespace dxfMaterial {
+// Bounded AC1024 raw-only default shape. The second group 73 has no assigned
+// typed meaning; the complete source must remain opaque and unchanged.
+constexpr int ezdxfDefaultCodes[] = {5,102,330,102,330,100,1,2,70,40,
+    71,41,91,42,72,3,73,74,75,44,73,45,46,77,4,78,79,170,
+    48,171,6,172,173,174,140,141,175,7,176,177,178,143,179,
+    8,270,271,272,145,146,273,9,274,275,276,42,72,3,73,74,75,94};
+constexpr std::size_t ezdxfDefaultPrefixSize = 20u;
+
+inline bool hasEzdxfDefaultShape(const std::vector<DRW_Variant>& groups) {
+    if (groups.size() != sizeof(ezdxfDefaultCodes) / sizeof(ezdxfDefaultCodes[0]))
+        return false;
+    for (std::size_t i = 0; i != groups.size(); ++i) {
+        const auto& group = groups[i];
+        const int code = ezdxfDefaultCodes[i];
+        const bool stringCode = code <= 9 || code == 100 || code == 102 || code == 330;
+        const bool doubleCode = (code >= 40 && code <= 59) || (code >= 140 && code <= 149);
+        const bool colorCode = code == 91;
+        if (group.code() != code
+            || (stringCode && (group.type() != DRW_Variant::STRING || !group.content.s))
+            || (doubleCode && (group.type() != DRW_Variant::DOUBLE || !std::isfinite(group.d_val())))
+            || (colorCode && group.type() != DRW_Variant::INTEGER64)
+            || (!stringCode && !doubleCode && !colorCode && group.type() != DRW_Variant::INTEGER))
+            return false;
+    }
+    const int boundary = groups[ezdxfDefaultPrefixSize].i_val();
+    return (boundary == 0 || boundary == 1) && groups.back().i_val() == 63;
+}
+
 inline bool validBody(const DRW_Material& value) {
     const auto* ent = &value;
     if (ent->requiresRawDxfMaterialReplay()) return false;

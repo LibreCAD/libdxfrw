@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-ac1024-sparse-default-material-converter-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateParent": "d1222d0c",
+  "implementationDigestSha256": "79eea461c1de25cf2085efe2e023d7f2695b3ab3e953c684fad7485da16ebbb5",
+  "converterSha256": "468f4425e8c6969fdcb06f65f631633bd23f71d364ff0b1c5eae3a68b9e88357",
+  "scope": "Unchanged AC1024 61-group raw-only default MATERIAL bodies, same source/target version and encoding, within the existing checked converter graph path.",
+  "sources": {
+    "asciiSha256": "1e1c60ea74dad3bfea8670929f9160d112b45a0dde1edbc422a34b28e9960009",
+    "binarySha256": "48cd58f6b4967ea10ebc8df394ef45ae8b0735efff4b6e75a74b60f8dfb32470",
+    "collisionAsciiSha256": "19e8e86688a1f55213328e38fef1057cc854037c29e9c5d95c87534b10380268",
+    "provenance": "Locally authored scratch drawings; no fixture committed."
+  },
+  "results": {
+    "baseline": "New graph regression returned 33 before the reconciliation change; scratch ASCII and binary conversion both refused.",
+    "fast": "Two owning CTests passed, including ASCII/binary and noncollision/collision cases, raw and typed edits, dictionary loss, late mutation, destination preservation, same-writer retry, and cross-version/encoding refusal.",
+    "asan": "Targeted compact graph test passed with AddressSanitizer, detect_leaks=0.",
+    "peer": "ezdxf 1.4.5 read both outputs and confirmed all three dictionary targets, $CMATERIAL and LAYER links; all 61 group/value pairs for each material matched the source in both encodings. For the collision case, the ByBlock handle was remapped from 1F to 6B, links resolved to 6B, and all 183 material groups matched after applying that remap.",
+    "asciiOutputSha256": "628665d8f0aaa68084fe746794bf3ca774e09b13ba4ddf79f678f0f8627db13b",
+    "binaryOutputSha256": "a5f603ac35fef249fd1f02bf4afd07b094894812039c8494df3da80b21d46476",
+    "collisionOutputSha256": "10b5f328227d933b974621d7ff13a3d6d5327e211821a789cdcd2afd00a09bd1"
+  },
+  "limits": [
+    "The ambiguous second group 73 is retained opaquely; no native material/rendering semantics are inferred.",
+    "LibreCAD consumer raw-only replay remains refused; the HEADER source observation is parsed state, not independent physical-span proof.",
+    "Other versions, cross-encoding conversion, body edits, broader graphs and final platform/native qualification remain open."
+  ]
+}
