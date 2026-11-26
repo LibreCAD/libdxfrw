@@ -125,9 +125,10 @@ evidence are recorded in `docs/research/` and Git history.
   destination preservation and retry. Preserve nonempty paper-space contents.
   Bound or gracefully degrade whole-table source capture on large ASCII files;
   binary imports already opt out. Resolve the R12/R14 orphan paper-space audit
-  without discarding content. Run independent physical/semantic peer checks and
-  native save/reopen/render/edit on the final consumer and codec heads; qualify
-  hosted Linux and Windows independently.
+  without discarding content. Extend independent physical/semantic peer checks
+  beyond the selected five-version MPOLYGON control and run native
+  save/reopen/render/edit on the final consumer and codec heads; qualify hosted
+  Linux and Windows independently.
 - **AC1012:** reuse the locally authored specification-directed pair and
   shared version-aware frame, dictionary and handle-role checks. The
   [current-candidate recheck](docs/research/p6-ac1012-existing-spec-pair-current-recheck-2026-11-26.json)
