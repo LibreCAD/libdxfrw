@@ -1,0 +1,110 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "9b6153da593ff54f40a04681a4256cfab70fe166",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "scope": "Same-revision binary DXF R2000-R2013 replay for the checked canonical three-block and three-layout graph with the exact Normal plot-style pair; other block records, unknown objects, and other unverified graphs remain outside this profile.",
+  "platform": "macOS ARM64",
+  "persistence_library_sha256": "1c5074936b833280aa62db6aca3170ebfed85dee892ca6d0fffef5a56bc30275",
+  "layout_test_sha256": "af85273425eb05128375757e4a8785d9a93f21f4ae1cc30ef912af226f49ef1a",
+  "focused_tests": {
+    "layout_graph": 10,
+    "dxf_roundtrip_and_export": 71,
+    "plan_checker": 31,
+    "older_bundled_codec_headers": "syntax-only pass with pre-existing warnings"
+  },
+  "failure_controls": [
+    "extra block record stays unverified",
+    "unknown XRECORD stays unverified; existing destination preserved",
+    "same writer refusal and corrected retry"
+  ],
+  "independent_reader": "ezdxf 1.4.5",
+  "independent_checks": "Ten locally generated source/replay pairs: three layouts and target LINE endpoints verified; zero audit errors and fixes.",
+  "outputs": [
+    {
+      "file": "/private/tmp/lc3-binary-checked-replay-main-9-20261126.dxf",
+      "sha256": "a141c4976f5cf2cad36095c1e727a3a28321b682b2d9cc13f654ac9c01b55d22",
+      "dxf_version": "AC1015",
+      "target_layout": "Layout1",
+      "errors": 0,
+      "fixes": 0
+    },
+    {
+      "file": "/private/tmp/lc3-binary-checked-replay-extra-9-20261126.dxf",
+      "sha256": "cbeec845e53a29e2d2e33acb922ab1533ac41159cbb8dd9b92e48d2f2673e526",
+      "dxf_version": "AC1015",
+      "target_layout": "Layout2",
+      "errors": 0,
+      "fixes": 0
+    },
+    {
+      "file": "/private/tmp/lc3-binary-checked-replay-main-10-20261126.dxf",
+      "sha256": "957492a1a8594c613b1f4dc8b10b23e59716c3b494909951b3375d1eb979af4f",
+      "dxf_version": "AC1018",
+      "target_layout": "Layout1",
+      "errors": 0,
+      "fixes": 0
+    },
+    {
+      "file": "/private/tmp/lc3-binary-checked-replay-extra-10-20261126.dxf",
+      "sha256": "d72aba084d4ccad3806010d9a3475670499c6a8bbf26231bef8fd861982a72c0",
+      "dxf_version": "AC1018",
+      "target_layout": "Layout2",
+      "errors": 0,
+      "fixes": 0
+    },
+    {
+      "file": "/private/tmp/lc3-binary-checked-replay-main-11-20261126.dxf",
+      "sha256": "f1eb02cd9e292397c6d249847694b435da6b96ee24686f72298b5f8f1b3df52b",
+      "dxf_version": "AC1021",
+      "target_layout": "Layout1",
+      "errors": 0,
+      "fixes": 0
+    },
+    {
+      "file": "/private/tmp/lc3-binary-checked-replay-extra-11-20261126.dxf",
+      "sha256": "58134f6d042a20a4bca18c431e23cdd8bd27c18e9982eee0fd2f393a12a83a16",
+      "dxf_version": "AC1021",
+      "target_layout": "Layout2",
+      "errors": 0,
+      "fixes": 0
+    },
+    {
+      "file": "/private/tmp/lc3-binary-checked-replay-main-12-20261126.dxf",
+      "sha256": "f561e4e051150fe6eaf8b06ae82fb18718846d673763fd7cac79ffaf4004d499",
+      "dxf_version": "AC1024",
+      "target_layout": "Layout1",
+      "errors": 0,
+      "fixes": 0
+    },
+    {
+      "file": "/private/tmp/lc3-binary-checked-replay-extra-12-20261126.dxf",
+      "sha256": "1b9591b115df322a72af733c9b4fe693429a024283963203158961b6c5b9c2eb",
+      "dxf_version": "AC1024",
+      "target_layout": "Layout2",
+      "errors": 0,
+      "fixes": 0
+    },
+    {
+      "file": "/private/tmp/lc3-binary-checked-replay-main-13-20261126.dxf",
+      "sha256": "ce69ebfeec0b3afb11ea147ec217db4006ece9117a60c0f3183531a94a6e55e9",
+      "dxf_version": "AC1027",
+      "target_layout": "Layout1",
+      "errors": 0,
+      "fixes": 0
+    },
+    {
+      "file": "/private/tmp/lc3-binary-checked-replay-extra-13-20261126.dxf",
+      "sha256": "ab60fc9be87f999f090ae16bb94905cd23d76b44da995d734ac6204a1f4b3cb3",
+      "dxf_version": "AC1027",
+      "target_layout": "Layout2",
+      "errors": 0,
+      "fixes": 0
+    }
+  ],
+  "limitations": [
+    "Generated controls are not independent producer samples.",
+    "No native rendering, GUI, Windows, Linux or FreeCAD qualification.",
+    "Other layout counts, additional block records, resources, and cross-revision replay remain unqualified."
+  ]
+}
