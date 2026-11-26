@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-26",
+  "scope": "Check live layer and current-material references against the bounded sparse-MATERIAL dictionary, without authorizing replay",
+  "libdxfrw_candidate": "4e41aaa5ce0fbc04e26b495bd1ae920963dd3493",
+  "libdxfrw_implementation_digest": "1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be",
+  "librecad_commit": "547ea9d56de750656ea04b0a4354d6c77126e0a9",
+  "evidence": [
+    "Live imported layer group-347 links and $CMATERIAL group-347 links must be null or point to an entry in the already checked material dictionary.",
+    "Locally authored drawings check a valid and a missing layer target with a valid physical $CMATERIAL field. Additional live-state tests check valid, missing, malformed-code, malformed-value and null current-material handles.",
+    "System-codec MATERIAL tests: 652 assertions in 6 cases. System linetype: 4967 assertions in 56 cases; bundled linetype: 1282 assertions in 52 cases.",
+    "Tests create scratch drawings locally; no fixture files were committed."
+  ],
+  "remaining": "Physical provenance of the layer and HEADER links, output handle remapping and staging, independent readback, and successful output retry remain open. The guard continues to refuse raw-only replay."
+}

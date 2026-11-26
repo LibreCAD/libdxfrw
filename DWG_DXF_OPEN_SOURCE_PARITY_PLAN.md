@@ -28,7 +28,9 @@ evidence are recorded in `docs/research/` and Git history.
   checks the captured root against its typed frame and the captured child
   against typed and live raw frames. The [target check](docs/research/p8d-librecad-sparse-material-dictionary-targets-2026-11-26.json)
   checks all selected-dictionary entries, including unreferenced siblings.
-  Next bind layer and current-material references and the staged output.
+  The [consumer reference check](docs/research/p8d-librecad-sparse-material-live-references-2026-11-26.json)
+  checks live layer and current-material targets. Next establish their source
+  provenance and bind them to staged output and independent readback.
   Validate the entire ACAD_MATERIAL dictionary, exact raw carriers, source
   identities, owners/reactors, layer and current-material references, handle
   uniqueness and remapping. Refuse missing, replaced, edited, cross-version or
@@ -71,7 +73,7 @@ evidence are recorded in `docs/research/` and Git history.
   including final-head hosted checks and native consumers. Current implementation
   digest: 1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be
   (775 inputs). LibreCAD consumer head:
-  547efc991c69b4f0107b02ea5a430e4407ce84a2 (local; pushed head may lag). Prior platform receipts apply only
+  547ea9d56de750656ea04b0a4354d6c77126e0a9. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45778518603)
   passed on `e458fcb5fb2ad253f28fae58e97cc7a0dbe047ff`; revalidate the final
