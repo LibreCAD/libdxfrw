@@ -65,7 +65,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`7a6908b2b2e46663feafaf3a47193667fbaa5400`. The prior merge head built the
+`9380a4b4545311ee18d7b47b0690fe69f91c95da`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -700,7 +700,7 @@ The shared dictionary metadata now retains 350/360 edge roles for typed output;
 see the [focused consumer receipt](docs/research/p8d-librecad-dictionary-entry-roles-2026-11-25.json).
 The [MATERIAL admission follow-up](docs/research/p8d-librecad-material-dictionary-role-check-2026-11-25.json) checks typed/raw entry roles and refuses a root role the generated-root path cannot preserve.
 Use the [shared version-aware carrier frame check](docs/research/p8d-librecad-shared-dxf-carrier-frame-2026-11-25.json) for the remaining IMAGE dictionary source admission.
-The [shared dictionary edge check](docs/research/p8d-librecad-shared-dictionary-edges-2026-11-25.json) validates exact key spelling, order, target and role; IMAGE admission must still validate its non-edge fields and dependencies.
+The [shared dictionary carrier check](docs/research/p8d-librecad-dictionary-common-fields-2026-11-25.json) now validates the selected common fields and exact key spelling, order, target and role. IMAGE admission must still validate definition/reactor dependencies and incoming references.
 The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be

@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-25",
+  "scope": "Validate typed and physical DXF dictionary cloning and hard-owner fields before raw replay",
+  "librecadCommit": "9380a4b4545311ee18d7b47b0690fe69f91c95da",
+  "codecImplementationDigestSha256": "73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad",
+  "implementation": "Extend the shared selected-profile dictionary carrier check to require the AcDbDictionary subclass, compare hard-owner and cloning values including raw numeric lexemes, and reject duplicate or unknown non-edge fields. Default absent values are zero.",
+  "validation": {
+    "systemCodecBuild": "PASS",
+    "focusedSystemTests": "4/4 PASS, 380 assertions; includes changed cloning and ownership, raw numeric mismatch, stale role/name/order, destination preservation and corrected same-filter retry",
+    "fullSuite": "not run"
+  },
+  "limits": [
+    "Unknown fields and application groups remain outside this bounded raw-replay profile.",
+    "The IMAGE definition/reactor graph and other incoming dependencies still require explicit admission; the IMAGE resave gate is open."
+  ]
+}
