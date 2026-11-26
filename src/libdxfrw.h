@@ -118,6 +118,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_REFERENCE_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_OBJECT_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_DEFINITION_SCALAR_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_IMAGE_ENTITY_SCALAR_INSPECTOR 1
 class dxfRW {
 public:
     using ImageDefinitionKey = std::pair<std::uint64_t, std::uint32_t>;
@@ -305,13 +306,15 @@ public:
         std::uint32_t owner{0u};
         std::uint32_t definition{0u};
         std::uint32_t reactor{0u};
+        // Optional borrowed scalar expectation, valid only during inspection.
+        const DRW_Image* scalarFields{nullptr};
     };
     /** Check every IMAGE in one staged BLOCKS or ENTITIES body against
      * caller-supplied emitted handles. An owner of zero requires group 330
      * to be absent. Call only with the active inspector's
-     * borrowed view. This checks selected reference roles and completeness
-     * of the IMAGE list, not image fields, target objects, source provenance
-     * or final publication. */
+     * borrowed view. An optional scalarFields checks the bounded rectangular
+     * IMAGE geometry and display fields. This does not prove common entity
+     * fields, target objects, source provenance or final publication. */
     bool inspectDxfImageOutputReferences(
         const DxfObjectsWriteView& view,
         const std::vector<DxfImageOutputReferences>& expected) const noexcept;

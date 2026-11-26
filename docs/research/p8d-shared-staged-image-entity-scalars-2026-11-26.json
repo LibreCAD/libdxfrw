@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-image-entity-scalars-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "12602980717cd7dc6c971d219d113f027328e71a15ef35021e8a59374da4e024",
+  "change": "Optionally compare staged IMAGE class, 3D insertion and vectors, size, display fields, rectangular clip vertices and versioned clip mode against a borrowed typed expectation.",
+  "checks": [
+    "PASS: generated R14\u2013R2018 ASCII/Binary standalone and LibreCAD-profile controls, including mismatched geometry, display and clipping refusal, destination preservation, same-writer retry and readback.",
+    "PASS: the focused matrix under macOS AddressSanitizer.",
+    "PASS: offline Linux ARM64 GCC 13 warning-as-error syntax checks of the library and regression test.",
+    "PASS: source-release inventory and qualification digest."
+  ],
+  "limits": [
+    "The optional check is limited to rectangular two-vertex clipping and does not prove common entity fields, source provenance, target graph, native semantics or multi-image export.",
+    "The consumer has not yet enabled this optional check."
+  ]
+}

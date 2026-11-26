@@ -4676,6 +4676,8 @@ bool dxfRW::inspectDxfImageOutputReferences(
         std::map<std::uint32_t, DxfImageOutputReferences> records;
         for (const auto& item : expected)
             if (!item.image || !item.definition || !item.reactor
+                || (item.scalarFields && (item.scalarFields->clipPath.size() != 2u
+                    || item.scalarFields->m_clipBoundaryType != 1))
                 || !records.emplace(item.image, item).second) return false;
         std::set<std::uint32_t> seen;
         return dx_raster_output::inspect(view.bytes, view.binary,
@@ -4686,6 +4688,7 @@ bool dxfRW::inspectDxfImageOutputReferences(
                 dx_raster_output::Cursor cursor(body, view.binary, profile);
                 dx_raster_output::Token token;
                 unsigned depth = 0, owners = 0, subclasses = 0, definitions = 0, reactors = 0;
+                unsigned scalarMask = 0, clipValues = 0;
                 bool raster = false;
                 while (!cursor.done()) {
                     if (!cursor.next(token)) return false;
@@ -4706,10 +4709,54 @@ bool dxfRW::inspectDxfImageOutputReferences(
                         else if (token.code == 340) {
                             if (++definitions != 1u || target != found->second.definition) return false;
                         } else if (++reactors != 1u || target != found->second.reactor) return false;
+                    } else if (!depth && raster && found->second.scalarFields) {
+                        const auto& expected = *found->second.scalarFields;
+                        unsigned bit = 0;
+                        bool matched = true;
+                        double real = 0;
+                        switch (token.code) {
+                        case 90: bit = 1u << 0; matched = token.type == dx_raster_output::Kind::Integer && token.number == expected.m_classVersion; break;
+                        case 10: bit = 1u << 1; real = expected.basePoint.x; break;
+                        case 20: bit = 1u << 2; real = expected.basePoint.y; break;
+                        case 30: bit = 1u << 3; real = expected.basePoint.z; break;
+                        case 11: bit = 1u << 4; real = expected.secPoint.x; break;
+                        case 21: bit = 1u << 5; real = expected.secPoint.y; break;
+                        case 31: bit = 1u << 6; real = expected.secPoint.z; break;
+                        case 12: bit = 1u << 7; real = expected.vVector.x; break;
+                        case 22: bit = 1u << 8; real = expected.vVector.y; break;
+                        case 32: bit = 1u << 9; real = expected.vVector.z; break;
+                        case 13: bit = 1u << 10; real = expected.sizeu; break;
+                        case 23: bit = 1u << 11; real = expected.sizev; break;
+                        case 70: bit = 1u << 12; matched = token.type == dx_raster_output::Kind::Integer && token.number == expected.m_displayProps; break;
+                        case 280: bit = 1u << 13; matched = token.type == dx_raster_output::Kind::Integer && token.number == expected.clip; break;
+                        case 281: bit = 1u << 14; matched = token.type == dx_raster_output::Kind::Integer && token.number == expected.brightness; break;
+                        case 282: bit = 1u << 15; matched = token.type == dx_raster_output::Kind::Integer && token.number == expected.contrast; break;
+                        case 283: bit = 1u << 16; matched = token.type == dx_raster_output::Kind::Integer && token.number == expected.fade; break;
+                        case 71: bit = 1u << 17; matched = token.type == dx_raster_output::Kind::Integer && token.number == 1; break;
+                        case 91: bit = 1u << 18; matched = token.type == dx_raster_output::Kind::Integer && token.number == 2; break;
+                        case 290:
+                            if (view.version < DRW::AC1024) return false;
+                            bit = 1u << 19; matched = token.type == dx_raster_output::Kind::Integer && token.number == (expected.clipMode ? 1 : 0); break;
+                        case 14: case 24:
+                            if (clipValues >= 4u || token.code != (clipValues % 2u ? 24 : 14)) return false;
+                            real = token.code == 14 ? expected.clipPath[clipValues / 2u].x : expected.clipPath[clipValues / 2u].y;
+                            if (token.type != dx_raster_output::Kind::Double ||
+                                std::memcmp(&token.real, &real, sizeof(real)) != 0) return false;
+                            ++clipValues;
+                            break;
+                        default: break;
+                        }
+                        if (bit && bit >= (1u << 1) && bit <= (1u << 11))
+                            matched = token.type == dx_raster_output::Kind::Double &&
+                                std::memcmp(&token.real, &real, sizeof(real)) == 0;
+                        if (bit && (!matched || (scalarMask & bit))) return false;
+                        scalarMask |= bit;
                     }
                 }
+                const unsigned required = ((1u << 19) - 1u) | (view.version >= DRW::AC1024 ? 1u << 19 : 0u);
                 return depth == 0u && owners == (found->second.owner ? 1u : 0u) && subclasses == 1u
-                    && definitions == 1u && reactors == 1u;
+                    && definitions == 1u && reactors == 1u &&
+                    (!found->second.scalarFields || (scalarMask == required && clipValues == 4u));
             }, profile) && seen.size() == records.size();
     } catch (...) {
         return false;

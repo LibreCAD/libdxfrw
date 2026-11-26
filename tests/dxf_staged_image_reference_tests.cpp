@@ -16,10 +16,12 @@ struct Exporter : LC3CompatCheck {
     dxfRW& output;
     DRW::Version version;
     std::vector<References> references;
+    std::vector<DRW_Image> imageFields;
     std::vector<DRW_ImageDef> definitionFields;
     bool ok = false;
     void writeEntities() override {
         references.clear();
+        imageFields.clear();
         definitionFields.clear();
         ok = true;
         for (unsigned i = 0; i != 2; ++i) {
@@ -34,6 +36,7 @@ struct Exporter : LC3CompatCheck {
             if (!definition || definition->reactors.empty()) { ok = false; return; }
             const auto& pair = *definition->reactors.begin();
             definitionFields.push_back(*definition);
+            imageFields.push_back(image);
             references.push_back({static_cast<std::uint32_t>(std::stoul(pair.second, nullptr, 16)),
                                   version == DRW::AC1014 ? 0u : DRW::DxfModelSpaceBlockRecordHandle, definition->handle,
                                   static_cast<std::uint32_t>(std::stoul(pair.first, nullptr, 16))});
@@ -57,6 +60,21 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
     unsigned mode = 0;
     if (!writer.setDxfEntitySectionsWriteInspector([&](const auto& view, std::string_view section) {
         auto expected = section == "ENTITIES" ? adapter.references : std::vector<References>{};
+        if (section == "ENTITIES")
+            for (std::size_t i = 0; i < expected.size(); ++i) expected[i].scalarFields = &adapter.imageFields[i];
+        auto changedImage = section == "ENTITIES" ? adapter.imageFields.front() : DRW_Image{};
+        if (section == "ENTITIES" && mode >= 26 && mode <= 34) {
+            if (mode == 26) ++changedImage.m_classVersion;
+            if (mode == 27) ++changedImage.basePoint.z;
+            if (mode == 28) ++changedImage.secPoint.x;
+            if (mode == 29) ++changedImage.vVector.y;
+            if (mode == 30) ++changedImage.sizeu;
+            if (mode == 31) ++changedImage.brightness;
+            if (mode == 32) ++changedImage.clipPath.front().x;
+            if (mode == 33) changedImage.clipMode = !changedImage.clipMode;
+            if (mode == 34) changedImage.clipPath.pop_back();
+            expected.front().scalarFields = &changedImage;
+        }
         if (section == "ENTITIES" && mode == 1) ++expected.front().owner;
         if (section == "ENTITIES" && mode == 2) ++expected.front().definition;
         if (section == "ENTITIES" && mode == 3) ++expected.front().reactor;
@@ -189,7 +207,8 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         std::cerr << "baseline write failed, ok=" << adapter.ok << " references=" << adapter.references.size() << '\n';
         return false;
     }
-    for (mode = 1; mode <= 25; ++mode) {
+    for (mode = 1; mode <= 34; ++mode) {
+        if (mode == 33 && version < DRW::AC1024) continue;
         { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }
         if (writer.write(&adapter, version, binary) || read(path) != "sentinel") {
             std::cerr << "refusal failed, mode=" << mode << '\n'; return false;
