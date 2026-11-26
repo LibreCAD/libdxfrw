@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "librecadPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "parent": "bdcf1e1348591e12ccfcf1d3dbcfca268ac0e9eb",
+  "fix": "698c1db65aaf12b605d0a938cbf583679822d087",
+  "problem": "A typed MATERIAL referenced only by $CMATERIAL did not enter the staged graph audit. A generated AC1021 source reproduced successful publication despite a material edit after object writing.",
+  "change": "The header target now enters the existing material graph admission, header/object output inspection, final stability checks, and handle remapping; the table inspector is optional when there are no imported layer records. Invalid and unresolved nonzero header targets refuse output.",
+  "validation": [
+    "Focused system-codec material selector passed 908 assertions in eight cases. Header-only tests cover imported-layer presence and absence, source handles A1 and 14 (remapped), missing targets, late material/header edits, destination preservation and corrected retry.",
+    "Bundled-codec filter compile check passed.",
+    "ezdxf 1.4.5 independently resolved $CMATERIAL A1 to MATERIAL PlainMat in the remapped retry output, with zero audit errors or fixes."
+  ],
+  "readbackSha256": "87783e9ed3017f28fd623eb3fe59f3d724cd32d47cd3e2be5fc656e7dc3928bc",
+  "limits": [
+    "One locally authored AC1021 ASCII typed-MATERIAL source profile; this does not qualify sparse raw MATERIAL replay, other versions or all consumers.",
+    "No general format or platform support claim is promoted."
+  ]
+}
