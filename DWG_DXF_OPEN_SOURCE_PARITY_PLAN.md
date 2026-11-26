@@ -70,7 +70,10 @@ evidence are recorded in `docs/research/` and Git history.
   expands the same bounded profile to 32 images and definitions, including mixed
   MATERIAL graphs, independent link/geometry readback, rollback and retry. The
   existing source-capture bound still refuses a 33rd image; raising it needs
-  aggregate-memory accounting. Extend other shapes only with equivalent closure. The bounded [IMAGEDEF](docs/research/p8d-shared-staged-imagedef-scalars-2026-11-26.json)
+  aggregate-memory accounting. The [mixed model/block slice](docs/research/p8d-librecad-block-multi-image-2026-11-26.json)
+  binds unique named-block source owners and staged block records in one
+  four-image/two-block profile, with independent graph and geometry readback.
+  Extend other shapes only with equivalent closure. The bounded [IMAGEDEF](docs/research/p8d-shared-staged-imagedef-scalars-2026-11-26.json)
   and [IMAGE entity](docs/research/p8d-shared-staged-image-entity-scalars-2026-11-26.json)
   scalar checks and the [staged dictionary check](docs/research/p8d-shared-staged-dictionary-2026-11-26.json)
   and [raw plot-style check](docs/research/p8d-shared-staged-plotstyle-raw-2026-11-26.json)
@@ -124,14 +127,16 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  59d07b6e (pushed; final-head CI pending).
+  652a5679 (pushed; final-head CI pending).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`. The later
   [hosted recheck](docs/research/p8-pr106-hosted-focused-pass-2026-11-26.json)
-  passed fast, Linux, Windows and macOS focused jobs on `ef5f77cc8`; remaining
-  changes in this repository are documentation only. Revalidate the final
+  passed fast, Linux, Windows and macOS focused jobs on `ef5f77cc8`.
+  The current implementation commit `985a48c89` also passes those four hosted
+  jobs; subsequent plan/evidence commits do not change the implementation
+  digest. Revalidate the final
   pushed head. All format claims remain EXPERIMENTAL.
 - **External host:** its release, OS, SDK and access route remain unknown.
   Use the [host intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once
