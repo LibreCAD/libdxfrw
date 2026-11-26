@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-modern-active-image-clip-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "bounded-generated-dxf-consumer-profile-only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "eef0c037",
+  "codecCommit": "985a48c89",
+  "codecImplementationDigestSha256": "53fbd21f428eb2cfa15b347083c19460630649f7d00b769adeedd5104378818d",
+  "scope": "Exercise enabled, nondefault rectangular IMAGE clipping in the existing bounded same-version AC1024/AC1027/AC1032 ASCII graph, without claiming native rendering.",
+  "validation": [
+    "PASS: focused macOS ARM64 system-codec case, 96 assertions, rewrites one locally generated IMAGE to display flags 7, clipping state 1, inside clip mode 1 and rectangular corners (2,3) and (10,9). It checks physical fields after output, cross-version and late-mutation refusal, destination preservation, retry and library reimport.",
+    "PASS: ezdxf 1.4.5 independently reads all three source/output pairs, agrees on clipping state, mode and both nondefault corners, image geometry, definitions and reciprocal reactor links; all six audits report zero errors and fixes."
+  ],
+  "scratchOnly": {
+    "ac1024SourceSha256": "425dd98dd16662c7e5d680a400c40a864a43cbd2949b2b04769f1974f05353be",
+    "ac1024OutputSha256": "df2d4495a6b224b10db001df51e046d96925df9c22ce7c63aa684ed03f8d9862",
+    "ac1027SourceSha256": "fbf315d550e7a29e85f60411c01fef1ed99ac46e6f120307f0326ad98b725149",
+    "ac1027OutputSha256": "74069ff54f864d3824f1b1a73152b2dcfc7faba6eb3f8bfb471c6e150e786ef1",
+    "ac1032SourceSha256": "bcc437ccaf3e9a9bd6e68ac7123e697e0e3151d8180e9614824cddae673f36a5",
+    "ac1032OutputSha256": "557fc0cdfa7aa97e12721d635287aa7027176f90726f9d3e48d4c786e54c6670",
+    "fixturesCommitted": false
+  },
+  "limits": "Generated ASCII DXF only; no native clipping rendering, polygonal boundary, external producer, cross-version output, binary output or DWG qualification."
+}

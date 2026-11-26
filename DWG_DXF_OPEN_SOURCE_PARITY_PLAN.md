@@ -77,7 +77,10 @@ evidence are recorded in `docs/research/` and Git history.
   reuses those checks for AC1024, AC1027 and AC1032 ASCII, including the
   physical group 290 clip-mode value, mixed MATERIAL graphs, named-block
   ownership, refusal and retry. The nondefault clip-mode control has clipping
-  disabled; it does not qualify clipping rendering or polygonal boundaries.
+  disabled. A [subsequent control](docs/research/p8d-librecad-modern-active-image-clip-2026-11-26.json)
+  also preserves an enabled nondefault rectangular clip and mode through
+  independent readback; native clipping rendering and polygonal boundaries
+  remain unqualified.
   The [R2000/R2004 extension](docs/research/p8d-librecad-legacy-multi-image-2026-11-26.json)
   admits the equivalent bounded graph without MATERIAL and independently checks
   model/block ownership and links. Legacy graphs carrying MATERIAL remain refused.
