@@ -123,7 +123,8 @@ evidence are recorded in `docs/research/` and Git history.
   Extend imported-binary replay beyond the [checked canonical profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json),
   including extra block records, zero/one/two/additional-layout profiles, external
   plot resources, unknown references and source identities. Keep explicit refusal,
-  destination preservation and retry for unsupported graphs. The [independent field comparison](docs/research/p8d-librecad3-binary-layout-field-comparison-2026-11-26.json)
+  destination preservation and retry for unsupported graphs. The [per-write reset](docs/research/p8d-librecad3-retry-loss-reset-2026-11-26.json)
+  prevents stale loss reports and missing fallback warnings on adapter reuse. The [independent field comparison](docs/research/p8d-librecad3-binary-layout-field-comparison-2026-11-26.json)
   checks reader-exposed layout/block fields and reciprocal graph links for ten
   generated binary replay pairs. [Same-revision ASCII-to-binary conversion](docs/research/p8d-librecad3-ascii-binary-layout-2026-11-26.json)
   reuses the same bounded checks and preserves both paper-space lines in five peer
