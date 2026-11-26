@@ -119,6 +119,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_OBJECT_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_DEFINITION_SCALAR_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_ENTITY_SCALAR_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_IMAGE_CANONICAL_COMMON_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_DICTIONARY_INSPECTOR 1
 class dxfRW {
 public:
@@ -321,13 +322,16 @@ public:
         std::uint32_t reactor{0u};
         // Optional borrowed scalar expectation, valid only during inspection.
         const DRW_Image* scalarFields{nullptr};
+        // Require the bounded layer-0, ByLayer, visible common entity profile.
+        bool canonicalCommon{false};
     };
     /** Check every IMAGE in one staged BLOCKS or ENTITIES body against
      * caller-supplied emitted handles. An owner of zero requires group 330
      * to be absent. Call only with the active inspector's
      * borrowed view. An optional scalarFields checks the bounded rectangular
-     * IMAGE geometry and display fields. This does not prove common entity
-     * fields, target objects, source provenance or final publication. */
+     * IMAGE geometry and display fields. canonicalCommon additionally rejects
+     * unknown common fields and application groups. This does not prove target
+     * objects, source provenance or final publication. */
     bool inspectDxfImageOutputReferences(
         const DxfObjectsWriteView& view,
         const std::vector<DxfImageOutputReferences>& expected) const noexcept;

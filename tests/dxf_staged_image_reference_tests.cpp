@@ -84,7 +84,10 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
     if (!writer.setDxfEntitySectionsWriteInspector([&](const auto& view, std::string_view section) {
         auto expected = section == "ENTITIES" ? adapter.references : std::vector<References>{};
         if (section == "ENTITIES")
-            for (std::size_t i = 0; i < expected.size(); ++i) expected[i].scalarFields = &adapter.imageFields[i];
+            for (std::size_t i = 0; i < expected.size(); ++i) {
+                expected[i].scalarFields = &adapter.imageFields[i];
+                expected[i].canonicalCommon = version >= DRW::AC1015;
+            }
         auto changedImage = section == "ENTITIES" ? adapter.imageFields.front() : DRW_Image{};
         if (section == "ENTITIES" && mode >= 26 && mode <= 34) {
             if (mode == 26) ++changedImage.m_classVersion;
@@ -107,7 +110,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             auto extra = expected.front(); extra.image = 0xFEEDu;
             expected.push_back(extra);
         }
-        if (section == "ENTITIES" && (mode == 6 || mode == 8)) {
+        if (section == "ENTITIES" && (mode == 6 || mode == 8 || (mode >= 46 && mode <= 49))) {
             std::string changed(view.bytes);
             const auto profile = view.compatibilityProfile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
                 ? dx_raster_output::Profile::StandaloneSafe : dx_raster_output::Profile::LibreCadMasterLegacy;
@@ -117,11 +120,31 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             std::string firstHandle;
             while (!cursor.done()) {
                 if (!cursor.next(token)) return false;
-                if (token.text.empty()) continue;
                 if (mode == 8 && token.code == 5 && firstHandle.empty()) {
                     firstHandle = token.text;
                     continue;
                 }
+                if (mode >= 46) {
+                    const int target = mode == 46 ? 8 : mode == 47 ? 6 : mode == 48 ? 62 : 370;
+                    if (token.code != target) continue;
+                    if (token.type == dx_raster_output::Kind::Text && !token.text.empty()) {
+                        const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                        changed[offset] = 'X';
+                    } else if (binary) {
+                        const auto offset = cursor.position() - 2u;
+                        changed[offset] ^= 1;
+                    } else {
+                        const auto end = cursor.position();
+                        auto pos = changed.rfind('\n', end - 2u);
+                        if (pos == std::string::npos) return false;
+                        while (++pos < end && (changed[pos] == ' ' || changed[pos] == '-')) {}
+                        if (pos >= end) return false;
+                        changed[pos] = changed[pos] == '1' ? '2' : '1';
+                    }
+                    mutated = true;
+                    break;
+                }
+                if (token.text.empty()) continue;
                 if ((mode == 6 && token.code != 340) ||
                     (mode == 8 && (token.code != 5 || token.text.size() != firstHandle.size()))) continue;
                 const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
@@ -273,7 +296,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         std::cerr << "baseline write failed, ok=" << adapter.ok << " references=" << adapter.references.size() << '\n';
         return false;
     }
-    for (mode = 1; mode <= 45; ++mode) {
+    for (mode = 1; mode <= 49; ++mode) {
         if (mode == 33 && version < DRW::AC1024) continue;
         if (mode >= 35 && version < DRW::AC1015) continue;
         { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }

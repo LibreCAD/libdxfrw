@@ -4676,6 +4676,7 @@ bool dxfRW::inspectDxfImageOutputReferences(
         std::map<std::uint32_t, DxfImageOutputReferences> records;
         for (const auto& item : expected)
             if (!item.image || !item.definition || !item.reactor
+                || (item.canonicalCommon && !item.scalarFields)
                 || (item.scalarFields && (item.scalarFields->clipPath.size() != 2u
                     || item.scalarFields->m_clipBoundaryType != 1))
                 || !records.emplace(item.image, item).second) return false;
@@ -4688,27 +4689,52 @@ bool dxfRW::inspectDxfImageOutputReferences(
                 dx_raster_output::Cursor cursor(body, view.binary, profile);
                 dx_raster_output::Token token;
                 unsigned depth = 0, owners = 0, subclasses = 0, definitions = 0, reactors = 0;
-                unsigned scalarMask = 0, clipValues = 0;
-                bool raster = false;
+                unsigned scalarMask = 0, clipValues = 0, commonMask = 0, commonSubclass = 0, self = 0;
+                bool raster = false, common = false;
                 while (!cursor.done()) {
                     if (!cursor.next(token)) return false;
                     if (token.code == 102) {
+                        if (found->second.canonicalCommon) return false;
                         if (!token.text.empty() && token.text.front() == '{') {
                             if (++depth > 64u) return false;
                         } else if (token.text == "}" && depth) --depth;
                         else return false;
                     } else if (!depth && token.code == 100) {
+                        if (found->second.canonicalCommon && token.text != "AcDbEntity" &&
+                            token.text != "AcDbRasterImage") return false;
+                        if (found->second.canonicalCommon && token.text == "AcDbEntity" &&
+                            (++commonSubclass != 1u || raster || !self || owners != 1u)) return false;
+                        if (found->second.canonicalCommon && token.text == "AcDbRasterImage" &&
+                            (!common || commonMask != 15u)) return false;
+                        common = token.text == "AcDbEntity";
                         raster = token.text == "AcDbRasterImage";
                         if (raster && ++subclasses != 1u) return false;
                     } else if (!depth && (token.code == 330 || token.code == 340 || token.code == 360)) {
                         std::uint32_t target = 0;
                         if (!dx_raster_output::integer(token.text, target, 16)) return false;
                         if (token.code == 330) {
+                            if (found->second.canonicalCommon && (common || raster)) return false;
                             if (!found->second.owner || ++owners != 1u || target != found->second.owner) return false;
                         } else if (!raster) return false;
                         else if (token.code == 340) {
                             if (++definitions != 1u || target != found->second.definition) return false;
                         } else if (++reactors != 1u || target != found->second.reactor) return false;
+                    } else if (!depth && !common && !raster && found->second.canonicalCommon) {
+                        std::uint32_t parsed = 0;
+                        if (token.code != 5 || ++self != 1u ||
+                            !dx_raster_output::integer(token.text, parsed, 16) || parsed != handle) return false;
+                    } else if (!depth && common && found->second.canonicalCommon) {
+                        unsigned bit = 0;
+                        bool matches = false;
+                        switch (token.code) {
+                        case 8: bit = 1u; matches = token.text == "0"; break;
+                        case 6: bit = 2u; matches = token.text == "ByLayer" || token.text == "BYLAYER"; break;
+                        case 62: bit = 4u; matches = token.type == dx_raster_output::Kind::Integer && token.number == 256; break;
+                        case 370: bit = 8u; matches = token.type == dx_raster_output::Kind::Integer && token.number == -1; break;
+                        default: return false;
+                        }
+                        if (!matches || (commonMask & bit)) return false;
+                        commonMask |= bit;
                     } else if (!depth && raster && found->second.scalarFields) {
                         const auto& expected = *found->second.scalarFields;
                         unsigned bit = 0;
@@ -4744,7 +4770,7 @@ bool dxfRW::inspectDxfImageOutputReferences(
                                 std::memcmp(&token.real, &real, sizeof(real)) != 0) return false;
                             ++clipValues;
                             break;
-                        default: break;
+                        default: if (found->second.canonicalCommon) return false; break;
                         }
                         if (bit && bit >= (1u << 1) && bit <= (1u << 11))
                             matched = token.type == dx_raster_output::Kind::Double &&
@@ -4756,6 +4782,7 @@ bool dxfRW::inspectDxfImageOutputReferences(
                 const unsigned required = ((1u << 19) - 1u) | (view.version >= DRW::AC1024 ? 1u << 19 : 0u);
                 return depth == 0u && owners == (found->second.owner ? 1u : 0u) && subclasses == 1u
                     && definitions == 1u && reactors == 1u &&
+                    (!found->second.canonicalCommon || (commonMask == 15u && commonSubclass == 1u && self == 1u)) &&
                     (!found->second.scalarFields || (scalarMask == required && clipValues == 4u));
             }, profile) && seen.size() == records.size();
     } catch (...) {
