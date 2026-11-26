@@ -2,11 +2,11 @@
   "date": "2026-11-26",
   "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
   "consumer_code_commit": "eff88af0",
-  "consumer_plan_head": "9d5432cc5a85fee0abeefb9b896ea76755a5f95f",
+  "consumer_plan_head": "7426da2b7e8c85642770d1e1eace18f76735d89f",
   "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
-  "scope": "New documents with the checked canonical three-layout graph can emit binary DXF R2000-R2013, including additional paper-space children. Imported binary layouts remain unverified and guarded.",
-  "persistence_library_sha256": "82ce8407fae847d0dda48427bb8e48ef4bb56647253803e5d882eedbc8dd6bb9",
-  "layout_test_sha256": "876916c327b5d071975e580218732660d82f5cddc4ccd8a363ebaf1d71ab5c21",
+  "scope": "New documents needing primary or additional paper-space content can emit the checked three-layout graph in binary DXF R2000-R2013. Empty drawings keep the prior warning-free path. Imported binary layout replay remains guarded.",
+  "persistence_library_sha256": "54a7dc7398ce36c4bc5a6f4d808550aaf931f5ba5db4e6bf7c6570f3993dd1b3",
+  "layout_test_sha256": "5c90f4edd3ea14cdbd991295f98e2beac0557b5c9b239398cecddcf15b201b6c",
   "independent_reader": "ezdxf 1.4.5",
   "outputs": [
     {
@@ -44,10 +44,84 @@
     "All five binary outputs independently contain Model, Layout1, Layout2 and the expected additional-paper LINE; audit reports zero errors and fixes.",
     "macOS ARM64: seven layout graph tests and 71 DXF round-trip/export checks pass.",
     "Each generated binary file reopens with the paper LINE but reports unverified layouts; a subsequent binary save with that content refuses and preserves the destination.",
-    "Older bundled codec headers compile; local consumer plan sync passes."
+    "Older bundled codec headers compile; local consumer plan sync passes.",
+    "After the compatibility refinement, eight layout graph tests and 71 round-trip/export tests pass; ten independent checks cover primary and extra paper space in five binary versions with zero repairs, and empty binary drawings reopen without a LAYOUT loss warning."
   ],
   "limits": [
     "This is authored output for a bounded generated profile, not imported binary layout replay or universal format support.",
     "Native final-head and hosted platform qualification remain open."
+  ],
+  "consumer_compatibility_commit": "31a89215",
+  "current_outputs": [
+    {
+      "paper": "main",
+      "version": "AC1015",
+      "sha256": "814afa292c71ca19549cc885a00bfed60fd2d020123647f81671fab0f5e2c696",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "paper": "main",
+      "version": "AC1018",
+      "sha256": "84b4354363004b449cb29d49413ce29e8525868877b61fd234403d5390e2f83e",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "paper": "main",
+      "version": "AC1021",
+      "sha256": "d726aac08d29f8578df262898ceb4199ead1240e02066fb80fc458b75f363f52",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "paper": "main",
+      "version": "AC1024",
+      "sha256": "200eb86c91a2a65b62029b62d696df3720dfd09d89be0e9432013fc7bab3d9ac",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "paper": "main",
+      "version": "AC1027",
+      "sha256": "0506c14e354583a7b5fcb6ce9f6d0e34d5d678058a2a92c25e51fff47a94901c",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "paper": "extra",
+      "version": "AC1015",
+      "sha256": "503adb8f8befcd783052d75fa2b910e5d03118f0b72bf57f83ccd4b6b6029efd",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "paper": "extra",
+      "version": "AC1018",
+      "sha256": "f4d3417db2eb970c014cbf140b45b14b48efda210c60465e8fd1f736618fbb49",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "paper": "extra",
+      "version": "AC1021",
+      "sha256": "6e1704f478a37c2ff8de719ab684ede07b7f2e155290c4adaf3b63cafe11b317",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "paper": "extra",
+      "version": "AC1024",
+      "sha256": "e489f71e4a95ed3eb97a30df77aeb0dbca725b65898189d9b4d46deb4d931f54",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "paper": "extra",
+      "version": "AC1027",
+      "sha256": "95eb2611a0c5c00719fb00f32ff535d71a21f97ced5a98aeceb04e54d104001b",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    }
   ]
 }
