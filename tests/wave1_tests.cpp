@@ -4040,6 +4040,119 @@ void testBlockRecordInsertReferenceRemapping(TestContext& t) {
     }
 }
 
+void testBlockRecordAdjacentHandleReservations(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        for (const std::uint32_t reserved : {0x31u, 0x32u}) {
+            std::ostringstream output;
+            dxfRW owner("");
+            owner.version = DRW::AC1027;
+            owner.binFile = binary;
+            owner.setHandleRemap({{0xA50u, reserved}});
+            owner.writer = binary
+                ? std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterBinary>(&output))
+                : std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterAscii>(&output));
+            owner.writer->setVersion("AC1027", true);
+            owner.writer->setCodePage("ANSI_1252");
+            owner.writer->setRecordInventoryEnabled(true, 16u);
+            DRW_Block block;
+            block.name = "RESERVED_BLOCK";
+            DRW_Line line;
+            line.handle = 0xA50u;
+            line.secPoint.x = 1.0;
+            const bool wrote = owner.preallocateEntityHandle(line.handle) == reserved
+                && owner.writer->writeString(0, "SECTION")
+                && owner.writer->writeString(2, "TABLES")
+                && owner.writeBlockRecord(block.name)
+                && owner.writer->writeString(0, "ENDSEC")
+                && owner.writer->writeString(0, "SECTION")
+                && owner.writer->writeString(2, "BLOCKS")
+                && owner.writeBlock(&block)
+                && owner.writeLine(&line)
+                && owner.writeBlockEnd()
+                && owner.writer->writeString(0, "ENDSEC")
+                && owner.writer->writeString(0, "WIRE_END");
+            const auto blockRecord = owner.blockMap.find("RESERVED_BLOCK");
+            const std::uint32_t expectedRecord = reserved == 0x31u ? 0x32u : 0x33u;
+            const bool inventory = wrote && owner.writer->finalizeRecordInventory();
+            t.expect(inventory && blockRecord != owner.blockMap.end()
+                         && blockRecord->second == expectedRecord
+                         && owner.writer->recordHandleHasIdentity(
+                                expectedRecord, "BLOCK_RECORD", "TABLES")
+                         && owner.writer->recordHandleHasIdentity(
+                                expectedRecord + 1u, "BLOCK", "BLOCKS")
+                         && owner.writer->recordHandleHasIdentity(
+                                expectedRecord + 2u, "ENDBLK", "BLOCKS")
+                         && owner.writer->recordHandleHasIdentity(reserved, "LINE", "BLOCKS")
+                         && line.handle == 0xA50u,
+                     "BLOCK_RECORD skips occupied adjacent identities and preserves the source entity");
+        }
+    }
+}
+
+void testBlockRecordAdjacentHandleWholeFileRetry(TestContext& t) {
+    class Interface final : public dx_iface {
+    public:
+        Interface() { cData = &data; currentBlock = data.mBlock; block.name = "COLLISION"; line.handle = 0xA50u; line.secPoint.x = 7.0; }
+        void writeBlockRecords() override {
+            planned = dxfW->preallocateEntityHandle(line.handle) == 0x32u
+                && dxfW->writeBlockRecord(block.name);
+        }
+        void writeBlocks() override {
+            emitted = planned && dxfW->writeBlock(&block)
+                && dxfW->writeLine(&line) && dxfW->writeBlockEnd();
+        }
+        bool finalizeDxfWrite() override { return emitted && !reject; }
+        dx_data data;
+        DRW_Block block;
+        DRW_Line line;
+        bool planned{false}, emitted{false}, reject{true};
+    };
+    for (const bool binary : {false, true}) {
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-block-range-retry-" + std::to_string(
+                   std::chrono::steady_clock::now().time_since_epoch().count())
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        const std::string sentinel = "preserve block-range destination";
+        { std::ofstream output(path, std::ios::binary); output << sentinel; }
+        Interface iface;
+        dxfRW codec(path.string().c_str());
+        iface.dxfW = &codec;
+        codec.setDxfWriteRecordInventoryEnabled(true, 4096u);
+        codec.setHandleRemap({{0xA50u, 0x32u}});
+        const bool refused = !codec.write(&iface, DRW::AC1027, binary);
+        std::ifstream retained(path, std::ios::binary);
+        const std::string bytes(std::istreambuf_iterator<char>(retained), {});
+        retained.close();
+        iface.reject = false;
+        const bool retried = codec.write(&iface, DRW::AC1027, binary);
+        dx_iface reader;
+        dx_data imported;
+        const bool read = retried && reader.fileImport(path.string(), &imported, false);
+        bool found = false;
+        if (read) {
+            for (const auto *item : imported.blocks) {
+                if (item == nullptr || item->name != "COLLISION") continue;
+                for (const auto *entity : item->ent) {
+                    if (const auto *line = dynamic_cast<const DRW_Line *>(entity))
+                        found = line->secPoint.x == 7.0 && line->handle == 0x32u;
+                }
+            }
+        }
+        t.expect(refused && bytes == sentinel && iface.line.handle == 0xA50u
+                     && retried && read && found,
+                 "BLOCK_RECORD adjacent-handle collision preserves failed output and retries with typed readback");
+        if (retried) {
+            if (const char* prefix = std::getenv("LIBDXFRW_KEEP_BLOCK_RANGE_OUTPUT"))
+                std::filesystem::copy_file(path, std::string(prefix) +
+                    (binary ? "-binary.dxf" : "-ascii.dxf"),
+                    std::filesystem::copy_options::overwrite_existing);
+        }
+        iface.dxfW = nullptr;
+        std::error_code ignored;
+        std::filesystem::remove(path, ignored);
+    }
+}
+
 void testSectionManagerReferenceRemapping(TestContext& t) {
     for (const bool binary : {false, true}) {
         for (const bool useResolver : {false, true}) {
@@ -23926,6 +24039,8 @@ int main(int argc, char** argv) {
             == "--blockrecord-insert-reference-remapping") {
         TestContext focused;
         testBlockRecordInsertReferenceRemapping(focused);
+        testBlockRecordAdjacentHandleReservations(focused);
+        testBlockRecordAdjacentHandleWholeFileRetry(focused);
         std::cout << "BLOCK_RECORD BLKREFS reference remapping: "
                   << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;

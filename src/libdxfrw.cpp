@@ -18274,15 +18274,18 @@ bool dxfRW::writeBlockRecord(
             return false;
         }
         try {
-            if (!allocateDxfHandle(record.handle))
-                return false;
             std::uint32_t blockHandle = 0;
             std::uint32_t endBlockHandle = 0;
-            if (!checkedDxfHandleOffset(record.handle, 1, blockHandle)
-                || !checkedDxfHandleOffset(record.handle, 2,
-                                            endBlockHandle)) {
-                throw std::overflow_error("DXF block handle range exhausted");
-            }
+            do {
+                if (!allocateDxfHandle(record.handle))
+                    return false;
+                if (!checkedDxfHandleOffset(record.handle, 1, blockHandle)
+                    || !checkedDxfHandleOffset(record.handle, 2,
+                                                endBlockHandle)) {
+                    throw std::overflow_error("DXF block handle range exhausted");
+                }
+            } while (m_handleAllocator->isUnavailable(blockHandle)
+                     || m_handleAllocator->isUnavailable(endBlockHandle));
             // These structural identities belong only to this write attempt.
             // Persisting them as caller reservations makes an allocation
             // failure advance the next same-codec retry's minted-handle set.
