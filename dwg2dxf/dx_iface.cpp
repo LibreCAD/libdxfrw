@@ -97386,7 +97386,7 @@ bool dx_iface::hasUnchangedLegacyPlot() const noexcept {
 
 bool dx_iface::inspectLegacyNullPlotLayers(const dxfRW::DxfTablesWriteView& view,
         const std::map<std::uint32_t,UTF8STRING>& expected) noexcept {
-    if(view.version!=DRW::AC1018||expected.size()!=2u)return false;
+    if(view.version<DRW::AC1018||view.version>DRW::AC1032||expected.size()!=2u)return false;
     try {
         std::set<UTF8STRING> names;
         for(const auto& row:expected) {
@@ -97565,7 +97565,8 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                     &&std::any_of(cData->namedObjectDictionary.m_entries.begin(),cData->namedObjectDictionary.m_entries.end(),
                         [](const auto& entry){return asciiIdentifierEquals(entry.m_name,"ACAD_PLOTSTYLENAME");}));
             if(hasPlotGraph) {
-                const bool multipleNullLayers=cData->sourceVersion==DRW::AC1015&&version==DRW::AC1018
+                const bool multipleNullLayers=cData->sourceVersion==DRW::AC1015
+                    &&version>=DRW::AC1018&&version<=DRW::AC1032
                     &&hasLegacyNullPlotLayerProfile(*cData);
                 if(!source.originalSourcesMatched || !source.legacyClassRowsMatched || !source.legacyLiveClassesMatched
                     || !source.legacyBodiesMatched || !source.legacyLiveBodiesMatched

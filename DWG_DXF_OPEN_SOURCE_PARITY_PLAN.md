@@ -706,18 +706,16 @@ The [MATERIAL admission follow-up](docs/research/p8d-librecad-material-dictionar
 Use the [shared version-aware carrier frame check](docs/research/p8d-librecad-shared-dxf-carrier-frame-2026-11-25.json) for the remaining IMAGE dictionary source admission.
 The [shared dictionary carrier check](docs/research/p8d-librecad-dictionary-common-fields-2026-11-25.json) validates the selected common fields and exact key spelling, order, target and role. The single-IMAGE admission also checks its definition, reactor, incoming references and physical entity/definition fields. Native consumer qualification remains open.
 
-A bounded AC1015-to-AC1018 strict profile now accepts exactly two unchanged
+A bounded AC1015-to-AC1018/AC1021/AC1024/AC1027/AC1032 strict profile now accepts exactly two unchanged
 legacy layers with the verified 11-field shape, flags 64 and explicit zero
 plot-style references. It binds source and emitted identities, inspects exact
 TABLES output and retains the existing plot-style, IMAGE dictionary and graph
-gates. The focused regression covers ASCII/binary source and output, changed
-source, late mutation, extra output, destination preservation and corrected
-retry. The [peer receipt](docs/research/p8-image-two-layer-cross-version-peer-2026-11-25.json)
-records the physical image/extension graph readback and the important limitations
+gates. The focused regression covers 20 ASCII/binary source and target combinations and 100 changed-source, late-mutation, extra-output, destination-preservation and corrected-retry controls. The [peer receipt](docs/research/p8-image-two-layer-cross-version-peer-2026-11-25.json)
+and [modern-target receipt](docs/research/p8-image-two-layer-modern-targets-2026-11-25.json) record physical image/extension graph readback and the important limitations
 of both independent tools. No format support claim follows.
 
 The full `dwg2dxf_image_dictionary_imported_common` matrix now reaches its next
-unqualified cell: generated AC1015 source exported strictly to AC1021 is refused
+unqualified cell: generated AC1018 source exported strictly to AC1015 is refused
 by the plot-style profile. Preserve the refusal and destination until the
 version-specific source, target class/placeholder, layer output and IMAGE graph
 are proved in both encodings with altered-input/output rejection and independent
@@ -727,7 +725,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `db885e0f610451397a9f1c419a680c916e1a453bd25e22555e1653497b307dcc` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `0a5588c22585c4c9ea894e6c81e2e1b0b11981ba2825ee98688e88a644850ed8` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).
