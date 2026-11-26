@@ -2,7 +2,7 @@
   "date": "2026-11-26",
   "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
   "consumer_code_commit": "eff88af0",
-  "consumer_plan_head": "9d5432cc5a85fee0abeefb9b896ea9e39f272a5c",
+  "consumer_plan_head": "9d5432cc5a85fee0abeefb9b896ea76755a5f95f",
   "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
   "scope": "New documents with the checked canonical three-layout graph can emit binary DXF R2000-R2013, including additional paper-space children. Imported binary layouts remain unverified and guarded.",
   "persistence_library_sha256": "82ce8407fae847d0dda48427bb8e48ef4bb56647253803e5d882eedbc8dd6bb9",
