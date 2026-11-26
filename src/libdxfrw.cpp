@@ -20117,8 +20117,10 @@ bool dxfRW::writeObjects() {
         writer->writeDouble(10, id->u);
         writer->writeDouble(20, id->v);
         writer->writeDouble(11, id->up);
-        // IMAGEDEF's DXF V pixel-size scalar is group 12 (not a point Y code).
-        writer->writeDouble(12, id->vp);
+        // The published IMAGEDEF table lists 12, but LibreCAD's established
+        // files and interoperable DXF writers encode pixel size as a 2D point
+        // (11/21). The reader accepts both forms.
+        writer->writeDouble(21, id->vp);
         writer->writeInt16(280, id->loaded);
         writer->writeInt16(281, id->resolution);
         if (!id->extData.empty() && !writeExtData(id->extData))

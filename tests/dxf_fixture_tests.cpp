@@ -18148,11 +18148,11 @@ void testImageDefPixelSizeCodeForms(TestContext& t) {
             std::ifstream initialInput(path, std::ios::binary);
             std::string initialBytes(std::istreambuf_iterator<char>(initialInput), {});
             ImageDefPixelSizeWireSlot initialSlot;
-            const bool writerUsesDocumentedPixelSizeCodes =
+            const bool writerUsesCompatiblePixelSizeCodes =
                 locateImageDefPixelSizeWireSlot(initialBytes, binary, initialSlot)
-                && initialSlot.codes == std::vector<int>{12};
-            t.expect(writerUsesDocumentedPixelSizeCodes,
-                ("IMAGEDEF writer uses documented DXF pixel-size code 12: "
+                && initialSlot.codes == std::vector<int>{21};
+            t.expect(writerUsesCompatiblePixelSizeCodes,
+                ("IMAGEDEF writer uses interoperable DXF pixel-size code 21: "
                  + caseLabel).c_str());
             const bool rewritten = rewriteImageDefPixelSizeWireSlot(
                 path, binary, mode);
