@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-three-image-graphs-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "1cd3b590027504a3308f60946d2b3e94c15985c5",
+  "librecadCommit": "750c757729f9cdfef7da0548b952ff6c17855e3b",
+  "scope": "Bounded AC1021 model-space graphs with two or three IMAGE objects and one to three referenced IMAGEDEF objects.",
+  "results": [
+    "PASS: 577 image assertions in five cases cover five graph shapes, nonzero WCS Z, checked source/staged records, corrupted and late-mutated fields, atomic refusal and corrected retry; a generated four-image graph is refused with its destination intact.",
+    "PASS: focused system-codec MATERIAL and 2D linetype checks, 5,812 assertions in 62 cases; bundled-codec filter source compiles.",
+    "PASS: ezdxf 1.4.5 independently resolves every image, its definition, dictionary owner and reactor in each of five outputs; each audit reports zero errors and fixes."
+  ],
+  "scratchOutputSha256": {
+    "two_one": "f4e95fe20c3cfaf17bddf7852c6c340bf19fbfe6dc76a653550e9a24b4a094ed",
+    "two_two": "417f7f833b524379fb80545e029e3e5b7ed4c8002ce8fdf0ab5cd72fffbd1471",
+    "three_two": "76ea296964aaf71c397e3fc4b44f17ac0fde6eb00f6c7717b2f9138e93449c8a",
+    "three_three": "485e7ca54934d20e45e6925283c0ad6c8fdeda6a58e479aef9b8185d147cb0be",
+    "three_one": "74c99c2574e173ff747a14b80e6f2bd63beaff4d76cc9bd48560e109dee4db6f"
+  },
+  "testExecutableSha256": "fb08c4ef60be22c322baf3d2030ef81d4a14c84a0d7ecda879b3d39318711e11",
+  "limits": [
+    "Locally generated ASCII only; no native producer, rendering or platform qualification is implied.",
+    "More than three images, other versions, block images, unknown fields, other layers and clipping shapes remain outside the profile.",
+    "No drawing fixture was committed."
+  ]
+}
