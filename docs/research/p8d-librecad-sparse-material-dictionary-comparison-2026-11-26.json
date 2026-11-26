@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-26",
+  "scope": "Compare bounded sparse-MATERIAL dictionary source frames; no replay admission",
+  "libdxfrw_candidate": "4e41aaa5ce0fbc04e26b495bd1ae920963dd3493",
+  "libdxfrw_implementation_digest": "1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be",
+  "librecad_commit": "03dc4a984f9d9cab88589db0a112da12baa7ce5c",
+  "evidence": [
+    "Exact group payload comparison is shared with the existing MATERIAL source check; the root physical source is compared to its typed record because the reader intentionally suppresses its raw carrier.",
+    "The child dictionary is checked against both its physical source and typed record, including ordered entry names and handle roles; the root-to-child link and version/owner identities are checked.",
+    "Locally authored ASCII and Binary DXF controls detect edited raw dictionary fields, edited typed cloning/role, duplicate raw carriers, and duplicate source capture. Restoration returns to the still-refused unqualified state, and the preexisting output remains intact.",
+    "System-codec MATERIAL tests passed: 627 assertions in 6 cases; system linetype tests passed: 4967 assertions in 56 cases; bundled linetype tests passed: 1282 assertions in 52 cases.",
+    "Drawings are created locally in temporary files and are not committed."
+  ],
+  "remaining": "Full dictionary targets and cross-reference closure, handle remapping, staged output, independent readback and successful retry remain open; no support claim is promoted."
+}

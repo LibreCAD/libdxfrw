@@ -24,9 +24,10 @@ evidence are recorded in `docs/research/` and Git history.
   binary, and retains an unavailable-source marker if capture fails. The
   [dictionary source capture](docs/research/p8d-librecad-sparse-material-dictionary-source-2026-11-26.json)
   retains bounded root and MATERIAL dictionary frames for opted-in small files;
-  duplicate source frames fail closed. Next compare those frames with the
-  live typed and raw dictionaries, then bind layer and current-material
-  references and output.
+  duplicate source frames fail closed. The [dictionary comparison](docs/research/p8d-librecad-sparse-material-dictionary-comparison-2026-11-26.json)
+  checks the captured root against its typed frame and the captured child
+  against typed and live raw frames. Next bind every dictionary target, layer
+  and current-material reference, and the staged output.
   Validate the entire ACAD_MATERIAL dictionary, exact raw carriers, source
   identities, owners/reactors, layer and current-material references, handle
   uniqueness and remapping. Refuse missing, replaced, edited, cross-version or
@@ -69,7 +70,7 @@ evidence are recorded in `docs/research/` and Git history.
   including final-head hosted checks and native consumers. Current implementation
   digest: 1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be
   (775 inputs). LibreCAD consumer head:
-  f01605be751dcd313bb13c4216f31caef0d2d692. Prior platform receipts apply only
+  03dc4a984f9d9cab88589db0a112da12baa7ce5c. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list; rerun that job on
   the pushed head. All format claims remain EXPERIMENTAL.
