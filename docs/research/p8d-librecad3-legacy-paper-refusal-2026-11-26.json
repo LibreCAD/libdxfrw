@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_code_commit": "673d567a",
+  "consumer_plan_head": "0a95b3220d545721a496c9d7329cab295af3c837",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "finding": "A locally generated LINE in additional paper space was present in R12/R14 ASCII and binary output; ezdxf 1.4.5 audit removed the orphaned block and the line while the exporter reported no loss.",
+  "pre_guard_output_sha256": {
+    "R12_ascii": "65a7d45d01ea652f3cef13186e49f0fe57e78983a5fceed8f8c8d4eb03df1dd4",
+    "R14_ascii": "0dcc5401fef159aef329929c63e7c148e27b7f156e881d1ac040677f82c19a52",
+    "R12_binary": "ade1c8b6a90e937bcecd88b87822e184f98b46d11b0416d5f35f2985fa72b27a",
+    "R14_binary": "73118663c71ff0d6d53db6effb4e4e7f81d54bd7467d4cb8a7954a9c05da5b0d"
+  },
+  "fix": "Before touching the destination, refuse legacy output when additional paper blocks contain modeled children, nondefault metadata or modeled INSERT references. A plain R12 uppercased paper block is matched to the kernel default on import.",
+  "validation": [
+    "macOS ARM64: 69 DXF round-trip/export tests and six layout graph tests passed",
+    "Four legacy targets refused additional paper content without overwriting destination; removing the offending content allowed retry",
+    "The same DXFimpl writer object refused then successfully retried after correction",
+    "The primary paper-space LINE survived R12 reopen and independent ezdxf audit",
+    "Focused controls refuse a referenced empty block and a block with nonzero base",
+    "Older bundled codec headers passed syntax compilation; linked runtime qualification remains open",
+    "Consumer plan sync passed locally"
+  ],
+  "limitations": [
+    "The empty orphan block still incurs an ezdxf audit repair; distinguish application-created and imported blocks and qualify references before removing it.",
+    "Additional nondefault source metadata, binary layout replay and broader producer/consumer behavior remain unqualified.",
+    "Native final-head and hosted Linux/Windows checks remain open."
+  ]
+}

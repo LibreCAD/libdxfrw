@@ -124,9 +124,11 @@ evidence are recorded in `docs/research/` and Git history.
   resources, unknown references and source identities with explicit refusal,
   destination preservation and retry. Preserve nonempty paper-space contents.
   A single current row must still fit the retained-byte budget; qualify larger
-  files and other raw source families using the [selective capture receipt](docs/research/p8d-selective-block-record-source-2026-11-26.json). Resolve the R12/R14 orphan paper-space audit
-  by distinguishing the application-created default from imported DWG/DXF blocks
-  and checking content and references before any omission; preserve source data. Extend independent physical/semantic peer checks
+  files and other raw source families using the [selective capture receipt](docs/research/p8d-selective-block-record-source-2026-11-26.json). The [legacy guard](docs/research/p8d-librecad3-legacy-paper-refusal-2026-11-26.json)
+  refuses unsafe R12/R14 extra-paper output and keeps destinations intact.
+  Resolve the remaining empty orphan audit repair by distinguishing application
+  defaults from imported DWG/DXF blocks and checking references before omission.
+  Extend independent physical/semantic peer checks
   beyond the selected five-version MPOLYGON control and run native
   save/reopen/render/edit on the final consumer and codec heads; qualify hosted
   Linux and Windows independently.
