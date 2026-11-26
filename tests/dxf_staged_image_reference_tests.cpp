@@ -12,9 +12,11 @@
 namespace {
 using References = dxfRW::DxfImageOutputReferences;
 struct Exporter : LC3CompatCheck {
-    Exporter(dxfRW& output, DRW::Version version) : output(output), version(version) {}
+    Exporter(dxfRW& output, DRW::Version version, unsigned polygonVertices)
+        : output(output), version(version), polygonVertices(polygonVertices) {}
     dxfRW& output;
     DRW::Version version;
+    unsigned polygonVertices;
     std::vector<References> references;
     std::vector<DRW_Image> imageFields;
     std::vector<DRW_ImageDef> definitionFields;
@@ -31,8 +33,12 @@ struct Exporter : LC3CompatCheck {
             image.sizev = 12;
             image.secPoint = {1, 0, 0};
             image.vVector = {0, 1, 0};
-            image.m_clipBoundaryType = 1;
-            image.clipPath = {{-0.5, -0.5, 0}, {15.5, 11.5, 0}};
+            image.m_clipBoundaryType = i ? 1 : 2;
+            image.clipPath = i ? std::vector<DRW_Coord>{{-0.5, -0.5, 0}, {15.5, 11.5, 0}}
+                               : std::vector<DRW_Coord>{{1, 1, 0}, {12, 2, 0}, {7, 9, 0}};
+            if (!i)
+                for (unsigned j = 3; j < polygonVertices; ++j)
+                    image.clipPath.push_back({static_cast<double>(j), static_cast<double>(j + 1), 0});
             auto* definition = output.writeImage(&image, i ? "second.png" : "first.png");
             if (!definition || definition->reactors.empty()) { ok = false; return; }
             const auto& pair = *definition->reactors.begin();
@@ -57,10 +63,10 @@ std::string read(const std::filesystem::path& path) {
     return {std::istreambuf_iterator<char>(input), {}};
 }
 bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
-         dxfRW::DxfCompatibilityProfile profile) {
+         dxfRW::DxfCompatibilityProfile profile, unsigned polygonVertices = 3) {
     dxfRW writer(path.string().c_str());
     writer.setDxfCompatibilityProfile(profile);
-    Exporter adapter(writer, version);
+    Exporter adapter(writer, version, polygonVertices);
     if (version >= DRW::AC1015) {
         DRW_RawDxfObject dictionary, placeholder;
         dictionary.name = "ACDBDICTIONARYWDFLT"; dictionary.handle = 0xA0u;
@@ -89,7 +95,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
                 expected[i].canonicalCommon = version >= DRW::AC1015;
             }
         auto changedImage = section == "ENTITIES" ? adapter.imageFields.front() : DRW_Image{};
-        if (section == "ENTITIES" && mode >= 26 && mode <= 34) {
+        if (section == "ENTITIES" && ((mode >= 26 && mode <= 34) || (mode >= 52 && mode <= 55))) {
             if (mode == 26) ++changedImage.m_classVersion;
             if (mode == 27) ++changedImage.basePoint.z;
             if (mode == 28) ++changedImage.secPoint.x;
@@ -99,6 +105,10 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             if (mode == 32) ++changedImage.clipPath.front().x;
             if (mode == 33) changedImage.clipMode = !changedImage.clipMode;
             if (mode == 34) changedImage.clipPath.pop_back();
+            if (mode == 52) ++changedImage.clipPath.back().y;
+            if (mode == 53) changedImage.clipPath.resize(LIBDXFRW_DXF_STAGED_IMAGE_MAX_CLIP_VERTICES + 1u);
+            if (mode == 54) changedImage.m_clipBoundaryType = 1;
+            if (mode == 55) changedImage.clipPath.push_back({2, 3, 0});
             expected.front().scalarFields = &changedImage;
         }
         if (section == "ENTITIES" && mode == 1) ++expected.front().owner;
@@ -316,9 +326,9 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         std::cerr << "baseline write failed, ok=" << adapter.ok << " references=" << adapter.references.size() << '\n';
         return false;
     }
-    for (mode = 1; mode <= 51; ++mode) {
+    for (mode = 1; mode <= 55; ++mode) {
         if (mode == 33 && version < DRW::AC1024) continue;
-        if (mode >= 35 && version < DRW::AC1015) continue;
+        if (mode >= 35 && mode <= 51 && version < DRW::AC1015) continue;
         { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }
         if (writer.write(&adapter, version, binary) || read(path) != "sentinel") {
             std::cerr << "refusal failed, mode=" << mode << '\n'; return false;
@@ -333,7 +343,13 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
     for (std::size_t i = 0; i < reader.images.size(); ++i)
         if (reader.images[i].handle != adapter.references[i].image ||
             reader.images[i].ref != adapter.references[i].definition ||
-            reader.images[i].m_imageDefReactorHandle != adapter.references[i].reactor) return false;
+            reader.images[i].m_imageDefReactorHandle != adapter.references[i].reactor ||
+            reader.images[i].m_clipBoundaryType != adapter.imageFields[i].m_clipBoundaryType ||
+            reader.images[i].clipPath.size() != adapter.imageFields[i].clipPath.size()) return false;
+    for (std::size_t i = 0; i < reader.images.size(); ++i)
+        for (std::size_t j = 0; j < reader.images[i].clipPath.size(); ++j)
+            if (reader.images[i].clipPath[j].x != adapter.imageFields[i].clipPath[j].x ||
+                reader.images[i].clipPath[j].y != adapter.imageFields[i].clipPath[j].y) return false;
     return true;
 }
 
@@ -429,6 +445,12 @@ int main() {
                           << " binary=" << binary << " profile=" << static_cast<int>(profile) << '\n';
                 return 1;
             }
+    for (const bool binary : {false, true})
+        if (!run(directory / "polygon-limit.dxf", DRW::AC1024, binary,
+                 dxfRW::DxfCompatibilityProfile::StandaloneSafe, LIBDXFRW_DXF_STAGED_IMAGE_MAX_CLIP_VERTICES)) {
+            std::cerr << "staged IMAGE polygon limit failed, binary=" << binary << '\n';
+            return 1;
+        }
     for (const auto version : {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032})
         for (const bool binary : {false, true})
           for (const auto profile : {dxfRW::DxfCompatibilityProfile::StandaloneSafe,
