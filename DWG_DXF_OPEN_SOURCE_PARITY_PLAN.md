@@ -123,8 +123,9 @@ evidence are recorded in `docs/research/` and Git history.
   Complete binary and zero/one/two/additional-layout profiles, external plot
   resources, unknown references and source identities with explicit refusal,
   destination preservation and retry. Preserve nonempty paper-space contents.
-  Bound or gracefully degrade whole-table source capture on large ASCII files;
-  binary imports already opt out. Resolve the R12/R14 orphan paper-space audit
+  Complete consumer adoption of [selective BLOCK_RECORD source capture](docs/research/p8d-selective-block-record-source-2026-11-26.json);
+  a single current row must still fit the retained-byte budget and other raw
+  source families still need large-file qualification. Resolve the R12/R14 orphan paper-space audit
   without discarding content. Extend independent physical/semantic peer checks
   beyond the selected five-version MPOLYGON control and run native
   save/reopen/render/edit on the final consumer and codec heads; qualify hosted
@@ -146,7 +147,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 4541599ed54edef164cd9907f4aeed4bc6157f18e4abdf430cf8579a0b35e778
+  digest: 922ee37ffca0420ca161ac977da8e0a60397b5e12b49b337d120f2ff396a31b3
   (781 inputs). The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;
   its [GCC allocator follow-up](docs/research/p8-sat-gcc-allocator-harness-2026-11-26.json)

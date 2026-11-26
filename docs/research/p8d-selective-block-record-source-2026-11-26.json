@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-26",
+  "libdxfrw_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "implementation_digest": "922ee37ffca0420ca161ac977da8e0a60397b5e12b49b337d120f2ff396a31b3",
+  "scope": "Optional separate selector facet discards unselected BLOCK_RECORD raw bodies after parsing each complete row; all typed callbacks remain ordered after successful ENDTAB. Existing source handlers without the selector retain every row.",
+  "validation": [
+    "macOS ARM64 warnings-as-errors targeted structural source and existing block-record source proof: both passed",
+    "Generated ASCII and binary table controls selected one of two source callbacks and delivered both typed callbacks in order",
+    "Generated 80-row ASCII table: minimum admitted logical retained budget 39363 bytes selective versus 73663 bytes all-source",
+    "Malformed table published no callbacks and corrected retry succeeded"
+  ],
+  "limits": [
+    "The active row must still fit the budget before it can be selected or discarded",
+    "This does not make large-file memory or any layout support claim universal",
+    "Consumer integration and hosted platform checks are separate"
+  ]
+}
