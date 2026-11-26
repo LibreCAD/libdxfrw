@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-spec-pair-root-owner-recheck-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationCommit": "ae2f13684a18f4e8849b02b00169d27090ecb0fa",
+  "implementationDigestSha256": "402eab4f710a99d7d50ce90f0b906067ce075a791646802c7605e111b8519604",
+  "authority": "ODA Open Design Specification v5.4.1 sections 9, 20.4.44, 20.4.73; see earlier p6-ac1012-current-parser-spec-pair-recheck-2026-11-25.json.",
+  "producer": "Locally authored recipes using GNU LibreDWG 0.14; not native AutoCAD-authored.",
+  "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py --unique-entry-control",
+  "candidateSha256": "55d5d02729c7e005b491f11b435f20d872a11e57b5ab574003cd582ef778fbaa",
+  "scratchDirectory": "/private/tmp/libdxfrw-ac1012-post-root-generated-20261126/ac1012-dictionary-merge-2r3smhsa",
+  "samples": {
+    "destination": {
+      "sha256": "4294f69bde22fe3ac2852a035bd96f203520b1d56a7e642015552c9e8dcfbfe6",
+      "stylesDegrees": {
+        "SAME_KEY": 15,
+        "DEST_ONLY": 22
+      }
+    },
+    "source": {
+      "sha256": "9d82bd451e1174feef42bb22c6cfcbd695dcd16942f1d8e65456b95bb24f7f5a",
+      "stylesDegrees": {
+        "SAME_KEY": 37,
+        "SOURCE_ONLY": 51
+      }
+    }
+  },
+  "validation": [
+    "PASS: freshly generated physical dictionary frames and handle roles; malformed-role refusal and corrected retry for both sources.",
+    "PASS: default strict ASCII and binary output refuses and preserves sentinel destinations for both sources.",
+    "PASS: explicit-partial ASCII and binary output passes independent bounded dictionary and style graph audits for both sources.",
+    "PASS: AC1012/AC1014 shared DICTIONARY/GROUP common-link vector, compiled against the current library archive.",
+    "PASS: standalone AC1012/AC1014/AC1015 dictionary/vector regression, optimized with project warning flags."
+  ],
+  "limits": [
+    "A locally generated pair is not independent native open or duplicate-key clone/merge evidence; strict admission stays guarded.",
+    "All generated drawings and partial DXF outputs remain scratch-only; no fixture committed.",
+    "Format, consumer and native qualification remain open."
+  ]
+}
