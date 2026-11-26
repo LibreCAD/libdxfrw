@@ -12,6 +12,6 @@
     "IMAGEDEF 12/21 ASCII/binary matrix and valid/truncated block source controls pass.",
     "Fixture-free CTest inventory remains 1402."
   ],
-  "remaining": "The captured failing source has two CLASS rows and three LAYER rows. The plot-style guard rejects its DICTIONARYWDFLT class alias and requires exactly one LAYER. Source/target alias and complete per-layer reference proofs, mutation/refusal and retry, and independent readback remain open. Eight-row observation alone grants no authority.",
+  "remaining": "The captured failing source has two CLASS rows and two physical LAYER rows. The plot-style guard required a different class alias and exactly one default LAYER. Source alias has since been bound; target alias and complete per-layer reference proofs, mutation/refusal and retry, and independent readback remain open. Eight-row observation alone grants no authority.",
   "fixtures": "All controls generated locally; no DWG/DXF fixture committed."
 }

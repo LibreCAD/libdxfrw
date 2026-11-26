@@ -56,7 +56,7 @@
     "test": "dwg2dxf_image_dictionary_imported_common",
     "source": "AC1015",
     "target": "AC1018",
-    "observation": "Strict cross-version output refuses at the LAYER plot-style source profile. A captured generated source has two CLASS rows, with DICTIONARYWDFLT as the dictionary class alias, and three LAYER rows; the current profile requires ACDBDICTIONARYWDFLT and exactly one LAYER.",
+    "observation": "Strict cross-version output refuses at the LAYER plot-style source profile. A captured generated source has two CLASS rows, with DICTIONARYWDFLT as the dictionary class alias, and two physical LAYER rows with flags and plot-style references outside the one-layer profile.",
     "next": "Bind and verify the exact source CLASS alias and each physical/live/output LAYER and plot-style reference; keep the refusal and transactional checks until the full graph is proven."
   },
   "claims": "All format claims remain EXPERIMENTAL."

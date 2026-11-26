@@ -710,7 +710,9 @@ The focused `dwg2dxf_image_dictionary_imported_common` regression still fails
 for generated AC1015 input exported strictly to AC1018. A captured generated
 source has two CLASS rows; its dictionary class uses the `DICTIONARYWDFLT` alias
 while the plot-style source check accepts only `ACDBDICTIONARYWDFLT`. It also has
-three layers while that check requires exactly one. See the [diagnosis](docs/research/p8-image-cross-version-plotstyle-diagnosis-2026-11-25.json).
+two physical LAYER rows whose flags and plot-style references differ from the
+single fixed default layer required by that check. ezdxf additionally presents a
+`Defpoints` row after loading; the physical scan does not contain that row. See the [diagnosis](docs/research/p8-image-cross-version-plotstyle-diagnosis-2026-11-25.json).
 The source CLASS alias is now bound to the original spelling, with ASCII/binary
 mutation and restoration controls; see the [alias receipt](docs/research/p8-plotstyle-source-class-alias-2026-11-25.json). Target CLASS output still needs proof. Keep the refusal and destination preservation. Bind each physical LAYER and plot-style reference to its live row and output,
 including multiple-layer, changed-reference and extra-row refusal with corrected

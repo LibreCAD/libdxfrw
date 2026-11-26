@@ -9,11 +9,6 @@
     "DICTIONARYWDFLT / AcDbDictionaryWithDefault",
     "ACDBPLACEHOLDER / AcDbPlaceHolder"
   ],
-  "layer_names": [
-    "CLOSURE_LAYER",
-    "0",
-    "Defpoints"
-  ],
   "report": {
     "originalSourcesMatched": true,
     "legacyClassRowsMatched": false,
@@ -23,7 +18,7 @@
     "legacyLayerMatched": false,
     "legacyLiveLayerMatched": false
   },
-  "peer": "ezdxf 1.4.5 independently read the generated source and reported the class rows and layers; the exact adapter report was observed separately.",
+  "peer": "A direct physical group-code scan identified two LAYER records. ezdxf 1.4.5 independently read the classes and exposes a third Defpoints layer after load, which is absent from the physical records; the adapter report was observed separately.",
   "limitations": [
     "The observed generated source is one test profile and is not an external producer witness.",
     "No destination/output claim follows from identifying these gates.",
@@ -35,5 +30,24 @@
     "legacyLayerMatched": false,
     "legacyLiveLayerMatched": false,
     "scope": "source observation only; target output and multi-layer gate remain open"
-  }
+  },
+  "physical_layers": [
+    {
+      "name": "CLOSURE_LAYER",
+      "handle": "D25A",
+      "flags": 64,
+      "plot_style_handle": "0"
+    },
+    {
+      "name": "0",
+      "handle": "10",
+      "flags": 64,
+      "plot_style_handle": "0"
+    }
+  ],
+  "ezdxf_loaded_layers": [
+    "CLOSURE_LAYER",
+    "0",
+    "Defpoints"
+  ]
 }
