@@ -254,245 +254,46 @@ API-state meaning but does not close the producer-wire gate.
 | P6-E / WAITING_FOR_UNCLAIMED_HEADER_SUFFIX_ROLE | ODA v5.4.1 §5.9 defines separate R2007+ header string and handle streams. §9 describes the envelope through its ending sentinel, says header padding reaches only the next byte boundary, and locates possible other data at the beginning; it assigns no fields to the observed post-sentinel suffix. Linux ODA File Converter 27.10 produced a valid AC1024 source from a locally authored R2010 DXF, and LibreDWG 0.14 reads it. The trace locates strings at bits 4931..6239 and header handles at byte cursors 782..858; a pinned independent container parser bounds the logical section at 1626 and the suffix at `[887,1626)` (739 bytes; SHA-256 `3f841c402344cc07c25ede3d7284824b68ad3e463316adad4b456d80beb9ecdd`). Zero/XOR mutations preserve container integrity and LibreDWG JSON, but do not classify the suffix; libdxfrw refuses strict and explicit-partial output. See the [authority/span/mutation receipt](docs/research/p6-ac1024-header-stream-suffix-authority-2026-11-24.json). | Obtain a source-distinct producer or independently interpreted decoder trace that accounts for bytes after offset 887. Do not repeat the failed macOS converter attempt, rerun the unchanged Linux conversion, or make further suffix mutations without a new discriminator. Preserve the raw span and fail closed; do not call it padding, semantically ignore it, or discard it. |
 | P6-F / WAITING_FOR_ELIGIBLE_PARTIAL_SOURCE | The [legacy LAYOUT/BLOCK_HEADER source proof](docs/research/p6-legacy-block-header-wire-graph-2026-11-21.json) binds selected ASCII/no-EED R13/R14 bodies, handle spans, rooted dictionary membership and block-control identity. A source-preserving R2000 identity projection and generated ASCII/binary DXF controls check emitted reciprocal links with an independent wire walker and fresh library readback. The [independent ezdxf control](docs/research/p6-r2000-legacy-layout-projection-peer-2026-11-21.json) agrees with the original physical links in both encodings and rejects a damaged backlink; it does not qualify legacy DWG export or native dictionary semantics. The [AC1014](docs/research/p6-ac1014-controlled-partial-output-2026-11-20.json) and [AC1012](docs/research/p6-ac1012-generated-partial-output-2026-11-20.json) recovery controls inject their failures; the generated null SHAPEFILE is not independently established as valid. | On a matching native AutoCAD host, normal-open and check style validity in the [root-case-aligned ODA two-element collision plus unique-entry pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json) first; ODA rejected the original LibreDWG-origin pair. If accepted, use it for the merge operations below. For each applicable merge operation, record whether the 15/37-degree SAME_KEY target survives, whether SOURCE_ONLY is added and DEST_ONLY remains, the exact API/argument and mergeStyle, object IDs, and close/reopen behavior. Do not generate more pairs without a distinct unresolved decision. For the selected ODA source, qualify the ACAD EED, root empty-name entry and remaining object graph before connecting the eligible source projection to guarded DXF output; prove the complete source snapshot, remapping, physical links, independent consumer readback, atomic refusal and corrected retry. Preserve reciprocal checks for newer DWG and DXF. Separately obtain an independently valid organic entity failure with later published frames and prove partial ASCII/Binary output. Do not infer null SHAPEFILE validity or commit external derivatives. |
 
-The [AC1021 HATCH count correction](docs/research/p6-f-ac1021-hatch-pattern-line-count-fix-2026-11-25.json)
-uses ODA §20.4.75 BS fields for definition-line and dash counts, shared
-with the bounded MPOLYGON pattern path. A prior source trace on the cached
-branch reported 28 HATCH failures before the fix and none after it; source
-provenance remains unauthenticated and strict output was refused. This
-branch passes the focused generated DWG and DXF HATCH checks; the fix does
-not qualify the source as an organic partial-read witness.
+Additional P6 work:
 
-The local AC1012 organic-failure candidate sweep used 21 `dwgadd` recipes; 19 produced one or more entities confirmed by LibreDWG JSON. The current libdxfrw reader reported zero entity/object parse failures and zero failed frames for every such source. Two explicit-partial outputs were refused by unrelated DIMENSION placement and MLINE style representability checks. No candidate qualifies the organic-failure gate; see the [sweep receipt](docs/research/p6-ac1012-organic-entity-candidate-sweep-2026-11-25.json). Keep the existing NaN mutation classified as deliberate fault injection and resume P6-F only when a valid source-distinct entity failure appears. The [requested fresh specification-directed pair](docs/research/p6-ac1012-requested-spec-dictionary-pair-2026-11-25.json) passes the shared frame/role/truncation/retry checks and both strict refusal and partial-output audits in ASCII and binary. The existing ODA pair's physical/dependency audit also passes. These controls do not establish native open or merge semantics; retain the native witness gate above. The [post-root regeneration](docs/research/p6-ac1012-spec-pair-root-owner-recheck-2026-11-26.json) creates a fresh local pair and repeats both physical-frame and strict/partial ASCII/binary controls after the R14 root-owner change; native merge semantics remain open. The [current candidate recheck](docs/research/p6-ac1012-existing-spec-pair-current-recheck-2026-11-26.json) repeats strict and partial ASCII/binary output checks on that same pair after the HEADER preflight changes; no sample regeneration or native claim is implied.
-
-The user-directed current-candidate AC1012 sample regeneration applies the ODA §9/§20.4.44/§20.4.73 structure and produces complete destination/source DWGs with `SAME_KEY` targets at 15/37 degrees. Both physical DICTIONARY frames and the current parser controls pass; strict output preserves its destination on the native-semantics guard, while explicit-partial ASCII/Binary outputs pass bounded audits. The DWGs remain scratch-only at `/private/tmp/ac1012-user-spec-followup-20261123/ac1012-dictionary-merge-buvd8iq6`; this repeats the existing discriminator and does not resolve AutoCAD duplicate-key behavior. See the [post-commit regeneration receipt](docs/research/p6-ac1012-spec-pair-postcommit-recheck-2026-11-23.json).
-
-The [2026-11-24 collision and unique-entry control](docs/research/p6-ac1012-collision-unique-entry-control-2026-11-24.json) adds `DEST_ONLY` (22 degrees) to the destination and `SOURCE_ONLY` (51 degrees) to the source while retaining the shared 15/37-degree `SAME_KEY` collision. The focused physical-frame observer passes for both AC1012 dictionaries; strict output still preserves its prior destination on the native-semantics guard, and explicit-partial ASCII/Binary audits retain each profile's selected keys and angles. The samples remain scratch-only under `/private/tmp/ac1012-spec-control-20261124-release/ac1012-dictionary-merge-is640zms`. This gives a host witness a second observable (non-conflicting-key retention) but does not establish native merge behavior or promote support.
-
-The [Linux ODA replacement pair](docs/research/p6-ac1012-oda-linux-generated-pair-2026-11-25.json)
-is a better native-witness candidate: ODA rejected both LibreDWG-origin DWGs
-with a DimStyle-to-entity cast error, but generated AC1012 DWGs from their
-local partial DXF projections and reopened both. LibreDWG independently reads
-the replacement DWGs and confirms the dictionary links and 15/37 and 22/51
-degree style values; ODA's re-export retains those values. A subsequent
-[two-element pair](docs/research/p6-ac1012-oda-two-element-pair-2026-11-25.json)
-eliminates the zero-element limitation, retains those values, and passes ODA
-reopen plus independent LibreDWG readback. Prioritize that scratch-only pair
-for native normal-open, style validation and the merge procedure; no AutoCAD
-acceptance or clone behavior has yet been established. The current converter
-reads all 203 frames in each source and preserves existing ASCII/Binary
-destinations on the dictionary-semantics refusal; skipped objects remain.
-The newer [case-aligned pair](docs/research/p6-ac1012-oda-case-aligned-pair-2026-11-25.json)
-keeps those two-element styles and discriminating keys while removing the
-selected style dictionary's extension graph. ODA reopens it and LibreDWG plus
-the physical walker confirm its typed-null extension. ACAD EED and a separate
-root extension dictionary remain in that pair.
-The later [root-case-aligned pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json)
-also has typed-null extension handles on both root and style dictionaries and
-passes ODA reopen and a physical frame audit. Prefer it for the native witness.
-The root contains an empty-name, typed-null entry; its validity and lossless
-projection remain unqualified, as do ACAD EED and whole-source closure.
-The [physical frame and dependency audit](docs/research/p6-ac1012-oda-pair-frame-graph-2026-11-25.json)
-also finds ACAD EED and a non-null extension dictionary containing an
-`ACAD_XREC_ROUNDTRIP` XRECORD on each selected dictionary. The extension
-dictionary frame, XRECORD's selected 39 data bytes, frame boundaries, CRC and
-handle roles are bound by the [follow-up audit](docs/research/p6-ac1012-oda-pair-xrecord-wire-2026-11-25.json).
-The decoded `EXTNAMES` payload preserves the `STANDARD`/`Standard` distinction.
-The existing source-profile output proof requires a null extension dictionary;
-closing this witness profile requires separately qualifying these dependencies,
-their semantics and output graph, in addition to native merge behavior.
-
-The user-requested current-binary regeneration reproduces that same pair from
-scratch at `/private/tmp/ac1012-user-spec-response-20261124/ac1012-dictionary-merge-obyu6yl4`.
-The current focused CTest and physical-frame observer pass; strict ASCII/Binary
-conversion refuses with destination preservation, and the four bounded
-partial-output audits pass. Exact artifact hashes are in the [regeneration
-receipt](docs/research/p6-ac1012-user-request-spec-pair-rebuild-2026-11-24.json).
-This is a reproducibility refresh, not a new discriminator: native AutoCAD
-open and duplicate-merge behavior remain the only AC1012 semantic blocker for
-this profile, and the scratch DWGs/DXFs are not committed.
-
-The [spec-directed scratch regeneration](docs/research/p6-ac1012-spec-sample-regeneration-2026-11-24.json)
-creates a fresh locally-authored pair from `dwgadd` recipes and writes AC1012
-with LibreDWG 0.14. It binds the ODA §9 DIMSTYLE hard pointer, checks §20.4.44
-DICTIONARY frames and §20.4.73 MLINESTYLE ownership, and distinguishes both
-the SAME_KEY targets (15°/37°) and unique entries (DEST_ONLY 22°/SOURCE_ONLY
-51°). The current parser role/refusal/reset/retry control passes; strict
-ASCII/Binary output refuses atomically and partial ASCII/Binary audits pass.
-The drawings stay in `/private/tmp`; they are not AutoCAD-authored or native
-merge evidence, so native open/merge semantics and the strict-output guard
-remain unresolved.
-
-The [AC1012 layout and null-handle follow-up](docs/research/p6-ac1012-dictionary-layout-null-handle-followup-2026-11-25.json)
-consolidates plain/default DICTIONARY mode-field decisions across decode,
-validation and encode, and makes the common/dictionary handle-role checks
-reject zero references with non-empty payloads. Its in-memory malformed-role
-controls and same-object retries pass the focused AC1012/AC1014/AC1015 test.
-This closes only the local parser consistency slice; native duplicate-merge
-semantics and strict-output admission remain open.
-
-The post-commit [spec-pair recheck](docs/research/p6-ac1012-current-parser-spec-pair-recheck-2026-11-25.json)
-regenerated both collision controls with LibreDWG 0.14 against commit
-`ad5d3340`. Physical DICTIONARY frame checks, the focused parser control,
-strict ASCII/Binary refusal with destination preservation, and independent
-partial ASCII/Binary audits all pass. The samples remain scratch-only. This
-revalidates the implemented AC1012 layout and safety guard; it cannot establish
-AutoCAD's absent-field default or duplicate-key merge behavior, so that native
-semantic gate and strict-output guard remain open.
-
-The user-directed exact-current-head regeneration rebuilt the specification-
-directed AC1012 pair with LibreDWG 0.14 from local recipes at `8f115b9a`.
-Physical DICTIONARY frames and the focused source-frame parser control pass;
-strict ASCII output refuses atomically on the unresolved native merge policy,
-and explicit-partial ASCII/Binary outputs pass independent dictionary and
-MLINESTYLE audits. The source-only and destination-only keys remain distinct
-alongside the 15°/37° `SAME_KEY` conflict. See the [current-head receipt](docs/research/p6-ac1012-current-head-spec-pair-recheck-2026-11-25.json).
-The pair remains scratch-only. This refresh supplies current-head reproducible
-format evidence, not a new native semantic discriminator. Do not regenerate
-again unless a new discriminator or AutoCAD witness becomes available; native
-open/merge behavior and strict AC1012 output admission remain open.
-
-The local parser layer now uses the shared version-aware object body/string
-boundary resolver for DICTIONARY and DICTIONARYVAR, shared common and
-dictionary-specific handle-role predicates, and a single version table for
-DICTIONARY ownership fields. AC1012/AC1014 inline bodies must end at their
-declared boundary; generated AC1012 DICTIONARYVAR vectors cover the common
-handle roles, undeclared body suffixes, truncation, reset, and corrected retry.
-The focused [parser receipt](docs/research/p6-ac1012-shared-frame-role-checks-2026-11-24.json)
-records the passing AC1012/14/15 test. This closes only the local parser slice;
-native AutoCAD open and duplicate-key merge behavior remain open, and strict
-AC1012 output remains guarded.
-
-The follow-up [wide-reference control](docs/research/p6-ac1012-unrepresentable-dictionary-handles-2026-11-24.json)
-rejects five-byte `0x100000001` references in the DICTIONARY parent, reactor,
-extension-dictionary, and item positions because these public graph fields are
-32-bit. Each refusal resets typed state and the valid AC1012 frame then parses
-again. The focused AC1012/AC1014/AC1015 CTest passes in GCC and AddressSanitizer
-builds. No DWG fixture was added; this closes only a local truncation guard,
-not producer semantics, native merge behavior, or strict-output qualification.
-
-For R14 source and output changes, reuse the [PR review regression controls](docs/research/p6-pr106-r14-conversion-review-fixes-2026-11-20.json). The [generated R13/R14/R2000 implicit INSERT chains](docs/research/p6-generated-legacy-implicit-insert-exact-angle-2026-11-21.json) exercise the next-link fix with complete scratch DWGs. R13 explicit-partial and R14 strict/partial outputs pass independent ASCII/Binary geometry readback; R14 also passes same-adapter refusal/retry. The earlier [R14 refusal](docs/research/p6-generated-legacy-implicit-insert-chain-2026-11-21.json) used a JSON-rounded angle. These controls do not close the organic-failure gate or establish broad support.
-
-The bounded [debug entity-failure attribution](docs/research/p6-cli-entity-failure-attribution-trace-2026-11-23.json) prints handle, source location, DWG type, phase, block context, parsed identity flags, and a known missing `BLOCK_RECORD` target, with an internal cap of 512 rows. On the local AC1018 `Extruder2.dwg` candidate, the full 474-row census identifies missing-owner targets across BLOCK, SOLID, LINE, MTEXT, ENDBLK and POINT; the 40 target handles are absent from libdxfrw's block map. LibreDWG 0.14 independently retains all 474 entity rows with the same owner references and no object at any of the 40 target handles. ODA v5.4.1 §20.4.52 documents the versioned BLOCK HEADER handle links that frame this relationship; it does not validate the unauthenticated sample. None of the 474 failures is a typed-body failure. The source is unauthenticated, and 460 integrity rows were omitted, so it remains ineligible for partial output. Preserve strict owner checks and do not use this source to close P6-F.
-
-The [selected AC1015 plot-style graph](docs/research/p6-ac1015-canonical-plotstyle-output-2026-11-21.json) emits the canonical dictionary record and class for AC1015 and AC1024 targets. The [generated strict control](docs/research/p6-ac1015-generated-strict-same-version-2026-11-21.json) now retains that graph, the selected MLINESTYLE, both LAYOUT backlinks, and the INSERT chain in independent ASCII/Binary readback for both targets; malformed source, graph, and retry controls pass. This bounded generated case does not qualify other source records or close the organic-failure gate.
-
-The AC1012 local dictionary work includes the shared [version-aware frame and handle-role checks](docs/research/p6-ac1012-shared-object-frame-2026-11-21.json) and dictionary-layout selector cover AC1012/AC1014/AC1015 common links, counted entries, legacy field presence, relative-owner encodings, typed nulls, and wrong-role refusal/retry; see the [relative-owner role receipt](docs/research/p6-ac1012-relative-owner-role-matrix-2026-11-23.json). The focused dictionary CTest includes a specification-shaped ODA §20.4.44 frame plus locally generated, scratch-only AC1012 destination/source DWGs following ODA §§9, 20.4.44 and 20.4.73. The [current parser/spec-pair receipt](docs/research/p6-ac1012-current-parser-spec-pair-recheck-2026-11-25.json) records frame/CRC checks, parser reset and corrected retry, strict destination-preserving refusal, and bounded partial ASCII/Binary projection. No fixture was added to the repository.
-
-The [legacy handle-width follow-up](docs/research/p6-legacy-group-dictionaryvar-wide-handles-2026-11-25.json)
-rejects GROUP members and DICTIONARYVAR common links that cannot fit their
-32-bit public fields; controls verify reset and corrected retry. This closes a
-local identity-aliasing defect and does not qualify native merge semantics.
-The [legacy body-boundary fix](docs/research/p6-legacy-dictionary-body-boundary-2026-11-25.json)
-also rejects zero R13/R14 object-data boundaries before publishing DICTIONARY
-or DICTIONARYVAR data; generated controls and selected source-frame checks pass.
-
-The five focused legacy dictionary selectors were rebuilt and rerun at source revision `2eab63cfd7c14885cab6111351986d6cd2818dc3`; all pass on local Darwin ARM64. The AC1012/AC1014/AC1015 parser selector also passes with both library and test fully ASan-instrumented. A clean clone computes the same 774-input implementation digest `1e9e799b…29eca` with the draft status overlay allowed. See the [focused CTest and ASan recheck](docs/research/p6-ac1012-focused-ctest-recheck-2026-11-25.json). This confirms local parser/output guards only; it does not replace native AutoCAD evidence or independently establish hosted qualification.
-
-AC1012 still requires native AutoCAD normal-open and duplicate-key clone/merge behavior, including the default behavior when the legacy cloning field is absent. The ODA-generated two-element pair also requires qualification of its ACAD EED and extension-dictionary/XRECORD graph before lossless output. Continue with the [witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md); do not create another sample without a new discriminator. Keep strict output guarded and make no support claim until the relevant evidence is captured.
-The generated controls bind the absent R13/R14 plain-DICTIONARY cloning field and show that ODA's selected R14
-output omits group 281 while its R2000 output writes 1; they do not establish
-native duplicate behavior. The ODA sources also contain APPID-bound dictionary
-EED and currently hit a separate ModelDocViewStyle cross-version guard. AC1012 source-default output selects AC1014, so the guard applies even without an explicit target. A [bounded ODA output screen](docs/research/p6-oda-ac1012-modeldoc-proxy-output-screen-2026-11-21.json) finds R14 proxy children for the same detail/section style handles that appear typed in R2013. ODA reopens those selected proxies into typed styles with matching exported tags; bind their class/payload and demonstrate independently verified lossless semantic roundtrip before considering a proxy bridge. The
-[source-framing control](docs/research/p6-ac1012-oda-dictionary-eed-source-2026-11-21.json)
-now checks the observed EED bytes, APPID identity and mutation/retry against
-both ODA files. The [controlled producer/reopen witness](docs/research/p6-legacy-eed-codepage45-utf8-witness-2026-11-21.json)
-binds EED codepage 45 to UTF-8 for the observed R13/R14 profile, now decoded
-with malformed-byte observations. The [UTF-8 EED source proof](docs/research/p6-legacy-dictionary-eed-utf8-source-2026-11-21.json)
-also binds exact bytes and unchanged APPIDs, with malformed text, bit mutation,
-and retry controls. The bounded R14 group DICTIONARY with ACAD APPID now binds
-staged APPID/table and graph checks for codepage-30 ASCII and representable
-codepage-45 UTF-8 EED, with strict ASCII/Binary output and independent readback;
-see the [ASCII control](docs/research/p6-r14-group-dictionary-eed-output-2026-11-21.json)
-and [UTF-8 output and refusal controls](docs/research/p6-legacy-eed-utf8-output-2026-11-21.json).
-A target escape that an independent reader treats literally is refused atomically.
-The [alternate APPID control](docs/research/p6-legacy-eed-alternate-appid-2026-11-21.json)
-binds ACAD by its captured source handle and table identity instead of assuming
-handle 0x12. The [remapped group/NOD control](docs/research/p6-legacy-eed-remapped-dictionary-graph-2026-11-21.json)
-now binds the captured ACAD_GROUP membership after all dictionary frames are
-validated, including when the group sorts before its owner. The [nonempty group
-control](docs/research/p6-legacy-eed-nonempty-group-2026-11-21.json) also binds
-one named GROUP and its 3D LINE member, including wrong-role, graph-mutation,
-rollback and independent output-readback checks. The [NOD EED control](docs/research/p6-legacy-nod-eed-output-2026-11-21.json)
-reuses that source proof for the named-object dictionary and its MLINESTYLE
-path, with unique group ownership and staged ASCII/Binary output checks. The
-[MLINESTYLE owner EED control](docs/research/p6-legacy-mline-owner-eed-output-2026-11-21.json)
-binds the separate ACAD_MLINESTYLE dictionary, its style edge and text transport;
-the shared staged check also refuses lossy escapes in R13 partial output. The
-[1071 control](docs/research/p6-legacy-dictionary-eed-int32-2026-11-21.json)
-adds signed 32-bit integer wire and output checks for all three dictionary
-locations, including boundary values. The [1040–1042 real control](docs/research/p6-legacy-dictionary-eed-reals-2026-11-21.json)
-adds exact finite wire-value and output checks, with a matching-wire NaN refusal.
-The [1002 nesting control](docs/research/p6-legacy-dictionary-eed-groups-2026-11-21.json)
-binds balanced groups and prevents crossing APPID boundaries. The [1004 binary
-control](docs/research/p6-legacy-dictionary-eed-binary-2026-11-21.json) matches
-source length and bytes and checks a 128-byte payload split across DXF chunks.
-The [1010–1013 control](docs/research/p6-legacy-dictionary-eed-points-2026-11-21.json)
-binds finite 3D point components to the source and checks output readback.
-The [1005 handle control](docs/research/p6-legacy-dictionary-eed-handle-2026-11-21.json)
-checks the source value, remapped output, and unique target closure, including
-refusal and retry for a dangling reference in R13 partial output. Layer EED
-byte order, other group graphs and EED schemas still need matching source and
-output evidence. A [repeatable ODA/LibreDWG layer witness](docs/research/p6-legacy-eed-layer-byte-order-2026-11-21.json)
-now shows opposing physical byte orders for R13/R14, with ODA confirming the
-same big-endian encoding for R2000. The [explicit read-policy control](docs/research/p6-eed-layer-read-policy-2026-11-21.json)
-now resolves either witnessed order when the caller selects it, preserves raw
-bytes, and refuses DXF output for unresolved layer references. The default
-remains the existing little-endian behavior; the choice does not infer producer
-identity or promote support. Next, establish trustworthy automatic source
-profile evidence; keep ambiguous or wide targets unresolved. The [legacy
-layer-edge control](docs/research/p6-legacy-dictionary-eed-layer-source-output-2026-11-21.json)
-binds the selected R13/R14 dictionary source, layer and staged output for both
-explicit byte orders, with independent ASCII/Binary readback and refusal/retry.
-The [ODA nondefault-layer source](docs/research/p6-oda-legacy-dictionary-layer-extension-2026-11-21.json)
-now binds NOD/MLINESTYLE parent and extension dictionary frames, APPID, layer,
-handle roles and ODA reopen. The [XRECORD wire control](docs/research/p6-oda-legacy-layer-extension-xrecord-wire-2026-11-21.json)
-now binds the selected extension XRECORD bodies, tails, following frames and
-class-table records. The [R13/R14 string-length witness](docs/research/p6-oda-legacy-xrecord-string-lengths-2026-11-21.json) independently checks ODA-generated 1, 254, 255, 256 and 300-byte XRECORD strings, the following value and handles, malformed-length refusal, and same-adapter retry. Its observed two-byte length differs from ODA specification section 20.4.104; keep other producer profiles unqualified. A [paired ODA ownership control](docs/research/p6-oda-r13-r14-dictionary-ownership-pair-2026-11-21.json) now correlates hard-owner 0/1 with the R14 byte and with an R13 `TREAT_AS_HARD` EED value, including a populated dictionary and ODA reopen. A [defensive R13 output guard](docs/research/p6-r13-dictionary-ownership-marker-refusal-2026-11-21.json) now refuses a nonzero or ambiguous ACAD ownership marker instead of emitting a contradictory soft-owned dictionary; its generated regression checks both encodings and corrected retry. Implement and qualify the hard-owned projection after the source and native semantics are established. This is one producer family, not native cloning or duplicate-merge evidence. Before extending output, establish extension-dictionary and native ownership semantics, and close the recorded whole-source guards. The [R2000 writer control](docs/research/p6-r2000-eed-layer-write-order-2026-11-21.json)
-now checks explicitly selected byte order, raw-byte replay, failure/retry and
-ODA reopen for generated LINE and LAYER examples. A [named-layer control](docs/research/p6-r2000-eed-layer-named-handle-2026-11-21.json)
-also checks a multi-byte target after low-handle reservations; the [corrected
-graph control](docs/research/p6-r2000-eed-layer-graph-closure-2026-11-21.json)
-uses the actual planned plot-style placeholder and checks its dictionary links.
-Extend independent output witnesses and collision controls to other versions and object graphs; do not
-infer native producer semantics or broader support from this bounded example.
-The same source and staged proof now covers R13-to-R14 explicit partial output
-for that bounded group, with independent ASCII/Binary readback and mutation
-refusal; see [R13 control](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json)
-and the subsequent [import-bound integrity fix](docs/research/p6-legacy-eed-import-bound-integrity-2026-11-21.json).
-The original pre-inspection fallback is closed for the verified profile. Strict R13, broader
-cross-version and non-representable EED output remain outside this profile. Extend
-other dictionaries only with separately bound source, name, graph and output evidence. The observed legacy DICTIONARYWDFLT is now
-decoded with cloning, owner, entry and default fields after
-[producer and wire checks](docs/research/p6-legacy-dictionary-default-typed-2026-11-21.json);
-the subclass physically contains a cloning field in these samples. CELLSTYLEMAP
-remains unmodeled and raw-only. All source frames have a disposition, which
-does not establish complete output.
-The [R14 generated-root projection](docs/research/p6-legacy-dictionary-cloning-absence-projection-2026-11-21.json)
-now preserves the absent group 281 for observed legacy plain dictionaries;
-this is not native duplicate-merge evidence. The regenerated [specification-based
-R13/R14/R2000 samples](docs/research/p6-ac1014-render-frames-wire-2026-11-21.json)
-confirm the versioned field boundary; the R13 strict conversion preserves its
-destination while an unrelated object remains unqualified. Use these generated
-samples in the native witness rather than treating generation as native semantics.
-Establish dictionary cloning/default
-semantics and close the remaining output and EED dependencies, then run the
-[native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md) and [hash-checked generated handoff](docs/research/p6-ac1012-generated-native-packet-2026-11-21.json)
-on an identified host. Keep strict output refused until native duplicate
-behavior, both encodings and rollback/retry are proven. This is separate from
-P6-F's organic partial-read failure and the LibreCAD raw-carrier gate below.
-
-Keep the AC1027 173-bit unclaimed suffix as an output-blocking integrity error;
-ordinary AC1027 drawings remain deferred until source-reference closure. Keep
-short-tail LTYPE_CONTROL fail-closed until versioned roles resolve. A fresh current-candidate pass on 2026-11-24 checked the nine AC1024 files in `/Users/dli/doc/dwg` plus `/Users/dli/doc/dwg6/framing_AC1024.dwg`; all ten reached `dwgReader24::readDwgClasses END`, none reported BAD_READ_CLASSES, nine completed the full read, and the framing sample advanced to BAD_READ_TABLES. The current workspace report of six class failures was not reproduced on these exact hashes; see the [current corpus receipt](docs/research/p6-ac1024-classes-current-corpus-recheck-2026-11-24.json). Preserve the parser and resume only with a new hash-bound failure and its producer/maintenance metadata. Do not rerun this unchanged corpus.
-
-The current `/Users/dli/doc/dwg` inputs still match all ten hashes in that receipt; the [identity-only recheck](docs/research/p6-ac1024-classes-corpus-identity-recheck-2026-11-25.json) found no new failure trigger, so no AC1024 class parser change or corpus rerun was made.
-
-The [class-footer flag control](docs/research/p6-ac1024-class-footer-presence-bit-2026-11-24.json) corrects the generated nonempty-stream vectors to the ODA presence bit and checks the physical AC1024 writer output. The hash-pinned framing sample has an unset bit despite its decoded string stream, and already has an unexplained CLASSES CRC mismatch and incomplete end sentinel. A strict flag rejection moves its first error from TABLES to CLASSES; retain bounded compatibility until producer and maintenance-version provenance resolves this discrepancy.
-
-Potential DIMASSOC/XREF, remaining 3D positions/OCS/splines, clipping/mesh,
-units/lineweight, text/XDATA/EED/font, proxy identity, header dependencies, and
-CLI atomicity are backlog prompts; add one after a source/profile identifies a
-concrete gap.
+- **AC1012 source and native semantics:** use the root-case-aligned ODA pair
+  and the [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)
+  to establish normal open, absent cloning-field default, duplicate merge,
+  unique entries and reopen. Qualify its ACAD EED, root empty-name/null entry,
+  extension dictionary/XRECORD graph and whole-source closure. Source-default
+  output also reaches a ModelDocViewStyle cross-version guard; bind the
+  [proxy bridge](docs/research/p6-oda-ac1012-modeldoc-proxy-output-screen-2026-11-21.json)
+  and independent semantic roundtrip before admitting it. The
+  [specification-directed pair](docs/research/p6-ac1012-existing-spec-pair-current-recheck-2026-11-26.json)
+  proves bounded strict refusal and partial output only. Do not regenerate an
+  unchanged pair or equate an ODA reopen with native AutoCAD semantics.
+- **Organic partial recovery:** obtain a valid producer-identified source with
+  a real entity failure and later published frames, then prove partial
+  ASCII/binary output. The 21-recipe [local sweep](docs/research/p6-ac1012-organic-entity-candidate-sweep-2026-11-25.json),
+  NaN fault injection and unauthenticated [AC1018 owner-failure source](docs/research/p6-cli-entity-failure-attribution-trace-2026-11-23.json)
+  do not qualify; keep strict ownership and no-loss checks.
+- **Legacy EED and dictionaries:** establish trustworthy producer-based EED
+  layer byte-order detection; the existing explicit little/big choice remains
+  available and ambiguous or wide targets stay refused. Extend source-span,
+  target, output, mutation/retry and independent readback evidence to other
+  versions, dictionaries, group graphs and EED schemas. The
+  [layer-byte-order witness](docs/research/p6-legacy-eed-layer-byte-order-2026-11-21.json)
+  and [legacy layer-edge proof](docs/research/p6-legacy-dictionary-eed-layer-source-output-2026-11-21.json)
+  are profile-specific. Qualify hard-owned R13 projection, extension ownership
+  and native cloning semantics before changing the existing refusal. Preserve
+  the observed [R13/R14 XRECORD string-length discrepancy](docs/research/p6-oda-legacy-xrecord-string-lengths-2026-11-21.json)
+  as producer-specific until independently resolved.
+- **Other version boundaries:** keep the AC1027 unclaimed 173-bit suffix and
+  short-tail LTYPE_CONTROL fail-closed pending source/reference and handle-role
+  proof. Do not repeat the unchanged AC1024 class corpus: resume only on a new
+  hash-bound failure with producer and maintenance metadata. The anomalous
+  framing sample has an unset class-footer flag, CRC mismatch and incomplete
+  sentinel; retain bounded compatibility until provenance resolves it. See the
+  [corpus receipt](docs/research/p6-ac1024-classes-current-corpus-recheck-2026-11-24.json)
+  and [footer receipt](docs/research/p6-ac1024-class-footer-presence-bit-2026-11-24.json).
+- **Backlog:** add DIMASSOC/XREF, 3D coordinates/OCS/splines, clipping/mesh,
+  units/lineweight, text/XDATA/EED/font, proxy identity, header dependencies or
+  CLI atomicity only after a source/profile establishes a concrete gap.
 
 ### P7 — ACIS/ACDS and 3D meaning (4 open)
 
