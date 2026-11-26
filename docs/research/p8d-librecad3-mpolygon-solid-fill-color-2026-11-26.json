@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_code_commit": "252f2c69ae51cdcc61bc43995936b086490a928e",
+  "consumer_test_commit": "8df6ac2e3acc68468555fc7b74419fda11cbc85b",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "authority": {
+    "title": "Autodesk HATCH and MPOLYGON DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+    "finding": "MPOLYGON group 63 specifies pattern fill color as an ACI, separate from common entity color."
+  },
+  "problem": "A bounded solid MPOLYGON with fill ACI 3 and BYLAYER entity color rendered white rather than green.",
+  "change": "Represent an explicit ACI solid fill separately from common entity color for non-gradient DXF MPOLYGONs; use it in canvas drawing while preserving selection color precedence. Unsupported fill-color forms retain the previous path.",
+  "validation": {
+    "canvas_tests": "4 passed, including fill vs line color, cached draw, selected highlight, and pattern fallback",
+    "layout_tests": "15 passed",
+    "dwg_tests": "17 passed, including explicit red entity/green fill, move metadata, and output groups 62/63",
+    "dxf_tests": "71 passed",
+    "older_bundled_headers": "syntax-only pass with pre-existing warnings",
+    "plan_checker_tests": "31 passed",
+    "native": "Instrumented current viewer frame showed white before and green after. Opened source, saved as AC1018 ASCII and reopened output with the existing MPOLYGON-as-HATCH notice. The OS window screenshot remained black.",
+    "independent": "ezdxf 1.4.5 verified source and saved MPOLYGON subtype, ACI fill 3, BYLAYER common color, vertices and offset, with zero errors or fixes."
+  },
+  "artifacts": {
+    "source_sha256": "f1399bfe05ef200685dd741c4956e21beaf2c7262345b5ec8ced155d9dd505ce",
+    "saved_output_sha256": "34ef69a2b128dd084458e7efb92b03a12190efb848c677c9963a64271fe7dae3",
+    "before_framebuffer_sha256": "38f39e8a2eb5cbc5caecca073c982c6246774856991ca50501b030fc47a91067",
+    "after_framebuffer_sha256": "d34d26340e35fcdebce22353b96b39bf05b0532e0550a1e3e949f06fabd0fa12",
+    "instrumented_app_sha256": "1a4621152dda6b43fa522bb66d9e28365f3b69855c35c4c36157196fc659ed03",
+    "persistence_library_sha256": "03b56623badd939820bba7695c4ca607f2c50bbe4c81e50f9b79e0385ab48d6a",
+    "viewer_library_sha256": "6e42707fb0e3338649c9576524b727d07aee5f8fadc4494fe93873e6f16ebec0",
+    "kernel_library_sha256": "5741caaa8288451d130996ddf3fb7a1ddab974d5cc150d02257d791f556b037d"
+  },
+  "limits": [
+    "Native build uses scratch GL tracing and isolated title/identity; it is not a release binary.",
+    "No native MPOLYGON edit/transform or uninstrumented visible display is claimed.",
+    "ACI ByBlock/ByLayer, gradient, true-color, named colors, DWG MPOLYGON fills and broader profiles remain unqualified.",
+    "No independent producer source or Linux/Windows native qualification."
+  ],
+  "supportClaimEffect": "none"
+}
