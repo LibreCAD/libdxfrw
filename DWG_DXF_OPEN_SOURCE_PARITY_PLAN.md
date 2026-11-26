@@ -134,7 +134,10 @@ evidence are recorded in `docs/research/` and Git history.
   native reopen timed out and its viewer was older. An [instrumented current-viewer control](docs/research/p8d-librecad3-native-paper-edit-reopen-2026-11-26.json)
   rendered a paper LINE to its framebuffer, edited and saved it, and reopened both
   paper lines for one generated AC1018 case. The window capture remained black;
-  uninstrumented display, MPOLYGON editing, independent producer and other platforms remain open.
+  uninstrumented display, independent producer and other platforms remain open.
+  A [native MPOLYGON move and reopen](docs/research/p8d-librecad3-native-mpolygon-move-2026-11-26.json)
+  preserves one generated solid polygon's subtype, fill and translated offset,
+  independently read back without audit repairs; other edit and display profiles remain open.
   The [MPOLYGON solid-fill color fix](docs/research/p8d-librecad3-mpolygon-solid-fill-color-2026-11-26.json)
   displays explicit ACI fill independently of the line color for a bounded DXF
   profile; [HATCH fallback](docs/research/p8d-librecad3-mpolygon-fallback-fill-2026-11-26.json)
