@@ -118,6 +118,18 @@ evidence are recorded in `docs/research/` and Git history.
   deassociation report. Extend the bounded wide-self-handle profile to 64-bit
   owners and translated references with source/target closure, while keeping
   the existing 32-bit public semantic API. Qualify consumers independently.
+- **LibreCAD_3 layouts:** the [native MPOLYGON probe](docs/research/p8d-librecad3-native-mpolygon-layout-gap-2026-11-26.json)
+  reopens the bounded polygon with its offset and vertices, but its saved DXF
+  has no physical LAYOUT objects and an orphaned `*Paper_Space0` block record.
+  A standard generated input also reports two LAYOUT records not imported.
+  Implement source LAYOUT capture and complete generated/preserved layout graphs:
+  bind the root dictionary, LAYOUT dictionary entries, layout owners and both
+  directions of BLOCK_RECORD links. Preserve nonempty paper-space contents and
+  source identities; do not simply discard paper-space blocks to clear an audit.
+  Add zero/one/two-layout ASCII and binary controls, unknown-reference refusal,
+  destination preservation and retry, and independent physical/semantic audit;
+  then repeat the native MPOLYGON save/reopen/render/edit check on the final
+  consumer and codec heads.
 - **AC1012:** reuse the locally authored specification-directed pair and
   shared version-aware frame, dictionary and handle-role checks. The
   [current-candidate recheck](docs/research/p6-ac1012-existing-spec-pair-current-recheck-2026-11-26.json)
