@@ -107,8 +107,12 @@ which checks both codecs and distinct handles. The [legacy INSERT follow-up](doc
 avoids unsupported R12/R14 reverse BLOCK_RECORD references; R12 save/reopen/resave
 and R14 handle-bearing output pass focused controls on both codecs. The wider
 system linetype selector now passes 47/52 cases. Investigate its five remaining
-cases, especially R14 reimport/resave failing in header emission; the R14 peer
-also repaired a root-dictionary owner, requiring version-specific review.
+cases. The [R14 header diagnostic](docs/research/p8d-r14-header-self-resave-diagnostic-2026-11-25.json)
+binds the reimport/resave refusal to three group-290 Boolean variables emitted
+by the first save; an independent version table also flags 64 header variables
+as R2000-or-later. Establish the R14 schema and loss policy, then separately
+handle existing emitted files, clean output and ASCII/binary retry/readback. The
+R14 peer also repaired a root-dictionary owner; review it independently.
 Investigate the remaining identity and object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
