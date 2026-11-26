@@ -28,8 +28,10 @@ evidence are recorded in `docs/research/` and Git history.
   references. The [consumer staged-check slice](docs/research/p8d-librecad-staged-layer-material-output-2026-11-26.json)
   uses both inspectors for bounded already-admitted typed graphs and rechecks
   source state before publication. The [shared staged HEADER inspector](docs/research/p8d-shared-staged-header-material-2026-11-26.json)
-  checks the emitted material reference through the converter's decoder; bind
-  it in the consumer. Extend graph and HEADER admission before
+  checks the emitted material reference through the converter's decoder. The
+  [consumer HEADER slice](docs/research/p8d-librecad-staged-header-material-2026-11-26.json)
+  binds that check and final source-state validation for bounded typed graphs.
+  Extend graph and HEADER admission before
   enabling raw-only replay.
   The [bounded source-snapshot prerequisite](docs/research/p8d-librecad-sparse-material-source-snapshot-2026-11-26.json)
   retains immutable copies for the explicitly opted-in small-source profile;
@@ -102,7 +104,7 @@ evidence are recorded in `docs/research/` and Git history.
   digest: 2f44a20e8b1df3818e040748b00507ccc806225f94f69ad6cdda7ee464f8afa8
   (778 inputs). The shared HEADER inspector changes selected inputs,
   so earlier digest-bound results remain historical. LibreCAD consumer head:
-  b25f463bb529305a9248801b1e18752791ad2365. Prior platform receipts apply only
+  e523caa2196964931c7c1aa99ef86d87b7a6e955. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`; revalidate the final
