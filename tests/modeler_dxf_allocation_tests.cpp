@@ -177,6 +177,77 @@ bool readbackMatches(const std::filesystem::path &path,
   return matches;
 }
 
+bool runSatTokenTransaction(const std::filesystem::path &directory) {
+  std::error_code error;
+  std::filesystem::create_directories(directory, error);
+  if (error)
+    return false;
+  const std::string sentinel = "preexisting destination\n";
+  const std::string valid = std::string(124u, 'A') + " @7 a b c d Z";
+  for (const bool binary : {false, true}) {
+    const auto path = directory / (binary ? "retry-binary.dxf" : "retry-ascii.dxf");
+    {
+      std::ofstream initial(path, std::ios::binary | std::ios::trunc);
+      initial << sentinel;
+      if (!initial)
+        return false;
+    }
+    dxfRW codec(path.string().c_str());
+    Export adapter(codec, std::vector<std::uint8_t>(600u, 'x'), DRW::E3DSOLID);
+    DRW_ModelerGeometry &entity = adapter.geometry;
+    entity.m_rawBytes.clear();
+    entity.m_dxfPayloadChunks.clear();
+    entity.m_dwgSourceVersion = DRW::AC1015;
+    entity.m_hasModelerData = true;
+    DRW_ModelerPayloadRange range;
+    range.m_kind = DRW_ModelerPayloadRange::Kind::Sat;
+    range.m_section = DRW_ModelerPayloadRange::Section::Body;
+    range.m_consistency = DRW_ModelerPayloadRange::Consistency::Exact;
+    range.m_confidence = DRW_ModelerPayloadRange::Confidence::DeclaredSize;
+    const auto setPayload = [&](const std::string &text) {
+      entity.m_dwgAcisPayload.assign(text.begin(), text.end());
+      entity.m_objectSize = static_cast<std::uint32_t>(text.size());
+      range.m_length = text.size();
+      range.m_declaredByteSize = text.size();
+      entity.m_payloadRanges.assign(1u, range);
+    };
+    setPayload(std::string(128u, 'A'));
+    std::string actual;
+    if (codec.write(&adapter, DRW::AC1015, binary) ||
+        !readBytes(path, actual) || actual != sentinel || hasStagedOutput(path))
+      return false;
+    setPayload(valid);
+    if (!codec.write(&adapter, DRW::AC1015, binary) || !adapter.written ||
+        hasStagedOutput(path))
+      return false;
+    dx_data data;
+    dx_iface importer;
+    if (!importer.fileImport(path.string(), &data, false) || !data.mBlock)
+      return false;
+    const DRW_ModelerGeometry *modeler = nullptr;
+    for (const DRW_Entity *item : data.mBlock->ent)
+      if (item && item->eType == DRW::E3DSOLID)
+        modeler = dynamic_cast<const DRW_ModelerGeometry *>(item);
+    if (!modeler || modeler->m_dxfPayloadChunks.size() != 2u)
+      return false;
+    std::string decoded;
+    for (const auto &chunk : modeler->m_dxfPayloadChunks) {
+      if (chunk.m_offset > modeler->m_rawBytes.size() ||
+          chunk.m_length > modeler->m_rawBytes.size() - chunk.m_offset)
+        return false;
+      for (std::size_t i = chunk.m_offset; i < chunk.m_offset + chunk.m_length; ++i) {
+        const std::uint8_t value = modeler->m_rawBytes[i];
+        decoded.push_back(static_cast<char>(value > 0x20u ? 0x9Fu - value : value));
+      }
+    }
+    if (decoded != valid || entity.m_dwgAcisPayload !=
+        std::vector<std::uint8_t>(valid.begin(), valid.end()))
+      return false;
+  }
+  std::cout << "SAT token split: atomic refusal, corrected retry and readback PASS\n";
+  return true;
+}
+
 bool run(const std::filesystem::path &directory) {
   const auto fail = [](const char *message) {
     std::cerr << "modeler DXF allocation transaction: " << message << '\n';
@@ -325,6 +396,8 @@ void operator delete(void *value, std::size_t) noexcept { std::free(value); }
 void operator delete[](void *value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char **argv) {
+  if (argc == 3 && std::string(argv[2]) == "--sat-token")
+    return runSatTokenTransaction(argv[1]) ? 0 : 1;
   if (argc != 2) {
     std::cerr << "usage: modeler_dxf_allocation_tests SCRATCH_DIR\n";
     return 2;

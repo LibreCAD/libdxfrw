@@ -2441,7 +2441,6 @@ void writeDxfTextChunks(dxfWriter *writer, const std::vector<std::uint8_t>& data
 
 bool writeDxfSatTextValue(dxfWriter *writer, int groupCode,
                           const std::uint8_t *data, std::size_t size,
-                          bool encryptSatV1 = false,
                           bool allowBinaryLineBreaks = false) {
     if (writer == nullptr || (groupCode != 1 && groupCode != 3)
         || (data == nullptr && size != 0))
@@ -2465,10 +2464,6 @@ bool writeDxfSatTextValue(dxfWriter *writer, int groupCode,
              && !allowBinaryLineBreaks)
             || value == '\0' || value > 0x7Eu)
             return false;
-        // ODA §20.4.41's SAT v1 transform is involutive. DWG parsing keeps
-        // decoded SAT; the DXF text carrier requires the encoded byte again.
-        if (encryptSatV1 && value > 0x20u)
-            value = static_cast<std::uint8_t>(0x9Fu - value);
         if (value == '^') {
             if (chunkSize + 2u > kChunkSize && !flush())
                 return false;
@@ -2479,6 +2474,82 @@ bool writeDxfSatTextValue(dxfWriter *writer, int groupCode,
                 return false;
             chunk[chunkSize++] = static_cast<char>(value);
         }
+    }
+    return flush();
+}
+
+// SAT readers may restore each DXF value separately: a continuation must
+// therefore start at a token boundary, rather than at an arbitrary byte.
+// Keep length-prefixed @ strings together, including their embedded spaces.
+bool writeDxfSatV1Line(dxfWriter *writer, const std::uint8_t *data,
+                       std::size_t size) {
+    constexpr std::size_t kChunkSize = 255;
+    char chunk[kChunkSize];
+    std::size_t chunkSize = 0;
+    int code = 1;
+    const auto flush = [&]() {
+        if (chunkSize == 0)
+            return true;
+        if (!writer->writeString(code, std::string_view(chunk, chunkSize)))
+            return false;
+        code = 3;
+        chunkSize = 0;
+        return true;
+    };
+    // The SAT v1 transform is involutive; DWG retains decoded SAT bytes.
+    const auto encoded = [](std::uint8_t value) {
+        return value > 0x20u ? static_cast<std::uint8_t>(0x9Fu - value)
+                             : value;
+    };
+    const auto whitespace = [](std::uint8_t value) {
+        return value == ' ' || value == '\t';
+    };
+    for (std::size_t pos = 0; pos < size;) {
+        std::size_t end = pos + 1;
+        if (!whitespace(data[pos])) {
+            while (end < size && !whitespace(data[end]))
+                ++end;
+            if (data[pos] == '@' && end > pos + 1 && end < size
+                && data[end] == ' ') {
+                bool numeric = true;
+                for (std::size_t i = pos + 1; i < end; ++i)
+                    numeric = numeric && data[i] >= '0' && data[i] <= '9';
+                if (numeric) {
+                    std::size_t length = 0;
+                    for (std::size_t i = pos + 1; i < end; ++i) {
+                        const std::size_t digit = data[i] - '0';
+                        if (length > size / 10u
+                            || (length == size / 10u && digit > size % 10u))
+                            return false;
+                        length = length * 10u + digit;
+                    }
+                    ++end; // The single separator before the string.
+                    if (length > size - end)
+                        return false;
+                    end += length;
+                    if (end < size && !whitespace(data[end]))
+                        return false;
+                }
+            }
+        }
+        std::size_t encodedSize = 0;
+        for (std::size_t i = pos; i < end; ++i) {
+            if (data[i] == '\0' || data[i] == '\r' || data[i] == '\n'
+                || data[i] > 0x7Eu)
+                return false;
+            encodedSize += encoded(data[i]) == '^' ? 2u : 1u;
+            if (encodedSize > kChunkSize)
+                return false;
+        }
+        if (chunkSize + encodedSize > kChunkSize && !flush())
+            return false;
+        for (std::size_t i = pos; i < end; ++i) {
+            const std::uint8_t value = encoded(data[i]);
+            chunk[chunkSize++] = static_cast<char>(value);
+            if (value == '^')
+                chunk[chunkSize++] = ' ';
+        }
+        pos = end;
     }
     return flush();
 }
@@ -2497,8 +2568,8 @@ bool writeDxfSatV1Text(dxfWriter *writer,
         if (contentEnd > lineStart && data[contentEnd - 1] == '\r')
             --contentEnd;
         if (contentEnd > lineStart) {
-            if (!writeDxfSatTextValue(writer, 1, data.data() + lineStart,
-                                      contentEnd - lineStart, true))
+            if (!writeDxfSatV1Line(writer, data.data() + lineStart,
+                                   contentEnd - lineStart))
                 return false;
             wroteLine = true;
         }
@@ -2517,13 +2588,13 @@ bool writeDxfSatTextPayloadChunks(
         return false;
     if (chunks.empty()) {
         return writeDxfSatTextValue(writer, 1, data.data(), data.size(),
-                                    false, allowBinaryLineBreaks);
+                                    allowBinaryLineBreaks);
     }
     for (const DRW_ModelerPayloadChunk& chunk : chunks) {
         const std::uint8_t *chunkData = chunk.m_length == 0
             ? nullptr : data.data() + chunk.m_offset;
         if (!writeDxfSatTextValue(writer, chunk.m_groupCode,
-                                  chunkData, chunk.m_length, false,
+                                  chunkData, chunk.m_length,
                                   allowBinaryLineBreaks))
             return false;
     }

@@ -110,7 +110,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 1bc188a918b00d79823b711a90b3a62981f3a65029b16ca82a20c2041db20f93
+  digest: 49f5ae67a5d39b484fb72f86e27358f0b49c3dd164e3a23be0f9c20fec1c36a6
   (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
@@ -366,6 +366,13 @@ Additional P6 work:
 | P7-D / WAITING_FOR_ACIS_21500_HEADER_WORD_AUTHORITY | Keep the third header word raw; its meaning remains unresolved. Reuse the [scope cross-check](docs/research/p7-ac1024-21500-oda-spec-scope-crosscheck-2026-11-18.json), [cross-version authority screen](docs/research/p7-ac1024-21500-header-third-word-cross-version-authority-screen-2026-11-13.json), and [local profile](docs/research/p7-acis-21500-local-header-profile-screen-2026-11-12.json). Resume only with 21500-specific primary authority or an independently interpreted, provenance-qualified payload whose top-level record census distinguishes the candidate meanings. | Bind the 21500 header field to source spans and semantics; add only a discriminating control for the qualified mapping, then compare analytic values with an independent reader. Framing or one-body-count mismatch alone does not establish the field's meaning. |
 | P7-F / DEPENDS_ON_P7_C_D_AND_INDEPENDENT_READER | After P7-C/D admits an output-capable profile and an independent geometry reader is available, extend one analytic case through nested blocks, units, placement, and transforms. | Compare the transform chain and dimensions at stated tolerance. Record an unavailable reader as a profile wait and continue elsewhere. |
 | P7-H / INTEGRATION_GATE | After profile admission and candidate freeze, run native modeler acceptance. | Pin application/build/modules/import operation and compare analytic/kernel semantics independently. |
+
+The [SAT continuation comparison](docs/research/p7-sat-token-continuation-oda-reproduction-2026-11-26.json)
+reproduced corruption when ODA restored an encoded SAT token split across DXF
+values. DWG-derived SAT now uses token-aware continuations and refuses an
+oversized token; ASCII/Binary rollback and retry pass. One patched-writer cube
+also survives an ODA round trip and independent mesh readback. This does not
+resolve the open R2013+ mappings, native acceptance, or general 3D semantics.
 
 Keep AcDs association, source/output identity, geometry semantics, and native
 acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and

@@ -1671,6 +1671,11 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(dwg2dxf_modeler_dxf_allocation_transaction PROPERTIES
         LABELS "fast;dxf;3d;modeler;transaction;allocation"
         TIMEOUT 60)
+    add_test(NAME dwg2dxf_modeler_sat_token_transaction
+        COMMAND libdxfrw_modeler_dxf_allocation_tests
+            ${CMAKE_CURRENT_BINARY_DIR}/modeler-sat-token --sat-token)
+    set_tests_properties(dwg2dxf_modeler_sat_token_transaction PROPERTIES
+        LABELS "fast;dxf;3d;modeler;transaction" TIMEOUT 10)
     add_test(NAME dwg2dxf_modeler_acds_blob_projection
         COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-blob-projection)
     set_tests_properties(dwg2dxf_modeler_acds_blob_projection PROPERTIES
@@ -3084,6 +3089,10 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(libdxfrw_dxf_block_record_parser_retained_budget PROPERTIES
         LABELS "fast;dxf;reader;block-record;resource-budget"
         TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_modeler_sat_token_chunks
+        COMMAND libdxfrw_hardening_tests --dxf-modeler-text-chunk-borrow)
+    set_tests_properties(libdxfrw_dxf_modeler_sat_token_chunks PROPERTIES
+        LABELS "fast;dxf;writer;modeler" TIMEOUT 10)
     add_test(NAME libdxfrw_dxf_modeler_text_direct_append
         COMMAND libdxfrw_hardening_tests
             --dxf-modeler-text-direct-append)

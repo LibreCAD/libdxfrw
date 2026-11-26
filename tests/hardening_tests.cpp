@@ -19016,7 +19016,9 @@ void testDxfModelerTextChunkBorrow(TestContext& t) {
 
         // Narrow qualified-source metadata exercises the same chunk buffer
         // through the legacy SAT-v1 transform, which can itself produce '^'.
-        const std::vector<std::uint8_t> satV1Payload(128u, 'A');
+        const std::string satV1Text = std::string(127u, 'A') + " A";
+        const std::vector<std::uint8_t> satV1Payload(
+            satV1Text.begin(), satV1Text.end());
         DRW_ModelerGeometry satV1(DRW::E3DSOLID);
         satV1.handle = 0x706u;
         satV1.m_modelerVersion = 1;
@@ -19075,11 +19077,61 @@ void testDxfModelerTextChunkBorrow(TestContext& t) {
         }();
         t.expect(wroteSatV1 && wroteSatV1Sentinel
                      && satV1Actual == std::vector<std::pair<int, std::string>>({
-                         {1, expectedSatV1FirstChunk}, {3, "^ "}})
-                     && satV1FirstChunk.size() == 254u
+                         {1, expectedSatV1FirstChunk + " "}, {3, "^ "}})
+                     && satV1FirstChunk.size() == 255u
                      && sawSatV1Sentinel
                      && satV1.m_dwgAcisPayload == satV1Payload,
-                 "SAT-v1 transform-generated caret pairs stay intact across the 255-byte chunk boundary");
+                 "SAT-v1 continuation preserves caret pairs and starts at a token boundary");
+
+        const auto encodeSatLine = [&](const std::string& text) {
+            DRW_ModelerGeometry entity = satV1;
+            entity.m_dwgAcisPayload.assign(text.begin(), text.end());
+            entity.m_objectSize = static_cast<std::uint32_t>(text.size());
+            entity.m_payloadRanges[0].m_length = text.size();
+            entity.m_payloadRanges[0].m_declaredByteSize = text.size();
+            std::ostringstream stream(std::ios::out | std::ios::binary);
+            dxfRW candidate(nullptr);
+            candidate.version = DRW::AC1015;
+            candidate.binFile = binary;
+            candidate.writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+            candidate.writer->setVersion("AC1015", true);
+            const bool written = candidate.writeModelerGeometry(&entity);
+            std::istringstream input(stream.str(), std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            reader->setVersion("AC1015", true);
+            std::vector<std::string> values;
+            int recordCode = 0;
+            while (reader->readRec(&recordCode)) {
+                if (recordCode == 1 || recordCode == 3)
+                    values.push_back(reader->getRawValue());
+            }
+            return std::make_pair(written, values);
+        };
+        const std::string lengthString = std::string(124u, 'A')
+            + " @7 a b c d Z";
+        const auto stringResult = encodeSatLine(lengthString);
+        std::string decoded;
+        for (const std::string& value : stringResult.second) {
+            for (std::size_t i = 0; i < value.size(); ++i) {
+                unsigned char c = static_cast<unsigned char>(value[i]);
+                if (c == '^' && i + 1u < value.size() && value[i + 1u] == ' ')
+                    ++i;
+                if (c > 0x20u)
+                    c = static_cast<unsigned char>(0x9Fu - c);
+                decoded.push_back(static_cast<char>(c));
+            }
+        }
+        t.expect(stringResult.first && stringResult.second.size() == 2u
+                     && stringResult.second[0].size() == 249u
+                     && decoded == lengthString,
+                 "SAT-v1 length-prefixed string stays in one continuation and reconstructs exactly");
+        t.expect(!encodeSatLine(std::string(128u, 'A')).first
+                     && !encodeSatLine("@9 short").first,
+                 "SAT-v1 refuses an unsplittable token and a truncated length-prefixed string");
     }
 }
 

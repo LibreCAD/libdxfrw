@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-26",
+  "scope": "DWG-derived SAT v1 to DXF group 1/3 framing; no general ACIS or 3D support claim",
+  "motivation": "ACadSharp PR #1150 reports that SAT tokens split across DXF values can fail native restoration. Compare byte-identical SAT content with only the continuation boundary changed, and check the patched libdxfrw writer.",
+  "source": "https://github.com/DomCR/ACadSharp/pull/1150",
+  "construction": {
+    "authoring": "ezdxf 1.4.5 body_from_mesh(forms.cube()), exported as ACIS 700 SAT and R2010 ASCII DXF; 217 spaces added before a forward token in one face record; locally generated only",
+    "controls": "Both padded inputs contain the same encoded SAT bytes. The unsafe group boundary cuts forward after six characters at encoded offset 255; the safe boundary is at offset 249 before the entire token. An unpadded generated cube is the baseline.",
+    "generator": "/private/tmp/codex-sat-study/generate.py",
+    "generatorSha256": "059ba0276dee277c8af45ae9045668a131d33d5c2033d8c9d1b414113741be1a",
+    "safeDxfSha256": "b383e192d77fd9a784fc95d246cfd66fc0e137955a7dc83cf6ca6a6f54c451dc",
+    "unsafeDxfSha256": "be65bf76d416d74a0caf9150e8af19e9e58e75676e4d83e9e79086691a1a8174",
+    "drawingsCommitted": false
+  },
+  "peer": {
+    "converter": "ODA File Converter 27.10.0.0 Linux x64 in an offline container, Xvfb, audit flag 0",
+    "packageSha256": "c432002cc688f89ddf6a68ad68e877cd16da1d99ab8729386009c552cf73beb5",
+    "operation": "DXF to AC2010 DWG and back to AC2010 DXF; ezdxf 1.4.5 loads the resulting SAT bodies",
+    "baseline": "one body, one mesh, eight vertices, six faces",
+    "safe": "one body, one mesh, eight vertices, six faces",
+    "unsafe": "3DSOLID exists but SAT parser fails: expected bool string reversed or forward, got forwar",
+    "candidate": "The actual patched libdxfrw writer emitted the same locally generated padded cube in AC1015 DXF; ODA converted it to AC2010 DWG and back, and ezdxf loaded one body, one mesh, eight vertices and six faces.",
+    "candidateDxfSha256": "020bf392c1552fed750ad982857df8c8185404cfa09e2d469cf79e86394a972a",
+    "candidateDwgSha256": "11a3b321bd81527af2b1b154efeb6392aded794aec031cc14c6d0f7eb84115f5",
+    "candidateReopenDxfSha256": "230e529f7a0ed3f51dcc8222fe55512ccc2094101b596f645b85a26aee1ee899",
+    "writerHarness": "/private/tmp/codex-sat-study/writer.cpp",
+    "writerHarnessSha256": "fef6fc919d202703a0220ddbdebe5417bb882b2b4b21ceeae8e32276f709f5db"
+  },
+  "implementation": "The DWG-derived SAT v1 output path packs whole whitespace-delimited tokens, keeping @length strings and their embedded spaces in one value and caret escape pairs intact. It refuses malformed length strings and tokens exceeding the encoded 255-byte budget. Existing retained DXF payload replay remains on the original path.",
+  "validation": "Focused macOS ARM64 CTests libdxfrw_dxf_modeler_sat_token_chunks, dwg2dxf_modeler_sat_token_transaction, and dwg2dxf_modeler_dxf_writer_matrix: 3/3 pass. ASCII and binary controls cover exact decoded payload, length-prefixed strings, unsplittable and malformed refusal, preexisting destination preservation, same-writer corrected retry and fresh readback.",
+  "limitations": [
+    "One locally authored cube and one ODA version do not establish AutoCAD acceptance, universal SAT grammar, or independent ACIS geometry-kernel correctness.",
+    "An oversized single SAT token is refused because this profile has no independently qualified way to split it safely.",
+    "No new DWG or DXF fixture is committed; all artifacts remain scratch-only.",
+    "P7-C, P7-D, P7-F and P7-H remain open; no R2013+ shell or AC1012 dictionary merge semantics are inferred."
+  ]
+}
