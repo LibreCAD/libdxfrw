@@ -114,6 +114,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_RAW_OBJECT_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_LAYER_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_HEADER_MATERIAL_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_ROOT_ENTRY_INSPECTOR 1
 class dxfRW {
 public:
     using ImageDefinitionKey = std::pair<std::uint64_t, std::uint32_t>;
@@ -236,6 +237,14 @@ public:
     bool inspectDxfRawObjectRecords(
         const DxfObjectsWriteView& view,
         const std::vector<const DRW_RawDxfObject*>& expected) const noexcept;
+    /** Inspect one named entry of the generated root DICTIONARY in the active
+     * OBJECTS callback. The target is mapped through the active output remap;
+     * role must be group 350 or 360. Other entries, source provenance and graph
+     * closure require separate checks. The caller binds the borrowed view. */
+    bool inspectDxfRootDictionaryEntry(const DxfObjectsWriteView& view,
+                                       const std::string& name,
+                                       std::uint32_t sourceTarget,
+                                       int role) const noexcept;
     /** Inspector setters retain an owned copy of the callback and its value
      * captures. Objects reached through reference captures remain the caller's
      * lifetime responsibility and must outlive every possible invocation. */

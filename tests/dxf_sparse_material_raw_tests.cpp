@@ -62,6 +62,12 @@ struct MaterialGraphWriter:LC3CompatCheck {
  void writeObjects()override{ok=out.writeDictionary(&dict)&&ok;for(auto& object:raw)ok=out.writeRawDxfObject(&object)&&ok;}
  bool finalizeDxfWrite()override{return ok;}
 };
+struct RootEntryWriter:LC3CompatCheck {
+ dxfRW& out;bool ok=false;
+ explicit RootEntryWriter(dxfRW& writer):out(writer){}
+ void writeObjects()override{DRW_Dictionary child;child.handle=0xE;child.parentHandle=0xC;ok=out.writeDictionary(&child);}
+ bool finalizeDxfWrite()override{return ok;}
+};
 struct DwgWriter:LC3CompatCheck {
  dwgRW& out;DRW_Material value;bool registered=false,written=false;
  explicit DwgWriter(dwgRW& w):out(w){}
@@ -122,6 +128,21 @@ bool physicalHeaderSource(const std::filesystem::path& path,bool binary,int mode
  }
  HeaderSourceReader disabled;disabled.enabled=false;dxfRW again(path.string().c_str());
  return again.read(&disabled,false)&&disabled.captured.empty();
+}
+bool rootEntryVersion(const std::filesystem::path& output,bool binary,DRW::Version version){
+ dxfRW writer(output.string().c_str());RootEntryWriter adapter(writer);
+ writer.setHandleRemap({{0xEu,0xF010u}});
+ writer.setRootDictEntries({{"TEST_ENTRY","F010"}});
+ int role=350;
+ if(!writer.setDxfObjectsWriteInspector([&](const auto& view){
+  return writer.inspectDxfRootDictionaryEntry(view,"TEST_ENTRY",0xEu,role);
+ }))return false;
+ if(!writer.write(&adapter,version,binary)||!adapter.ok)return false;
+ {std::ofstream f(output,std::ios::binary|std::ios::trunc);f<<"sentinel";}
+ role=360;
+ if(writer.write(&adapter,version,binary)||bytes(output)!="sentinel")return false;
+ role=350;
+ return writer.write(&adapter,version,binary)&&adapter.ok;
 }
 bool source(const std::filesystem::path& path,bool binary,int mode,const char* name){
  std::ofstream f(path,std::ios::binary|std::ios::trunc);if(!f)return false;
@@ -202,6 +223,10 @@ int main(){
    std::cerr<<"physical header source failed: binary="<<binary<<" mode="<<mode<<'\n';return 95;
   }
  }
+ for(bool binary:{false,true})for(const auto version:{DRW::AC1014,DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032})
+  if(!rootEntryVersion(dir/"root-entry.dxf",binary,version)){
+   std::cerr<<"root version control failed: binary="<<binary<<" version="<<static_cast<int>(version)<<'\n';return 107;
+  }
  for(bool binary:{false,true}){
   const auto inputPath=dir/(binary?"in-binary.dxf":"in-ascii.dxf");const auto inputName=inputPath.string();dxfRW input(inputName.c_str());
   Reader r;
@@ -401,6 +426,7 @@ int main(){
   dxfRW writer(output.string().c_str());MaterialGraphWriter graph(writer);
   const dxfRW::DxfHeaderWriteView inactive{"",DRW::AC1024,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
   if(writer.inspectDxfHeaderMaterialReference(inactive,false,0u))return 102;
+  if(writer.inspectDxfRootDictionaryEntry(inactive,"ACAD_MATERIAL",0xEu,350))return 103;
   const char* handles[]={"1F","20","21"};const int modes[]={0,8,9};
   for(int i=0;i<3;++i){
    if(!ezdxfDefaultSource(input,binary,modes[i],handles[i]))return 66;
@@ -426,7 +452,28 @@ int main(){
   if(!writer.setDxfTablesWriteInspector([&](const auto& view){return writer.inspectDxfLayerMaterialReferences(view,layerReferences);}))return 87;
   std::vector<const DRW_RawDxfObject*> selected;
   for(const auto& raw:graph.raw)selected.push_back(&raw);
-  if(!writer.setDxfObjectsWriteInspector([&](const auto& view){return writer.inspectDxfRawMaterialRecords(view,selected);}))return 77;
+  std::uint32_t rootTarget=0xE;int rootRole=350;
+  if(!writer.setDxfObjectsWriteInspector([&](const auto& view){
+   std::string changed(view.bytes);const auto at=changed.find("ACAD_MATERIAL");
+   if(at==std::string::npos)return false;
+   changed[at]='a';auto bad=view;bad.bytes=changed;
+   const bool altered=writer.inspectDxfRootDictionaryEntry(bad,"ACAD_MATERIAL",rootTarget,rootRole);
+   const auto rejectsEdit=[&](const std::string& marker,std::size_t valueOffset){
+    std::string edited(view.bytes);const auto where=edited.find(marker);
+    if(where==std::string::npos||where>=at||where+valueOffset>=edited.size())return false;
+    edited[where+valueOffset]='1';auto candidate=view;candidate.bytes=edited;
+    return !writer.inspectDxfRootDictionaryEntry(candidate,"ACAD_MATERIAL",rootTarget,rootRole);
+   };
+   const bool ownerRejected=rejectsEdit(binary?std::string("\x4a\x01" "0\0",4):"330\n0\n",binary?2u:4u);
+   const bool selfRejected=rejectsEdit(binary?std::string("\x05\x00" "C\0",4):"  5\nC\n",binary?2u:4u);
+   const bool root=writer.inspectDxfRootDictionaryEntry(view,"ACAD_MATERIAL",rootTarget,rootRole);
+   const bool materials=writer.inspectDxfRawMaterialRecords(view,selected);
+   if(rootTarget==0xEu&&rootRole==350&&(!root||altered||!materials||!ownerRejected||!selfRejected)){
+    std::cerr<<"root inspection: binary="<<binary<<" root="<<root<<" altered="<<altered
+             <<" owner="<<ownerRejected<<" self="<<selfRejected<<" materials="<<materials<<'\n';
+   }
+   return !altered&&ownerRejected&&selfRejected&&root&&materials;
+  }))return 77;
   if(!writer.write(&graph,DRW::AC1024,binary)||!graph.ok||!headerSeen)return 68;
   Reader check;dxfRW reread(output.string().c_str());
   if(!reread.read(&check,false)||check.raw.size()!=3u||check.materials.size()!=3u
@@ -447,6 +494,13 @@ int main(){
   auto layer=std::find_if(check.layers.begin(),check.layers.end(),[](const auto& l){return l.name=="RAWTEST";});
   std::uint32_t target=0;bool present=false;
   if(layer==check.layers.end()||!layer->getDxfMaterialHandle(target,present)||!present||target!=0xF013)return 73;
+  {std::ofstream f(output);f<<"sentinel";}
+  rootTarget=0x20;
+  if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 104;
+  rootTarget=0xE;rootRole=360;
+  if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 105;
+  rootRole=350;
+  if(!writer.write(&graph,DRW::AC1024,binary))return 106;
   {std::ofstream f(output);f<<"sentinel";}
   headerSource=0x21;
   if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 97;

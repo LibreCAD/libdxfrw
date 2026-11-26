@@ -4704,6 +4704,52 @@ bool dxfRW::inspectDxfRawMaterialRecords(
     return inspectDxfRawObjectRecords(view, expected);
 }
 
+bool dxfRW::inspectDxfRootDictionaryEntry(
+        const DxfObjectsWriteView& view, const std::string& name,
+        std::uint32_t sourceTarget, int role) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError() || view.version != version
+        || view.version < DRW::AC1014 || view.binary != binFile
+        || name.empty() || name.size() > 1024u || !sourceTarget
+        || (role != 350 && role != 360))
+        return false;
+    try {
+        std::string expectedKey;
+        const auto target = remapHandle(sourceTarget);
+        if (!target || !dx_symbol_output::nameKey(name, expectedKey)) return false;
+        dx_standard_output::Decoder decoder(view);
+        if (!decoder.good()) return false;
+        bool seenRoot = false, seenEntry = false;
+        const bool inspected = dx_standard_output::inspectSelected(view,
+            [](std::string_view, std::uint32_t handle) { return handle == 0xCu; },
+            [&](const auto& shape, std::string_view body) {
+                if (seenRoot || shape.kind != dx_standard_output::Family::Dictionary
+                    || !shape.valid || shape.self != 1u || shape.owner != 1u
+                    || shape.subclass != 1u || shape.depth != 0u || shape.pointNext != 0
+                    || shape.entryPending || shape.hardOwner > 1u
+                    || (view.version > DRW::AC1014 && shape.cloning != 1u)
+                    || shape.handle != 0xCu) return false;
+                seenRoot = true;
+                return decoder.decodeRecord<DRW_Dictionary>(body, [&](const auto& root) {
+                    if (root.handle != 0xCu || root.parentHandle != 0
+                        || !root.hasCompleteDxfEntries()) return false;
+                    for (const auto& entry : root.m_entries) {
+                        std::string key;
+                        if (!dx_symbol_output::nameKey(entry.m_name, key)) return false;
+                        if (key != expectedKey) continue;
+                        if (seenEntry || entry.m_name != name || entry.m_handle != target
+                            || static_cast<int>(entry.m_dxfHandleCode) != role) return false;
+                        seenEntry = true;
+                    }
+                    return seenEntry;
+                });
+            });
+        return inspected && seenRoot && seenEntry;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dxfRW::inspectDxfRawObjectRecords(
         const DxfObjectsWriteView& view,
         const std::vector<const DRW_RawDxfObject*>& expected) const noexcept {
