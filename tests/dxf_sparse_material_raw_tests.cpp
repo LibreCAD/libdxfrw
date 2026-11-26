@@ -433,6 +433,7 @@ int main(){
   const auto input=dir/(binary?"graph-source-binary.dxf":"graph-source-ascii.dxf");
   const auto output=dir/(binary?"graph-output-binary.dxf":"graph-output-ascii.dxf");
   dxfRW writer(output.string().c_str());MaterialGraphWriter graph(writer);
+  if(writer.dxfWriteDefaultPlotStylePlaceholderHandle()!=0u)return 110;
   const dxfRW::DxfHeaderWriteView inactive{"",DRW::AC1024,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
   if(writer.inspectDxfHeaderMaterialReference(inactive,false,0u))return 102;
   if(writer.inspectDxfRootDictionaryEntry(inactive,"ACAD_MATERIAL",0xEu,350))return 103;
@@ -463,6 +464,9 @@ int main(){
   for(const auto& raw:graph.raw)selected.push_back(&raw);
   std::uint32_t rootTarget=0xE;int rootRole=350;
   if(!writer.setDxfObjectsWriteInspector([&](const auto& view){
+   if(!writer.dxfWriteDefaultPlotStyleDictionaryHandle() ||
+      !writer.dxfWriteDefaultPlotStylePlaceholderHandle() ||
+      writer.dxfWriteDefaultPlotStyleDictionaryHandle()==writer.dxfWriteDefaultPlotStylePlaceholderHandle())return false;
    std::string changed(view.bytes);const auto at=changed.find("ACAD_MATERIAL");
    if(at==std::string::npos)return false;
    changed[at]='a';auto bad=view;bad.bytes=changed;

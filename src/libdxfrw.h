@@ -113,6 +113,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_RAW_OBJECT_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_ENTITY_MATERIAL_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_DEFAULT_PLOT_PLACEHOLDER_HANDLE 1
 #define LIBDXFRW_HAS_DXF_STAGED_LAYER_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_HEADER_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_ROOT_ENTRY_INSPECTOR 1
@@ -968,6 +969,9 @@ public:
     const DRW_Dictionary* dxfWriteGeneratedRootSource(bool groups) const noexcept;
     const std::vector<std::pair<std::string, std::string>>* dxfWriteRootEntries() const noexcept;
     std::uint32_t dxfWriteDefaultPlotStyleDictionaryHandle() const noexcept;
+    /** Return the generated default plot-style placeholder handle during an
+     * active, planned write, or zero if no such placeholder is generated. */
+    std::uint32_t dxfWriteDefaultPlotStylePlaceholderHandle() const noexcept;
     std::uint32_t dxfWriteImageDictionaryHandle() const noexcept;
     /*!< Register source handles for complete TABLESTYLE raw records that the
      * same writer callback will emit. A TABLE's 342 reference is accepted only

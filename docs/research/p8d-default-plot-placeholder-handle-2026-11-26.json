@@ -1,0 +1,14 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "change": "Expose the generated default plot-style placeholder handle during an active planned write so staged output checks can verify actual allocated handles instead of assuming E/F. The accessor returns zero outside the active planned write.",
+  "validation": [
+    "Focused sparse-material raw CTest passed in normal and AddressSanitizer builds. Its staged OBJECTS callback confirms nonzero distinct generated dictionary and placeholder handles, and the inactive accessor returns zero.",
+    "The qualification digest was checked against a clean staged index: ca3940c9b15680370c85bcd5cdc3e4ad606c1e54f5fd1b0fcc288eed13d39fe7 (780 inputs)."
+  ],
+  "limits": [
+    "An exposed handle is not proof of object fields, graph closure, publication or native behavior.",
+    "No support claim is promoted."
+  ]
+}

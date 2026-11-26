@@ -3567,6 +3567,11 @@ std::uint32_t dxfRW::dxfWriteDefaultPlotStyleDictionaryHandle() const noexcept {
         ? m_dxfDefaultPlotDictionary : 0u;
 }
 
+std::uint32_t dxfRW::dxfWriteDefaultPlotStylePlaceholderHandle() const noexcept {
+    return m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && writer != nullptr
+        ? m_dxfDefaultPlotPlaceholder : 0u;
+}
+
 std::uint32_t dxfRW::dxfWriteImageDictionaryHandle() const noexcept {
     return m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && writer != nullptr ? m_plannedImageDictionaryHandle : 0u;
 }
