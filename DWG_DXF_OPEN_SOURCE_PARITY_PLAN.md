@@ -60,7 +60,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`563bb58ccc4555cfdf06e31718e8f793dc095f7b`. The prior merge head built the
+`2fcaa5262c1621ccc95490d04a1d3d97eeb6b17a`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -103,8 +103,13 @@ lineweights; unsupported plot-off state still refuses atomically. Both codec
 lanes pass. The preceding broader filter passed 110/132 cases with 27 failed
 assertions. Its newly reachable R12 POLYLINE child presentation discrepancy is
 addressed by the [child-record slice](docs/research/p8d-librecad-system-r12-polyline-child-2026-11-25.json),
-which checks both codecs and distinct handles. Investigate the remaining linetype, identity and
-object-graph gaps. The
+which checks both codecs and distinct handles. The [legacy INSERT follow-up](docs/research/p8d-librecad-legacy-insert-reverse-references-2026-11-25.json)
+avoids unsupported R12/R14 reverse BLOCK_RECORD references; R12 save/reopen/resave
+and R14 handle-bearing output pass focused controls on both codecs. The wider
+system linetype selector now passes 47/52 cases. Investigate its five remaining
+cases, especially R14 reimport/resave failing in header emission; the R14 peer
+also repaired a root-dictionary owner, requiring version-specific review.
+Investigate the remaining identity and object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
 Native GUI, runtime loading, new-head hosted checks and final-candidate

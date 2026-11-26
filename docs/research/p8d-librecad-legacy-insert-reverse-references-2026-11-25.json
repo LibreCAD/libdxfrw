@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-legacy-insert-reverse-references-2026-11-25",
+  "supportClaimEffect": "none",
+  "consumerCommit": "2fcaa5262c1621ccc95490d04a1d3d97eeb6b17a",
+  "libraryImplementationDigestSha256": "6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e",
+  "problem": "On a second R12 save, the adapter supplied derived INSERT reverse references to the codec even though that format has no BLOCK_RECORD table. The codec correctly refused the unsupported references.",
+  "change": "Do not generate BLOCK_RECORD reverse INSERT handles for R12/R14; retain the regular INSERT emission and all other handle preparation.",
+  "validation": [
+    "Focused legacy INSERT and existing custom-linetype round-trip tests pass 72 assertions in 2 cases with the system codec and 66 assertions in 2 cases with the bundled codec.",
+    "R12 covers save/reopen/resave; R14 covers a handle-bearing source INSERT, refusal with destination preservation, and a corrected same-filter retry. Both outputs retain INSERT B at (0,160,0) and have no BLOCK_RECORD 331.",
+    "The wider system [filter][linetype] selector improved from 45/51 cases to 47/52 including the new case; 5 cases remain failing.",
+    "Independent ezdxf 1.4.5 reopens the selected R12 output SHA-256 0b0dfb4500168864e8c44a9ccf5e7fc9826e719f2ad70536e3421ad10176d398 with the expected INSERT and block and zero audit errors or fixes.",
+    "The physical R14 output SHA-256 05e8e30fe596bea373953b0fedc415f36197fd25a499b5638423a47930a5ed70 identifies as AC1014. ezdxf upgrades it to AC1015 in memory, retains the INSERT and block, and reports one root-dictionary owner repair; this is not a clean independent R14 qualification."
+  ],
+  "remaining": [
+    "The generated R14 first save reimports, but its second save currently fails during header emission. Diagnose this independently; the R14 retry control uses the original graphic and does not assert reimport/resave.",
+    "Investigate the R14 root-dictionary owner audit observation with version-specific authority before changing output.",
+    "Native GUI, broader linetype and graph coverage, and platform qualification remain open. No generated drawing was committed."
+  ],
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm"
+  ]
+}
