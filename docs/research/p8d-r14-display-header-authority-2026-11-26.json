@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r14-display-header-authority-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateCommit": "1380f768e63914a1b9dba238c013d14708c96775",
+  "implementationDigestSha256": "78f05d6baabea99f631e03be3d3b4da0d0a58ef59e1aadc36c0fbc9c38ab9a2f",
+  "authority": [
+    {
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "scope": "ODA v5.4.1 section 9 pages 74-75 lists PELLIPSE, ISOLINES, TEXTQLTY, and FACETRES in the common DWG header; PELLIPSE is explicitly annotated as not present in DXF."
+    },
+    {
+      "url": "https://filemonger.com/specs/dxf/wotsit.org/dxf_r14/header_section_al_u05_c.htm",
+      "scope": "Original R14 DXF HEADER reference does not list any of the four names."
+    }
+  ],
+  "observation": "The current DXF writer generates these four names in selected AC1014 output; LibreDWG 0.14 conversions of two separately sourced AC1014 drawings omit them. This is a bounded comparison, not evidence of native acceptance, permitted extensions, or a safe blanket loss policy.",
+  "libreDwgConversionSha256": {
+    "2d-libredwg.dxf": "f4de488651f624b85844c8f7e147aaa5b4390f6f17847e98492c9dcb0c7d3139",
+    "Draw-libredwg.dxf": "2aa9f51f0a8ca5d9131307996c92d7096ac98a75f0dc5c986e2508f5136b0726"
+  },
+  "next": "Distinguish imported DWG common-header values from explicit DXF and application-supplied values; evaluate defaults and nondefaults, source loss reporting, existing DXF extensions, and native producer/consumer behavior. Avoid blanket failure of ordinary DWG conversion; require atomic refusal or explicit supported loss handling where information cannot be preserved.",
+  "limits": [
+    "No production behavior changed and no support claim promoted.",
+    "The converted source drawings and outputs remain scratch-only."
+  ]
+}

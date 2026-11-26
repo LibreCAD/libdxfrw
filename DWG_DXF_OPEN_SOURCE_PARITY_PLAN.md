@@ -139,8 +139,15 @@ refuses seven explicitly supplied newer fields instead of silently dropping them
 LibreCAD reports omission of its generated default angular precision and rejects
 nondefault values. Four names remain for investigation: `$FACETRES`, `$ISOLINES`,
 `$PELLIPSE`, and `$TEXTQLTY`. Treat absence as a review lead, not automatic
-proof of invalidity. Qualify these settings with source-presence/loss policy,
-physical output, ASCII/binary reimport, rollback and consumer controls. Handle previously emitted files
+proof of invalidity. The [DWG/DXF authority comparison](docs/research/p8d-r14-display-header-authority-2026-11-26.json)
+finds all four in the common DWG header; ODA explicitly says PELLIPSE is not
+present in DXF. Two independently converted R14 sources omit all four, but do
+not establish native acceptance or an appropriate loss policy. In particular,
+do not blanket-reject every DWG merely because its common header has these
+values. Resolve source provenance, nondefault settings, explicit omission
+reporting and existing DXF extensions before changing output. Qualify each
+profile with physical output, ASCII/binary reimport, rollback and consumer
+controls. Handle previously emitted files
 separately; retain native qualification.
 The [R14 Boolean field slices](docs/research/p8d-r14-header-modern-booleans-2026-11-26.json)
 omit `$EXTNAMES`, `$PSTYLEMODE`, `$OLESTARTUP`, `$LWDISPLAY`, and `$XEDIT`
