@@ -140,11 +140,12 @@ LibreCAD reports omission of its generated cap/join defaults and still refuses
 other values; system and bundled codec controls pass. Other later header fields
 remain open. The [generated LINE resave control](docs/research/p8d-r14-line-resave-peer-2026-11-26.json)
 checks save/import/resave/reopen in both encodings. The LibreCAD INSERT control
-also now resaves its reimport with both codecs. ezdxf reads selected geometry,
-but upgrades R14 to R2000 and repairs the first generated LINE file's ownerless
-root DICTIONARY; it reports no repair for the second LINE file. It also repairs
-the LibreCAD R14 INSERT resave root owner. Resolve the physical root owner with
-R14-specific evidence before broadening this profile. Investigate the remaining identity and
+also now resaves its reimport with both codecs. ezdxf reads selected geometry, but upgrades R14 to R2000 in memory. The prior
+root-owner repairs for the first LINE and LibreCAD INSERT outputs are addressed
+by the [generated-root owner slice](docs/research/p8d-r14-generated-root-owner-2026-11-26.json):
+the selected ASCII/binary LINE and LibreCAD INSERT outputs now reopen with zero
+ezdxf audit repairs, and two independent LibreDWG conversions emit the same
+null owner. Native R14 behavior and broader object graphs remain open. Investigate the remaining identity and
 object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
@@ -745,7 +746,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `9ac8b190d7eaf81c1f7e851e59d102849f87176ad3e61e4557f1e5c55056b875` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `402eab4f710a99d7d50ce90f0b906067ce075a791646802c7605e111b8519604` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).

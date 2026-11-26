@@ -21251,6 +21251,37 @@ void testHeaderPackedFlags(TestContext& t) {
     }
     const auto legacyResavePath = legacyPath.parent_path()
         / (legacyPath.stem().string() + "-again.dxf");
+    const auto hasRootOwner = [](const std::filesystem::path& path, bool binary) {
+        std::ifstream input(path, std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(input)), {});
+        if (binary) {
+            const std::string record = std::string("\0\0", 2) + "DICTIONARY"
+                + std::string("\0\5\0", 3) + "C"
+                + std::string("\0\x4a\x01", 3) + "0" + std::string("\0", 1);
+            return bytes.find(record) != std::string::npos;
+        }
+        std::istringstream lines(bytes);
+        std::string code, value;
+        const auto stripCarriageReturn = [](std::string& text) {
+            if (!text.empty() && text.back() == '\r') text.pop_back();
+        };
+        while (std::getline(lines, code) && std::getline(lines, value)) {
+            stripCarriageReturn(value);
+            if (code.find_first_not_of(" \t\r") == std::string::npos)
+                return false;
+            if (std::stoi(code) != 0 || value != "DICTIONARY")
+                continue;
+            std::string handleCode, handle, ownerCode, owner;
+            if (!std::getline(lines, handleCode) || !std::getline(lines, handle)
+                || !std::getline(lines, ownerCode) || !std::getline(lines, owner))
+                return false;
+            stripCarriageReturn(handle);
+            stripCarriageReturn(owner);
+            if (std::stoi(handleCode) == 5 && handle == "C")
+                return std::stoi(ownerCode) == 330 && owner == "0";
+        }
+        return false;
+    };
     for (const bool binary : {false, true}) {
         dx_data sourceData, importedData, reopenedData;
         dx_iface writer, reader;
@@ -21266,6 +21297,9 @@ void testHeaderPackedFlags(TestContext& t) {
         const bool resaved = imported && writer.fileExport(legacyResavePath.string(), DRW::AC1014,
                                                           binary, &importedData, false);
         const bool reopened = resaved && reader.fileImport(legacyResavePath.string(), &reopenedData, false);
+        t.expect(saved && resaved && hasRootOwner(legacyPath, binary)
+                     && hasRootOwner(legacyResavePath, binary),
+                 "generated and reimported R14 root dictionaries carry a null owner");
         const auto* result = reopened && reopenedData.mBlock->ent.size() == 1u
             ? dynamic_cast<const DRW_Line*>(reopenedData.mBlock->ent.front()) : nullptr;
         t.expect(result != nullptr && result->basePoint.x == 1. && result->basePoint.y == 2.

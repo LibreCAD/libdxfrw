@@ -19932,7 +19932,7 @@ bool dxfRW::writeObjects() {
     } else {
     writer->writeString(0, "DICTIONARY");
     writer->writeString(5, "C");
-    if (version > DRW::AC1014) {
+    if (version >= DRW::AC1014) {
         writer->writeString(330, "0");
     }
     writer->writeString(100, "AcDbDictionary");
