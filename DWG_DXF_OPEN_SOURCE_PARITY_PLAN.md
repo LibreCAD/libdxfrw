@@ -33,8 +33,10 @@ evidence are recorded in `docs/research/` and Git history.
   binds selected LAYER references to the verified default placeholder and checks
   reopen/resave, refusal, retry and independent readback for two ASCII profiles.
   Extend source and output proof for additional layer relationships and fields
-  before admitting them. Prove binary readback, retry and both
-  consumer paths.
+  before admitting them. The [binary-source replay slice](docs/research/p8d-sparse-binary-material-to-ascii-2026-11-26.json)
+  admits one explicitly opted-in AC1024 binary-to-ASCII graph with exact scalar
+  readback, refusal and retry; its generated source has one independent audit
+  fix. Qualify source validity, additional encodings and native consumer paths.
   Current typed-graph staged checks cover selected root, HEADER, LAYER and
   OBJECTS fields; the [root-name check](docs/research/p8d-root-dictionary-normalized-name-uniqueness-2026-11-26.json)
   rejects aliases throughout the staged root; the [current consumer check](docs/research/p8d-root-name-candidate-librecad-system-codec-2026-11-26.json)
@@ -119,7 +121,7 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  288d78ccb8853bdb995f535edf04abe162bb5e63 (pushed; final-head CI pending).
+  ee19998e (pushed; final-head CI pending).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)

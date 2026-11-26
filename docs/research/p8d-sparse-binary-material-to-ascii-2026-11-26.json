@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-sparse-binary-material-to-ascii-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "consumerCommit": "ee19998e",
+  "codecSourceCommit": "4216663ce",
+  "codecDylibSha256": "6180c9ddb921b976fb8c06101f66315e1b01554f7f0899723e1740338b4c6d13",
+  "profile": "Explicitly opted-in, unchanged AC1024 Binary DXF sparse MATERIAL source and graph exported by LibreCAD as same-version ASCII DXF. LibreCAD's normal exporter still refuses raw-only graphs; it does not provide binary DXF output.",
+  "implementation": "Allow the existing bounded graph audit to admit a binary header source, require the captured material representation to agree with the physical source encoding, and retain same-version and staged object, dictionary, reference, layer and header checks. Exact staged scalar validation covers binary64 bit patterns and mapped handles.",
+  "validation": [
+    "PASS: focused system-codec MATERIAL and IMAGE controls, 2360 assertions in 15 cases, including a generated binary source with a nextafter binary64 value, output/reimport, ordered group checks, ordinary-policy refusal, changed material/dictionary refusal, cross-version refusal with prior destination intact and corrected retry.",
+    "PASS: bundled-codec LibreCAD filter object compilation.",
+    "PASS: independently decoded ezdxf 1.4.5 raw tag streams contain one MATERIAL with 61 ordered groups each; non-handle scalars agree, 32-bit colors agree after unsigned normalization, and all binary64 fields match bit-for-bit. The source self handle 1F is remapped to 30; ownership and other mapped references are validated by the staged graph checks.",
+    "PASS: ezdxf output audit has zero errors and zero fixes. The generated source audit reports zero errors and one fix for an invalid LAYER table-head handle; this limits source-validity conclusions."
+  ],
+  "scratchOnly": {
+    "binaryInputSha256": "00ca04fc8a036b10156503df053ad584873bde8ac88d4ab7f3f9ae291a7e44a5",
+    "asciiOutputSha256": "2841c7d5e1acf9b8eb7073b2d51c1550631a7510852b08f42c2174d0c423faff",
+    "fixturesCommitted": false
+  },
+  "limits": "This is one generated binary-to-ASCII source profile, not binary output, native material appearance, general cross-version conversion, or a default-save support claim. Source audit repair and platform qualification remain open."
+}
