@@ -21052,6 +21052,14 @@ void testHeaderPackedFlags(TestContext& t) {
 
     const std::array<std::pair<const char*, int>, 3> modernLineweightFields{{
         {"$CELWEIGHT", 370}, {"$ENDCAPS", 280}, {"$JOINSTYLE", 280}}};
+    const auto addModernHeaderScalar = [](DRW_Header& header, unsigned field) {
+        if (field == 0u) header.addStr("$HYPERLINKBASE", "assets", 1);
+        else if (field == 1u) header.addInt("$CEPSNTYPE", 2, 380);
+        else if (field == 2u) header.addDouble("$PSVPSCALE", 1.5, 40);
+        else if (field == 3u) header.addStr("$STYLESHEET", "drawing.ctb", 1);
+        else if (field == 4u) header.addInt("$TSTACKALIGN", 2, 70);
+        else header.addInt("$TSTACKSIZE", 80, 70);
+    };
     for (const bool binary : {false, true}) {
         for (const DRW::Version target : {DRW::AC1014, DRW::AC1015}) {
             std::ostringstream output(std::ios::out | std::ios::binary);
@@ -21081,7 +21089,10 @@ void testHeaderPackedFlags(TestContext& t) {
                          && (bytes.find("$JOINSTYLE") != std::string::npos) == modern
                          && (bytes.find("$HYPERLINKBASE") != std::string::npos) == modern
                          && (bytes.find("$CEPSNTYPE") != std::string::npos) == modern
-                         && (bytes.find("$PSVPSCALE") != std::string::npos) == modern,
+                         && (bytes.find("$PSVPSCALE") != std::string::npos) == modern
+                         && (bytes.find("$STYLESHEET") != std::string::npos) == modern
+                         && (bytes.find("$TSTACKALIGN") != std::string::npos) == modern
+                         && (bytes.find("$TSTACKSIZE") != std::string::npos) == modern,
                      "DXF HEADER emits these fields only for R2000 and later");
         }
         for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP",
@@ -21109,11 +21120,9 @@ void testHeaderPackedFlags(TestContext& t) {
                          && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
                      "R14 HEADER refuses an explicit R2000 lineweight setting");
         }
-        for (unsigned field = 0; field != 3u; ++field) {
+        for (unsigned field = 0; field != 6u; ++field) {
             HeaderWriteProbe source;
-            if (field == 0u) source.addStr("$HYPERLINKBASE", "assets", 1);
-            else if (field == 1u) source.addInt("$CEPSNTYPE", 2, 380);
-            else source.addDouble("$PSVPSCALE", 1.5, 40);
+            addModernHeaderScalar(source, field);
             t.expect(!source.canWriteDxfHeaderInitialPreflight(DRW::AC1014)
                          && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
                      "R14 HEADER refuses an explicit R2000 scalar setting");
@@ -21261,12 +21270,10 @@ void testHeaderPackedFlags(TestContext& t) {
         t.expect(refused && unchanged && retried,
                  "R14 adapter preserves the destination and retries after removing an explicit flag");
     }
-    for (const bool binary : {false, true}) for (unsigned field = 0; field != 3u; ++field) {
+    for (const bool binary : {false, true}) for (unsigned field = 0; field != 6u; ++field) {
         dx_data data;
         dx_iface adapter;
-        if (field == 0u) data.headerC.addStr("$HYPERLINKBASE", "assets", 1);
-        else if (field == 1u) data.headerC.addInt("$CEPSNTYPE", 2, 380);
-        else data.headerC.addDouble("$PSVPSCALE", 1.5, 40);
+        addModernHeaderScalar(data.headerC, field);
         { std::ofstream output(legacyPath, std::ios::binary); output << "preserve"; }
         const bool refused = !adapter.fileExport(legacyPath.string(), DRW::AC1014,
                                                 binary, &data, false);
@@ -21341,9 +21348,8 @@ void testHeaderPackedFlags(TestContext& t) {
     for (const bool binary : {false, true}) {
         dx_data sourceData, importedData;
         dx_iface writer, reader;
-        sourceData.headerC.addStr("$HYPERLINKBASE", "assets", 1);
-        sourceData.headerC.addInt("$CEPSNTYPE", 2, 380);
-        sourceData.headerC.addDouble("$PSVPSCALE", 1.5, 40);
+        for (unsigned field = 0; field != 6u; ++field)
+            addModernHeaderScalar(sourceData.headerC, field);
         const bool saved = writer.fileExport(modernPath.string(), DRW::AC1015,
                                              binary, &sourceData, false);
         const bool imported = saved && reader.fileImport(modernPath.string(), &importedData, false);
@@ -21351,6 +21357,9 @@ void testHeaderPackedFlags(TestContext& t) {
         const auto hyperlink = vars.find("$HYPERLINKBASE");
         const auto plotType = vars.find("$CEPSNTYPE");
         const auto paperScale = vars.find("$PSVPSCALE");
+        const auto stylesheet = vars.find("$STYLESHEET");
+        const auto stackAlign = vars.find("$TSTACKALIGN");
+        const auto stackSize = vars.find("$TSTACKSIZE");
         t.expect(imported && hyperlink != vars.end() && hyperlink->second != nullptr
                      && hyperlink->second->type() == DRW_Variant::STRING
                      && std::string(hyperlink->second->c_str()) == "assets"
@@ -21359,7 +21368,16 @@ void testHeaderPackedFlags(TestContext& t) {
                      && plotType->second->i_val() == 2
                      && paperScale != vars.end() && paperScale->second != nullptr
                      && paperScale->second->type() == DRW_Variant::DOUBLE
-                     && paperScale->second->d_val() == 1.5,
+                     && paperScale->second->d_val() == 1.5
+                     && stylesheet != vars.end() && stylesheet->second != nullptr
+                     && stylesheet->second->type() == DRW_Variant::STRING
+                     && std::string(stylesheet->second->c_str()) == "drawing.ctb"
+                     && stackAlign != vars.end() && stackAlign->second != nullptr
+                     && stackAlign->second->type() == DRW_Variant::INTEGER
+                     && stackAlign->second->i_val() == 2
+                     && stackSize != vars.end() && stackSize->second != nullptr
+                     && stackSize->second->type() == DRW_Variant::INTEGER
+                     && stackSize->second->i_val() == 80,
                  "R2000 scalar header values survive save and reimport");
     }
     std::error_code legacyCleanupError;

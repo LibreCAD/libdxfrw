@@ -945,6 +945,9 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
         && legacyVariableAbsent("$HYPERLINKBASE")
         && legacyVariableAbsent("$CEPSNTYPE")
         && legacyVariableAbsent("$PSVPSCALE")
+        && legacyVariableAbsent("$STYLESHEET")
+        && legacyVariableAbsent("$TSTACKALIGN")
+        && legacyVariableAbsent("$TSTACKSIZE")
         && canWriteDxfHeaderIntegerRange("$LWDISPLAY", 290, 0, 1, &lwdisplayPresent)
         && canWriteDxfHeaderIntegerRange("$XEDIT", 290, 0, 1, &xeditPresent)
         && canWriteDxfHeaderFlags()
@@ -2408,11 +2411,13 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             else
                 writer->writeString(1, "");
         }
-        writer->writeString(9, "$STYLESHEET");
-        if (getStr("$STYLESHEET", &varStr))
-            writer->writeUtf8String(1, varStr);
-        else
-            writer->writeString(1, "");
+        if (ver > DRW::AC1014) {
+            writer->writeString(9, "$STYLESHEET");
+            if (getStr("$STYLESHEET", &varStr))
+                writer->writeUtf8String(1, varStr);
+            else
+                writer->writeString(1, "");
+        }
         writeModernBoolean("$XEDIT", true);
         if (ver > DRW::AC1014) {
             writer->writeString(9, "$CEPSNTYPE");
@@ -2454,16 +2459,18 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             else
                 writer->writeDouble(40, 0.0);
         }
-        writer->writeString(9, "$TSTACKALIGN");
-        if (getInt("$TSTACKALIGN", &varInt))
-            writer->writeInt16(70, varInt);
-        else
-            writer->writeInt16(70, 1);
-        writer->writeString(9, "$TSTACKSIZE");
-        if (getInt("$TSTACKSIZE", &varInt))
-            writer->writeInt16(70, varInt);
-        else
-            writer->writeInt16(70, 70);
+        if (ver > DRW::AC1014) {
+            writer->writeString(9, "$TSTACKALIGN");
+            if (getInt("$TSTACKALIGN", &varInt))
+                writer->writeInt16(70, varInt);
+            else
+                writer->writeInt16(70, 1);
+            writer->writeString(9, "$TSTACKSIZE");
+            if (getInt("$TSTACKSIZE", &varInt))
+                writer->writeInt16(70, varInt);
+            else
+                writer->writeInt16(70, 70);
+        }
         writeModernBoolean("$OLESTARTUP", false);
     }
     if (ver > DRW::AC1015) {// and post v2004 vars
