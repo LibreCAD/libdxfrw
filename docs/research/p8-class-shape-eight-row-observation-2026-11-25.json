@@ -1,6 +1,6 @@
 {
   "date": "2026-11-25",
-  "purpose": "Unblock bounded source observation for larger CLASS inventories without promoting cross-version output.",
+  "purpose": "Expand bounded source observation for future larger CLASS inventories; this does not resolve the current cross-version refusal or promote output.",
   "baseline_commit": "e22a9feeddd4814547fcce44b4ff904a6f1b618f",
   "implementation_digest_sha256": "e0f52d874718040a6c894f3a5089255a6cfa05a73ad956131ce8f641275f371e",
   "input_count": 775,
@@ -12,6 +12,6 @@
     "IMAGEDEF 12/21 ASCII/binary matrix and valid/truncated block source controls pass.",
     "Fixture-free CTest inventory remains 1402."
   ],
-  "remaining": "The plot-style cross-version guard still requires an immutable complete selected source and output class inventory, mutation/refusal and corrected retry, plus independent readback. The observer alone grants no output or support authority.",
+  "remaining": "The captured failing source has two CLASS rows and three LAYER rows. The plot-style guard rejects its DICTIONARYWDFLT class alias and requires exactly one LAYER. Source/target alias and complete per-layer reference proofs, mutation/refusal and retry, and independent readback remain open. Eight-row observation alone grants no authority.",
   "fixtures": "All controls generated locally; no DWG/DXF fixture committed."
 }

@@ -707,16 +707,17 @@ Use the [shared version-aware carrier frame check](docs/research/p8d-librecad-sh
 The [shared dictionary carrier check](docs/research/p8d-librecad-dictionary-common-fields-2026-11-25.json) validates the selected common fields and exact key spelling, order, target and role. The single-IMAGE admission also checks its definition, reactor, incoming references and physical entity/definition fields. Native consumer qualification remains open.
 
 The focused `dwg2dxf_image_dictionary_imported_common` regression still fails
-for generated AC1015 input exported strictly to AC1018: additional IMAGE class
-rows prevent the plot-style source profile from proving its complete class
-inventory. The bounded CLASS observer now retains shape observations for eight
-rows, marking later rows unavailable; the [bounded observer receipt](docs/research/p8-class-shape-eight-row-observation-2026-11-25.json) records the controls. This is transport only. Keep the refusal
-and destination preservation. Bind the complete selected CLASS inventory and its
-physical known-field/count shapes to an immutable snapshot, compare every live
-row and emitted target class, and require the IMAGE graph's existing source and
-output proofs. Add altered/extra CLASS refusal, unchanged destination and same-
-filter corrected retry, plus independent output/readback before admitting this
-cross-version graph.
+for generated AC1015 input exported strictly to AC1018. A captured generated
+source has two CLASS rows; its dictionary class uses the `DICTIONARYWDFLT` alias
+while the plot-style source check accepts only `ACDBDICTIONARYWDFLT`. It also has
+three layers while that check requires exactly one. See the [diagnosis](docs/research/p8-image-cross-version-plotstyle-diagnosis-2026-11-25.json).
+Keep the refusal and destination preservation. First bind the source CLASS alias
+as immutable source evidence and verify its exact target spelling and flags; then
+bind each physical LAYER and plot-style reference to its live row and output,
+including multiple-layer, changed-reference and extra-row refusal with corrected
+retry. Require the IMAGE graph's existing source and output proofs and independent
+readback before admitting the cross-version graph. The [eight-row CLASS observer](docs/research/p8-class-shape-eight-row-observation-2026-11-25.json) supplies bounded source-shape
+transport for future larger inventories; it grants no output authority.
 The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be

@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-25",
+  "test": "dwg2dxf_image_dictionary_imported_common",
+  "source": "locally generated AC1015 DXF observed during the existing test",
+  "source_sha256": "a196d0aac535f84bf2edea40014d6fecf92391e6ae98880c83f6e120f81fef53",
+  "target": "AC1018",
+  "result": "strict preflight refuses the LAYER plot-style profile",
+  "class_rows": [
+    "DICTIONARYWDFLT / AcDbDictionaryWithDefault",
+    "ACDBPLACEHOLDER / AcDbPlaceHolder"
+  ],
+  "layer_names": [
+    "CLOSURE_LAYER",
+    "0",
+    "Defpoints"
+  ],
+  "report": {
+    "originalSourcesMatched": true,
+    "legacyClassRowsMatched": false,
+    "legacyLiveClassesMatched": false,
+    "legacyBodiesMatched": true,
+    "legacyLiveBodiesMatched": true,
+    "legacyLayerMatched": false,
+    "legacyLiveLayerMatched": false
+  },
+  "peer": "ezdxf 1.4.5 independently read the generated source and reported the class rows and layers; the exact adapter report was observed separately.",
+  "limitations": [
+    "The observed generated source is one test profile and is not an external producer witness.",
+    "No destination/output claim follows from identifying these gates.",
+    "No fixture is committed."
+  ]
+}
