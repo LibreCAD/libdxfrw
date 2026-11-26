@@ -110,6 +110,7 @@ public:
     std::unordered_map<std::uint32_t, BlockRecordInfo> blockRecordMap;
 };
 
+#define LIBDXFRW_HAS_DXF_STAGED_MATERIAL_INSPECTOR 1
 class dxfRW {
 public:
     using ImageDefinitionKey = std::pair<std::uint64_t, std::uint32_t>;
@@ -217,6 +218,15 @@ public:
         DxfCompatibilityProfile compatibilityProfile;
     };
     using DxfObjectsWriteInspector = std::function<bool(const DxfObjectsWriteView&)>;
+    /** Verify scalar transport of selected raw MATERIAL records, including
+     * handle remaps. Call only inside the OBJECTS inspector and pass its view;
+     * the caller is responsible for binding that view to the active callback.
+     * The pointers and view are borrowed for this synchronous call. This does
+     * not prove source-byte spelling, semantics, dictionary graph, dependent
+     * references, or finalization. */
+    bool inspectDxfRawMaterialRecords(
+        const DxfObjectsWriteView& view,
+        const std::vector<const DRW_RawDxfObject*>& expected) const noexcept;
     /** Inspector setters retain an owned copy of the callback and its value
      * captures. Objects reached through reference captures remain the caller's
      * lifetime responsibility and must outlive every possible invocation. */

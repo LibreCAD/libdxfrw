@@ -161,7 +161,32 @@ int main(){
   const auto dest=dir/(binary?"out-binary.dxf":"out-ascii.dxf");{std::ofstream f(dest);f<<"prior";}
   const auto destName=dest.string();dxfRW writer(destName.c_str());DxfWriter adapter(writer);adapter.value=original;adapter.raw=r.raw[0];
   if(writer.write(&adapter,DRW::AC1027,binary)||adapter.ok||bytes(dest)!="prior"){std::cerr<<"typed output was not refused\n";return 1;}
-  adapter.useRaw=true;adapter.ok=false;if(!writer.write(&adapter,DRW::AC1027,binary)||!adapter.ok){std::cerr<<"raw retry failed\n";return 1;}
+  adapter.useRaw=true;adapter.ok=false;
+  const auto frozen=adapter.raw;
+  std::vector<const DRW_RawDxfObject*> expectedFrames{&frozen};
+  const dxfRW::DxfObjectsWriteView outside{{},DRW::AC1027,binary,{},dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+  if(writer.inspectDxfRawMaterialRecords(outside,expectedFrames))return 46;
+  unsigned inspected=0;
+  if(!writer.setDxfObjectsWriteInspector([&](const auto& view){++inspected;return writer.inspectDxfRawMaterialRecords(view,expectedFrames);}))return 47;
+  if(!writer.write(&adapter,DRW::AC1027,binary)||!adapter.ok||inspected!=1u){std::cerr<<"raw retry failed\n";return 1;}
+  {std::ofstream f(dest);f<<"prior";}
+  adapter.raw.groups.back()=DRW_Variant(94,62);
+  if(adapter.raw.hasRawValues)adapter.raw.rawValues.back()="62";
+  if(writer.write(&adapter,DRW::AC1027,binary)||bytes(dest)!="prior")return 48;
+  adapter.raw=frozen;
+  if(!writer.write(&adapter,DRW::AC1027,binary))return 49;
+  {std::ofstream f(dest);f<<"prior";}
+  expectedFrames.push_back(&frozen);
+  if(writer.write(&adapter,DRW::AC1027,binary)||bytes(dest)!="prior")return 50;
+  expectedFrames.pop_back();
+  if(!writer.write(&adapter,DRW::AC1027,binary))return 51;
+  {std::ofstream f(dest);f<<"prior";}
+  auto wrongSource=frozen;wrongSource.m_version=DRW::AC1024;expectedFrames[0]=&wrongSource;
+  if(writer.write(&adapter,DRW::AC1027,binary)||bytes(dest)!="prior")return 78;
+  wrongSource=frozen;wrongSource.name="OTHER";
+  if(writer.write(&adapter,DRW::AC1027,binary)||bytes(dest)!="prior")return 79;
+  expectedFrames[0]=&frozen;
+  if(!writer.write(&adapter,DRW::AC1027,binary))return 80;
   Reader reread;dxfRW check(destName.c_str());if(!check.read(&reread,false)||reread.materials.size()!=1u||!reread.materials[0].requiresRawDxfMaterialReplay())return 1;
   std::vector<int> actual;for(const auto& g:reread.raw[0].groups)actual.push_back(g.code());
   const std::vector<int> expected={5,102,330,102,330,100,1,71,91,72,273,94};if(actual!=expected
@@ -272,6 +297,9 @@ int main(){
   // model-space BLOCK_RECORD; move the source identity before raw replay.
   writer.setHandleRemap({{0x1Fu,0xF000u}});
   if(writer.write(&adapter,DRW::AC1024,binary)||adapter.ok||bytes(dest)!="prior")return 51;
+  const auto sourceFrame=adapter.raw;
+  const std::vector<const DRW_RawDxfObject*> selected{&sourceFrame};
+  if(!writer.setDxfObjectsWriteInspector([&](const auto& view){return writer.inspectDxfRawMaterialRecords(view,selected);}))return 76;
   adapter.useRaw=true;adapter.ok=false;
   if(!writer.write(&adapter,DRW::AC1024,binary)||!adapter.ok){
    const auto diagnostic=writer.getLastDiagnostic();
@@ -313,6 +341,9 @@ int main(){
   graph.dict.m_entries={{"ByBlock",0x1F},{"ByLayer",0x20},{"Global",0x21}};
   writer.setHandleRemap({{0xA,0xC},{0xE,0xF010},{0x1F,0xF011},{0x20,0xF012},{0x21,0xF013}});
   writer.setRootDictEntries({{"ACAD_MATERIAL","F010"}});
+  std::vector<const DRW_RawDxfObject*> selected;
+  for(const auto& raw:graph.raw)selected.push_back(&raw);
+  if(!writer.setDxfObjectsWriteInspector([&](const auto& view){return writer.inspectDxfRawMaterialRecords(view,selected);}))return 77;
   if(!writer.write(&graph,DRW::AC1024,binary)||!graph.ok)return 68;
   Reader check;dxfRW reread(output.string().c_str());
   if(!reread.read(&check,false)||check.raw.size()!=3u||check.materials.size()!=3u

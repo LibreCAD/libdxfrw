@@ -45,6 +45,7 @@
 #include "intern/dxfcode.h"
 #include "intern/dxfwriter.h"
 #include "intern/dxfmaterial.h"
+#include "intern/dxf_staged_output.h"
 #include "intern/dxftransparency.h"
 #include "intern/dxf_ac1027_bound_layer.h"
 #include "intern/dxftablecapacity.h"
@@ -4675,6 +4676,51 @@ bool dxfRW::inspectDxfWriteSection(const DxfObjectsWriteInspector& inspector,
     } inspection(m_dxfWriteInspecting);
     return inspector({bytes, version, binFile, codePage, profile})
         && !m_writeError && !writer->hasWriteError();
+}
+
+bool dxfRW::inspectDxfRawMaterialRecords(
+        const DxfObjectsWriteView& view,
+        const std::vector<const DRW_RawDxfObject*>& expected) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError()
+        || view.version != version || view.binary != binFile
+        || expected.empty() || expected.size() > 4096u)
+        return false;
+    try {
+        std::map<std::uint32_t, const DRW_RawDxfObject*> selected;
+        std::size_t groups = 0u;
+        constexpr std::size_t maxGroups = 1024u * 1024u;
+        for (const auto* raw : expected) {
+            if (!raw || raw->name != "MATERIAL" || raw->m_version != view.version
+                || raw->handle == 0u || raw->handle == DRW::NoHandle
+                || raw->groups.empty() || raw->groups.size() > maxGroups - groups
+                || (raw->hasRawValues && raw->rawValues.size() != raw->groups.size()))
+                return false;
+            groups += raw->groups.size();
+            const auto handle = remapHandle(raw->handle);
+            if (handle == 0u || handle == DRW::NoHandle || !selected.emplace(handle, raw).second)
+                return false;
+        }
+        std::set<std::uint32_t> seen;
+        bool wrongName = false;
+        const auto map = [this](std::uint32_t source, std::uint32_t& target) {
+            target = source == 0u ? 0u : remapHandle(source);
+            return source == 0u || (target != 0u && target != DRW::NoHandle);
+        };
+        const bool inspected = dx_standard_output::inspectSelected(view,
+            [&](std::string_view name, std::uint32_t handle) {
+                if (selected.count(handle) == 0u) return false;
+                if (name != "MATERIAL") wrongName = true;
+                return true;
+            }, [&](const auto& shape, std::string_view body) {
+                const auto found = selected.find(shape.handle);
+                return !wrongName && found != selected.end() && seen.insert(shape.handle).second
+                    && dx_standard_output::rawScalarTransportEqual(found->second->groups, body, view, map, true);
+            });
+        return inspected && !wrongName && seen.size() == selected.size();
+    } catch (...) {
+        return false;
+    }
 }
 
 std::size_t dxfRW::dxfWriteRecordHandleCount(
