@@ -59,6 +59,8 @@ CTEST_REGRESSIONS = (
     "libdxfrw_dwg_ac1014_dictionaryvar",
     "libdxfrw_dwg_ac1027_material_dictionary_wire",
     "libdxfrw_dxf_staged_image_reference",
+    "libdxfrw_dxf_modeler_sat_token_chunks",
+    "dwg2dxf_modeler_sat_token_transaction",
     "dwg2dxf_native_xrecord_binary_transport",
     "dwg2dxf_native_xrecord_binary_faults",
     "dwg2dxf_xrecord_owned_defaultplot_source_probe",

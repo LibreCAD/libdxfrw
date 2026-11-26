@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-26",
+  "scope": "Register the SAT continuation tests in the existing qualification inventory and fast PR regression lane.",
+  "trigger": "The hosted fast job for 666939850 failed at the frozen CTest inventory check; the two newly registered SAT tests were absent from the manifest.",
+  "failedJob": "https://github.com/LibreCAD/libdxfrw/actions/runs/45875319505/job/140100929447",
+  "repair": [
+    "Configured a tracked-only git archive of 666939850 with the hosted option profile and froze its CTest inventory. Exactly dwg2dxf_modeler_sat_token_transaction and libdxfrw_dxf_modeler_sat_token_chunks were added; none were removed.",
+    "Added both controls to the bounded fast selection and their missing allocation-test executable to the fast build target list.",
+    "Refreshed the implementation digest while leaving format support claims unchanged."
+  ],
+  "inventory": {"count": 1406, "sha256": "f36adc3bd5a3938f2a47f0b5db79df7b26214f55fad93d6c330851aca7aed0e2"},
+  "implementationDigestSha256": "1b3bbc664e6c4650ac0572022d861e0c24c5913bf3452ae22175b366541f7bc9",
+  "localChecks": [
+    "PASS: clean configured CTest inventory and qualification manifest",
+    "PASS: fast runner and native qualification self-tests",
+    "PASS: build and source-release inventory",
+    "PASS: both SAT controls and modeler writer matrix on macOS ARM64 before this CI-only follow-up"
+  ],
+  "limits": "The new head must complete hosted CI; this is regression infrastructure, not independent semantic or platform qualification."
+}

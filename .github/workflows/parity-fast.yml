@@ -92,6 +92,7 @@ jobs:
           libdxfrw_dwg_ac1014_dictionaryvar_tests
           libdxfrw_dwg_ac1027_material_dictionary_wire_tests
           libdxfrw_dxf_staged_image_reference_tests
+          libdxfrw_modeler_dxf_allocation_tests
           libdxfrw_diagnostic_tests libdxfrw_dxf_fixture_tests
           libdxfrw_dwg_local_roundtrip libdxfrw_3d_consumer_probe
           lc3_compat_check libdxfrw_dwg2dxf_adapter_tests
