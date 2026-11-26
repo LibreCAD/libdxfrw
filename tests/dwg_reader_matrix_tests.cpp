@@ -21175,6 +21175,26 @@ void testHeaderPackedFlags(TestContext& t) {
                          && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
                      "R14 HEADER refuses an explicit unrepresented dimension setting");
         }
+        for (const char* name : {"$PELLIPSE", "PELLIPSE"}) {
+            HeaderWriteProbe source;
+            source.addInt(name, 1, 70);
+            t.expect(!source.canWriteDxfHeaderInitialPreflight(DRW::AC1009)
+                         && source.canWriteDxfHeaderInitialPreflight(DRW::AC1014)
+                         && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
+                     "R12 HEADER refuses a nonzero ellipse creation setting");
+            source.addInt(name, 0, 70);
+            t.expect(source.canWriteDxfHeaderInitialPreflight(DRW::AC1009),
+                     "R12 HEADER retains the existing zero ellipse-setting path");
+        }
+        HeaderWriteProbe invalidEllipseSetting;
+        invalidEllipseSetting.addInt("$PELLIPSE", 0, 90);
+        t.expect(!invalidEllipseSetting.canWriteDxfHeaderInitialPreflight(DRW::AC1009),
+                 "R12 HEADER refuses an invalid ellipse-setting group");
+        HeaderWriteProbe duplicateEllipseSetting;
+        duplicateEllipseSetting.addInt("$PELLIPSE", 0, 70);
+        duplicateEllipseSetting.addInt("PELLIPSE", 0, 70);
+        t.expect(!duplicateEllipseSetting.canWriteDxfHeaderInitialPreflight(DRW::AC1009),
+                 "R12 HEADER refuses ambiguous ellipse-setting aliases");
     }
 
     modeled.addInt("$ENDCAPS", 4, 280);
@@ -21297,6 +21317,23 @@ void testHeaderPackedFlags(TestContext& t) {
         / ("libdxfrw-legacy-header-flags-"
            + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())
            + ".dxf");
+    for (const bool binary : {false, true})
+    for (const char* name : {"$PELLIPSE", "PELLIPSE"}) {
+        dx_data data;
+        dx_iface adapter;
+        data.headerC.addInt(name, 1, 70);
+        { std::ofstream output(legacyPath, std::ios::binary); output << "preserve"; }
+        const bool refused = !adapter.fileExport(legacyPath.string(), DRW::AC1009,
+                                                 binary, &data, false);
+        std::ifstream input(legacyPath, std::ios::binary);
+        const bool unchanged = std::string(std::istreambuf_iterator<char>(input), {}) == "preserve";
+        input.close();
+        data.headerC.addInt(name, 0, 70);
+        const bool retried = adapter.fileExport(legacyPath.string(), DRW::AC1009,
+                                                binary, &data, false);
+        t.expect(refused && unchanged && retried,
+                 "R12 adapter preserves the destination and retries after correcting PELLIPSE");
+    }
     const std::array<std::pair<const char*, int>, 8> legacyGuardedFields{{
         {"$EXTNAMES", 290}, {"$PSTYLEMODE", 290}, {"$OLESTARTUP", 290},
         {"$LWDISPLAY", 290}, {"$XEDIT", 290}, {"$CELWEIGHT", 370},
@@ -21449,6 +21486,7 @@ void testHeaderPackedFlags(TestContext& t) {
         sourceData.headerC.addInt(binary ? "DIMTMOVE" : "$DIMTMOVE", 1, 70);
         sourceData.headerC.addInt("$DIMDEC", 4, 70);
         sourceData.headerC.addInt("$DIMJUST", 2, 70);
+        sourceData.headerC.addInt("$PELLIPSE", 1, 70);
         DRW_Line line;
         line.basePoint = {1., 2., 0.};
         line.secPoint = {3., 5., 0.};
@@ -21478,12 +21516,12 @@ void testHeaderPackedFlags(TestContext& t) {
                      "ordinary R14 UCS origin survives save, import, resave and reopen");
         }
         for (const auto& field : {std::pair<const char*, int>{"$DIMUNIT", 6}, {"$DIMFIT", 4},
-                                  {"$DIMDEC", 4}, {"$DIMJUST", 2}}) {
+                                  {"$DIMDEC", 4}, {"$DIMJUST", 2}, {"$PELLIPSE", 1}}) {
             const auto item = reopenedData.headerC.vars.find(field.first);
             const auto* value = item == reopenedData.headerC.vars.end() ? nullptr : item->second;
             t.expect(reopened && value != nullptr && value->type() == DRW_Variant::INTEGER
                          && value->i_val() == field.second,
-                     "R14 dimension settings survive conversion, resave and reopen");
+                     "R14 header settings survive conversion, resave and reopen");
         }
     }
     const auto modernPath = legacyPath.parent_path()
@@ -21501,6 +21539,7 @@ void testHeaderPackedFlags(TestContext& t) {
         sourceData.headerC.addInt(binary ? "DIMFRAC" : "$DIMFRAC", 2, 70);
         sourceData.headerC.addInt(binary ? "DIMATFIT" : "$DIMATFIT", 3, 70);
         sourceData.headerC.addInt(binary ? "DIMTMOVE" : "$DIMTMOVE", 1, 70);
+        sourceData.headerC.addInt(binary ? "PELLIPSE" : "$PELLIPSE", 1, 70);
         const bool saved = writer.fileExport(modernPath.string(), DRW::AC1015,
                                              binary, &sourceData, false);
         const bool imported = saved && reader.fileImport(modernPath.string(), &importedData, false);
@@ -21561,12 +21600,12 @@ void testHeaderPackedFlags(TestContext& t) {
             t.expect(valid, "R2000 dimension header value survives save and reimport");
         }
         for (const auto& field : {std::pair<const char*, int>{"$DIMLUNIT", 4}, {"$DIMFRAC", 2},
-                                  {"$DIMATFIT", 3}, {"$DIMTMOVE", 1}}) {
+                                  {"$DIMATFIT", 3}, {"$DIMTMOVE", 1}, {"$PELLIPSE", 1}}) {
             const auto item = vars.find(field.first);
             const auto* value = item == vars.end() ? nullptr : item->second;
             t.expect(imported && value != nullptr && value->type() == DRW_Variant::INTEGER
                          && value->i_val() == field.second,
-                     "R2000 dimension mapping field survives save and reimport");
+                     "R2000 header field survives save and reimport");
         }
     }
     std::error_code legacyCleanupError;

@@ -908,6 +908,8 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
     const int alternateHeaderBooleanGroupCode = 290;
     bool extnamesPresent = false, pstylemodePresent = false, olestartupPresent = false;
     bool lwdisplayPresent = false, xeditPresent = false;
+    bool pellipsePresent = false;
+    int pellipse = 0;
     const auto legacyVariableAbsent = [this, ver](const char* name) {
         if (ver > DRW::AC1014)
             return true;
@@ -950,6 +952,11 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
                        legacyVariableAbsent)
         && std::all_of(modernDimensionFields.begin(), modernDimensionFields.end(),
                        legacyVariableAbsent)
+        // R12 has no output slot for this setting. Continue accepting the
+        // existing zero/default path, but do not silently discard a nonzero value.
+        && (ver > DRW::AC1009
+            || (getDxfHeaderIntegerValue("$PELLIPSE", 70, pellipse, pellipsePresent)
+                && (!pellipsePresent || pellipse == 0)))
         && canWriteDxfHeaderIntegerRange("$LWDISPLAY", 290, 0, 1, &lwdisplayPresent)
         && canWriteDxfHeaderIntegerRange("$XEDIT", 290, 0, 1, &xeditPresent)
         && canWriteDxfHeaderFlags()
