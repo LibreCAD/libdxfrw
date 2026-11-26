@@ -37,12 +37,15 @@ produces clean-checkout digest
 `b274f634af9aeb2ca0e8a3b6ddc907a2429f391d6f9c5bfed6b2cbf200ffe44b`
 for 775 inputs. The [Wave 1 control-text CI correction](docs/research/p8-wave1-control-text-ci-regression-2026-11-25.json)
 updates an outdated refusal expectation to verify ASCII/binary typed readback;
-its clean-checkout digest is `6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e` for 775 inputs. The full Wave 1
-executable and the hosted fast, Linux, macOS and Windows focused jobs now pass;
+its clean-checkout digest was `6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e` for 775 inputs. The full Wave 1
+executable and the hosted fast, Linux, macOS and Windows focused jobs passed on
+that candidate;
 see the [current CI receipt](docs/research/p8-current-fast-ci-2026-11-25.json).
 The same receipt records the current LibreCAD headless, DWG/DXF, Pixi and CodeQL
-checks. Broad/fuzz and native qualification remain open. No earlier
-qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
+checks. The subsequent [block handle allocation fix](docs/research/p8d-block-record-adjacent-handle-collision-2026-11-25.json)
+changes the candidate digest to `0c90642a63bb7bbb08ce74324e952a7675207d1812563cea1715efa300f4dc03` (775 inputs); recheck the
+focused platform jobs and downstream receipts. Broad/fuzz and native qualification
+remain open. No earlier qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
 for the cancelled hosted macOS job; the overall package workflow was red.
@@ -110,8 +113,9 @@ system linetype selector passed 47/52 cases. The [alignment contract control](do
 retains the invalid-value refusal and tests reconstruction with valid alignment;
 the selector passed 48/52 cases. The [QCad-1 layer-width fix](docs/research/p8d-librecad-qcad1-layer-default-width-2026-11-25.json)
 uses a default width for layers whose legacy source has no width; save/reopen
-passes with both codecs, and system-codec refusal/retry passes. The selector now passes 49/52 cases;
-investigate its three remaining cases. The [R14 header diagnostic](docs/research/p8d-r14-header-self-resave-diagnostic-2026-11-25.json)
+passes with both codecs, and system-codec refusal/retry passes. The selector passed 49/52 cases. The block-handle range fix eliminates a
+collision between a preserved LINE and generated ENDBLK; the selector now passes
+50/52. Investigate the two built-in length and table-output comparisons. The [R14 header diagnostic](docs/research/p8d-r14-header-self-resave-diagnostic-2026-11-25.json)
 binds the reimport/resave refusal to three group-290 Boolean variables emitted
 by the first save; an independent version table also flags 64 header variables
 as R2000-or-later. Establish the R14 schema and loss policy, then separately
