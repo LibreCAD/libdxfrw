@@ -97,11 +97,68 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         }
         return valid;
     })) return false;
+    if (!writer.setDxfObjectsWriteInspector([&](const auto& view) {
+        const auto dictionary = writer.dxfWriteImageDictionaryHandle();
+        std::vector<dxfRW::DxfImageDefinitionOutputLinks> definitions;
+        std::vector<dxfRW::DxfImageReactorOutputLinks> reactors;
+        for (const auto& reference : adapter.references) {
+            definitions.push_back({reference.definition, version == DRW::AC1014 ? 0u : dictionary,
+                                   {reference.reactor}});
+            reactors.push_back({reference.reactor, reference.image});
+        }
+        if (mode == 9) ++definitions.front().owner;
+        if (mode == 10) ++reactors.front().image;
+        if (mode == 11) definitions.pop_back();
+        if (mode == 12) definitions.front().reactors.clear();
+        if (mode == 13) reactors.push_back(reactors.front());
+        if (mode == 14 || mode == 15) {
+            std::string changed(view.bytes);
+            const auto profile = view.compatibilityProfile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
+                ? dx_raster_output::Profile::StandaloneSafe : dx_raster_output::Profile::LibreCadMasterLegacy;
+            dx_raster_output::Cursor cursor(changed, binary, profile);
+            dx_raster_output::Token token;
+            std::string name;
+            bool inReactors = false, mutated = false;
+            while (!cursor.done()) {
+                const auto start = cursor.position();
+                if (!cursor.next(token)) return false;
+                if (token.code == 0) { name = token.text; inReactors = false; }
+                else if (token.code == 102 && name == "IMAGEDEF") {
+                    if (token.text == "{ACAD_REACTORS") inReactors = true;
+                    else if (token.text == "}") inReactors = false;
+                } else if (mode == 14 && name == "IMAGEDEF_REACTOR" && token.code == 90) {
+                    if (binary) changed[start + 2] = 3;
+                    else {
+                        auto pos = changed.find('\n', start);
+                        if (pos == std::string::npos) return false;
+                        ++pos;
+                        while (pos < changed.size() && changed[pos] == ' ') ++pos;
+                        if (pos == changed.size()) return false;
+                        changed[pos] = '3';
+                    }
+                    mutated = true;
+                    break;
+                } else if (mode == 15 && name == "IMAGEDEF" && inReactors && token.code == 330 && !token.text.empty()) {
+                    const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                    changed[offset] = changed[offset] == 'A' ? 'B' : 'A';
+                    mutated = true;
+                    break;
+                }
+            }
+            if (!mutated) return false;
+            auto altered = view;
+            altered.bytes = changed;
+            return writer.inspectDxfImageOutputObjects(altered, definitions, reactors);
+        }
+        const bool valid = writer.inspectDxfImageOutputObjects(view, definitions, reactors);
+        if (!valid && mode == 0) std::cerr << "IMAGE object inspection failed\n";
+        return valid;
+    })) return false;
     if (!writer.write(&adapter, version, binary) || !adapter.ok || adapter.references.size() != 2u) {
         std::cerr << "baseline write failed, ok=" << adapter.ok << " references=" << adapter.references.size() << '\n';
         return false;
     }
-    for (mode = 1; mode <= 8; ++mode) {
+    for (mode = 1; mode <= 15; ++mode) {
         { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }
         if (writer.write(&adapter, version, binary) || read(path) != "sentinel") {
             std::cerr << "refusal failed, mode=" << mode << '\n'; return false;

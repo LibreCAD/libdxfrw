@@ -39,7 +39,8 @@ evidence are recorded in `docs/research/` and Git history.
   IMAGE-reference check](docs/research/p8d-shared-staged-image-references-2026-11-26.json)
   now checks the existing single-IMAGE consumer graph; the [consumer slice](docs/research/p8d-librecad-staged-image-references-2026-11-26.json)
   covers top-level and named-block references. Next qualify multi-image graph
-  admission and output objects, binding physical source,
+  admission and wire the [staged IMAGEDEF/reactor link check](docs/research/p8d-shared-staged-image-object-links-2026-11-26.json),
+  binding physical source,
   dictionary edge roles, dependencies, staged output, independent readback,
   rollback and retry. Multi-image, unknown fields, unqualified clipping,
   references, layers and native/platform behavior remain open; see P8.
@@ -73,7 +74,7 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: c9eb3dc5cad86ed560fc208d9c03f37c746e4bb7f353ba55a735f9406e0c7822
+  digest: 757d14feff96367d5839762099e9ca35d0e2224846127d9a76f2c310e4dc0238
   (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier

@@ -4716,6 +4716,90 @@ bool dxfRW::inspectDxfImageOutputReferences(
     }
 }
 
+bool dxfRW::inspectDxfImageOutputObjects(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfImageDefinitionOutputLinks>& definitions,
+        const std::vector<DxfImageReactorOutputLinks>& reactors) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError() || view.version != version
+        || view.version < DRW::AC1014 || view.binary != binFile
+        || definitions.size() > 4096u || reactors.size() > 4096u)
+        return false;
+    try {
+        const auto profile = view.compatibilityProfile == DxfCompatibilityProfile::StandaloneSafe
+            ? dx_raster_output::Profile::StandaloneSafe
+            : view.compatibilityProfile == DxfCompatibilityProfile::LibreCadMasterLegacy
+                ? dx_raster_output::Profile::LibreCadMasterLegacy
+                : dx_raster_output::Profile::Invalid;
+        if (!dx_raster_output::valid(profile)) return false;
+        std::map<std::uint32_t, const DxfImageDefinitionOutputLinks*> defs;
+        std::map<std::uint32_t, const DxfImageReactorOutputLinks*> recs;
+        std::set<std::uint32_t> linked;
+        for (const auto& reactor : reactors)
+            if (!reactor.reactor || !reactor.image ||
+                !recs.emplace(reactor.reactor, &reactor).second) return false;
+        for (const auto& definition : definitions) {
+            if (!definition.definition || definition.reactors.size() > 4096u ||
+                recs.count(definition.definition) ||
+                !defs.emplace(definition.definition, &definition).second) return false;
+            for (const auto reactor : definition.reactors)
+                if (!recs.count(reactor) || !linked.insert(reactor).second) return false;
+        }
+        if (linked.size() != recs.size()) return false;
+        std::set<std::uint32_t> seenDefs, seenRecs;
+        return dx_raster_output::inspect(view.bytes, view.binary,
+            [&](std::string_view name, std::uint32_t handle, std::string_view body) {
+                const bool definition = name == "IMAGEDEF";
+                if (!definition && name != "IMAGEDEF_REACTOR") return true;
+                const auto def = defs.find(handle);
+                const auto rec = recs.find(handle);
+                if (definition ? (def == defs.end() || !seenDefs.insert(handle).second)
+                               : (rec == recs.end() || !seenRecs.insert(handle).second)) return false;
+                dx_raster_output::Cursor cursor(body, view.binary, profile);
+                dx_raster_output::Token token;
+                unsigned depth = 0, groups = 0, owners = 0, subclasses = 0, versions = 0;
+                bool reactorGroup = false, raster = false;
+                std::set<std::uint32_t> actualLinks;
+                while (!cursor.done()) {
+                    if (!cursor.next(token)) return false;
+                    if (token.code == 102) {
+                        if (!token.text.empty() && token.text.front() == '{') {
+                            if (definition && depth == 0u && token.text == "{ACAD_REACTORS") {
+                                if (++groups != 1u) return false;
+                                reactorGroup = true;
+                            }
+                            if (++depth > 64u) return false;
+                        } else if (token.text == "}" && depth) {
+                            if (depth == 1u) reactorGroup = false;
+                            --depth;
+                        } else return false;
+                    } else if (!depth && token.code == 100) {
+                        raster = token.text == (definition ? "AcDbRasterImageDef" : "AcDbRasterImageDefReactor");
+                        if (raster && ++subclasses != 1u) return false;
+                    } else if (token.code == 330 && (!depth || (definition && depth == 1u && reactorGroup))) {
+                        std::uint32_t target = 0;
+                        if (!dx_raster_output::integer(token.text, target, 16) || !target) return false;
+                        if (depth) {
+                            if (!actualLinks.insert(target).second) return false;
+                        } else if (definition) {
+                            if (!def->second->owner || ++owners != 1u || target != def->second->owner) return false;
+                        } else {
+                            if (++owners != (raster ? 2u : 1u) || target != rec->second->image) return false;
+                        }
+                    } else if (!definition && !depth && raster && token.code == 90) {
+                        if (++versions != 1u || token.number != 2) return false;
+                    }
+                }
+                if (depth || subclasses != 1u) return false;
+                if (!definition) return owners == 2u && versions == 1u;
+                const std::set<std::uint32_t> expected(def->second->reactors.begin(), def->second->reactors.end());
+                return owners == (def->second->owner ? 1u : 0u) && groups == 1u && actualLinks == expected;
+            }, profile) && seenDefs.size() == defs.size() && seenRecs.size() == recs.size();
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dxfRW::setDxfStagedOutputAuthentication(bool enabled) {
     if (!preflightDxfSetup() || m_wholeOperationActive || writer != nullptr)
         return failDxfWrite();

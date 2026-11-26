@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-image-object-links-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "757d14feff96367d5839762099e9ca35d0e2224846127d9a76f2c310e4dc0238",
+  "change": "The shared staged OBJECTS observer checks complete emitted IMAGEDEF and IMAGEDEF_REACTOR identities, definition owners and reactor lists, both reactor owner fields and reactor class version 2. Expected reactor identities must be linked exactly once.",
+  "checks": [
+    "PASS: 28 generated R14\u2013R2018 ASCII/Binary and standalone/LibreCAD-profile combinations, with two definitions and reactors; 15 refusal controls per combination, destination preservation, same-writer retry and IMAGE reference readback.",
+    "PASS: the same focused test under macOS AddressSanitizer.",
+    "PASS: source-release inventory check."
+  ],
+  "limits": [
+    "This verifies selected physical object links and reactor version, not dictionary membership, definition scalar fields, source provenance, publication or native CAD behavior.",
+    "Consumer wiring, multi-image admission and independent/native qualification remain open."
+  ]
+}
