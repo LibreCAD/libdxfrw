@@ -21336,9 +21336,36 @@ void testHeaderPackedFlags(TestContext& t) {
                      && result->secPoint.x == 3. && result->secPoint.y == 5.,
                  "generated R14 LINE survives save, import, resave and reopen");
     }
+    const auto modernPath = legacyPath.parent_path()
+        / (legacyPath.stem().string() + "-modern.dxf");
+    for (const bool binary : {false, true}) {
+        dx_data sourceData, importedData;
+        dx_iface writer, reader;
+        sourceData.headerC.addStr("$HYPERLINKBASE", "assets", 1);
+        sourceData.headerC.addInt("$CEPSNTYPE", 2, 380);
+        sourceData.headerC.addDouble("$PSVPSCALE", 1.5, 40);
+        const bool saved = writer.fileExport(modernPath.string(), DRW::AC1015,
+                                             binary, &sourceData, false);
+        const bool imported = saved && reader.fileImport(modernPath.string(), &importedData, false);
+        const auto& vars = importedData.headerC.vars;
+        const auto hyperlink = vars.find("$HYPERLINKBASE");
+        const auto plotType = vars.find("$CEPSNTYPE");
+        const auto paperScale = vars.find("$PSVPSCALE");
+        t.expect(imported && hyperlink != vars.end() && hyperlink->second != nullptr
+                     && hyperlink->second->type() == DRW_Variant::STRING
+                     && std::string(hyperlink->second->c_str()) == "assets"
+                     && plotType != vars.end() && plotType->second != nullptr
+                     && plotType->second->type() == DRW_Variant::INTEGER
+                     && plotType->second->i_val() == 2
+                     && paperScale != vars.end() && paperScale->second != nullptr
+                     && paperScale->second->type() == DRW_Variant::DOUBLE
+                     && paperScale->second->d_val() == 1.5,
+                 "R2000 scalar header values survive save and reimport");
+    }
     std::error_code legacyCleanupError;
     std::filesystem::remove(legacyPath, legacyCleanupError);
     std::filesystem::remove(legacyResavePath, legacyCleanupError);
+    std::filesystem::remove(modernPath, legacyCleanupError);
 }
 
 std::uint32_t readHeaderReferenceBits(const std::vector<std::uint8_t>& bytes,

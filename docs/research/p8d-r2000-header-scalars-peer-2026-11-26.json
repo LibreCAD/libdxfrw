@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r2000-header-scalars-peer-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "ba365b440bd952e0f2f8e24d924d0e2611de05b8",
+  "implementationDigestSha256": "13af613ba67012e6cfa0064978b4d4217f8c6658461cf180bd11c5c72bbe1236",
+  "inputCount": 775,
+  "scope": "Verify the pre-R2000 scalar guards preserve non-default R2000 header values.",
+  "values": {
+    "$HYPERLINKBASE": "assets",
+    "$CEPSNTYPE": 2,
+    "$PSVPSCALE": 1.5
+  },
+  "validation": {
+    "library": "PASS: R2000 ASCII and binary save/reimport retain all three non-default values in the focused header regression; R14 physical output/refusal/retry controls also pass.",
+    "independent": "ezdxf 1.4.5 reads all three values from both AC1015 outputs and reports zero audit errors and fixes.",
+    "scratchSha256": {
+      "ascii": "7c1c9335f5c25b852dd3ba57b091958617ffaaad347348754a742141ac159626",
+      "binary": "be807a19fc95ff518891e1e4f653bd8b5b615663ce63cb53d051f52a27cf686d"
+    }
+  },
+  "limits": [
+    "This is a selected scalar/encoding profile, not general R2000 or R14 semantic qualification.",
+    "All drawings are locally authored scratch files; none are committed.",
+    "Native and final platform qualification remain open."
+  ]
+}

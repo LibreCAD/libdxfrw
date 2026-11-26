@@ -140,7 +140,9 @@ LibreCAD reports omission of its generated cap/join defaults and still refuses
 other values; system and bundled codec controls pass. The [legacy scalar slice](docs/research/p8d-r14-header-scalars-2026-11-26.json)
 applies that policy to `$HYPERLINKBASE`, `$CEPSNTYPE`, and `$PSVPSCALE`.
 LibreCAD reports omission of its generated default paper scale and refuses
-non-default values. Other later header fields remain open. The [generated LINE resave control](docs/research/p8d-r14-line-resave-peer-2026-11-26.json)
+non-default values. The [R2000 readback control](docs/research/p8d-r2000-header-scalars-peer-2026-11-26.json)
+checks non-default values in both encodings with the library and ezdxf. Other
+later header fields remain open. The [generated LINE resave control](docs/research/p8d-r14-line-resave-peer-2026-11-26.json)
 checks save/import/resave/reopen in both encodings. The LibreCAD INSERT control
 also now resaves its reimport with both codecs. ezdxf reads selected geometry, but upgrades R14 to R2000 in memory. The prior
 root-owner repairs for the first LINE and LibreCAD INSERT outputs are addressed
@@ -748,7 +750,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `025a35fd5cbeb811ca097914289c2f7f155a13c5dcef63b7773e2976d9b925ca` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `13af613ba67012e6cfa0064978b4d4217f8c6658461cf180bd11c5c72bbe1236` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).
