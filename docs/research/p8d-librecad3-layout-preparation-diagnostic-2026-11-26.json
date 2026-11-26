@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "0869ec2d22611b45b840e47e9538f1649bdfd990",
+  "platform": "macOS ARM64",
+  "persistence_library_sha256": "1f22291a13e0914c74f9e30e651f7cf07bafcd4838e998f4c6cff9bf08f9a2fa",
+  "change": "Expose a specific layout-graph preparation failure through the save diagnostic.",
+  "validation": "12 focused layout tests pass; ASCII File export and binary same-writer refusal report the layout graph, preserve the existing destination, and succeed after correction. Plan full, worktree, and base synchronization checks pass.",
+  "limits": [
+    "No new graph profile or native/other-platform support claim."
+  ]
+}

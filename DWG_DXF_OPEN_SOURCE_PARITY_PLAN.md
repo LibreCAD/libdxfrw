@@ -123,7 +123,8 @@ evidence are recorded in `docs/research/` and Git history.
   Extend imported-binary replay beyond the [checked canonical profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json),
   including extra block records, zero/one/two/additional-layout profiles, external
   plot resources, unknown references and source identities. Keep explicit refusal,
-  destination preservation and retry for unsupported graphs. The [unowned-paper guard](docs/research/p8d-librecad3-unowned-paper-refusal-2026-11-26.json)
+  destination preservation and retry for unsupported graphs. The [preparation diagnostic](docs/research/p8d-librecad3-layout-preparation-diagnostic-2026-11-26.json)
+  reports the reason when a checked graph can no longer be prepared. The [unowned-paper guard](docs/research/p8d-librecad3-unowned-paper-refusal-2026-11-26.json)
   refuses checked-codec outputs that cannot retain modeled extra-paper content;
   [new-document binary graphs](docs/research/p8d-librecad3-authored-binary-layout-2026-11-26.json)
   now pass bounded independent readback. Qualify broader source graphs before replay.
