@@ -137,7 +137,9 @@ evidence are recorded in `docs/research/` and Git history.
   uninstrumented display, MPOLYGON editing, independent producer and other platforms remain open.
   The [MPOLYGON solid-fill color fix](docs/research/p8d-librecad3-mpolygon-solid-fill-color-2026-11-26.json)
   displays explicit ACI fill independently of the line color for a bounded DXF
-  profile; qualify gradients, other color modes and native editing separately.
+  profile; [HATCH fallback](docs/research/p8d-librecad3-mpolygon-fallback-fill-2026-11-26.json)
+  preserves that fill and reports a lost separate boundary color. Qualify gradients,
+  other color modes and native editing separately.
   The [preparation diagnostic](docs/research/p8d-librecad3-layout-preparation-diagnostic-2026-11-26.json)
   reports the reason when a checked graph can no longer be prepared. The [unowned-paper guard](docs/research/p8d-librecad3-unowned-paper-refusal-2026-11-26.json)
   refuses checked-codec outputs that cannot retain modeled extra-paper content;
