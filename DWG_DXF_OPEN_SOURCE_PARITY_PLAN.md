@@ -157,8 +157,9 @@ evidence are recorded in `docs/research/` and Git history.
   corrected head remain pending. The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
-  digest-bound results remain historical. LibreCAD consumer head:
-  187a1ee5 (pushed; final-head CI pending).
+  digest-bound results remain historical. LibreCAD consumer head
+  187a1ee5 has [12 passing hosted checks and one skipped scan](docs/research/p8d-librecad-pr3289-hosted-checks-2026-11-26.json);
+  requalify integration against the later codec and native consumers.
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
