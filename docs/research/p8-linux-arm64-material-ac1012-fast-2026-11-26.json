@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-linux-arm64-material-ac1012-fast-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateParent": "c475f95dc",
+  "implementationDigestSha256": "ccb23103e05093b9d0ea9338e66ddd2798b6a59d814e2a0f903277e63fe85ac5",
+  "environment": "Offline Linux ARM64 container, local librecad-pr3098-linux:ubuntu24.04 image 4cb665803977; GCC 13.3.0, CMake/Ninja, read-only source, -O1, -Wall -Wextra -pedantic -Werror.",
+  "checks": [
+    "PASS: generated AC1012/AC1014/AC1015 dictionary and DICTIONARYVAR transaction regression.",
+    "PASS: generated sparse-material, staged HEADER/LAYER/OBJECTS and selected root-entry regression, including R14-R2018 ASCII/Binary, refusal and retry controls.",
+    "Fixed a pre-existing misleading-indentation warning in the material test without relaxing compiler warnings."
+  ],
+  "limits": [
+    "These are two focused library tests in a container, not native Linux FreeCAD, LibreCAD GUI, Windows or whole-suite qualification.",
+    "No new drawing fixtures were committed; untracked local samples mounted read-only were not selected by the two tests.",
+    "Native AC1012 duplicate-merge semantics and all other external-only support evidence remain open."
+  ]
+}

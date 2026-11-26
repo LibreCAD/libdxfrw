@@ -231,7 +231,8 @@ int main(){
   const auto inputPath=dir/(binary?"in-binary.dxf":"in-ascii.dxf");const auto inputName=inputPath.string();dxfRW input(inputName.c_str());
   Reader r;
   for(int mode:{1,2,3,4,5,6,7,8,9,11,12,0}){
-   if(!source(inputPath,binary,mode,"ByBlock"))return 1;r.materials.clear();r.raw.clear();const bool ok=input.read(&r,false);
+   if(!source(inputPath,binary,mode,"ByBlock"))return 1;
+   r.materials.clear();r.raw.clear();const bool ok=input.read(&r,false);
    if(mode!=0){if(ok||!r.materials.empty()){std::cerr<<"invalid accepted "<<mode<<'\n';return 1;}continue;}
    if(!ok||r.materials.size()!=2u||r.raw.size()!=2u){std::cerr<<"input missing\n";return 1;}
   }
