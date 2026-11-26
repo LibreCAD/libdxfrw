@@ -7,10 +7,11 @@
     "Hosted Windows MSVC focused job 139902673928 failed: libdxfrw_dwg_reader_matrix exited with a segmentation fault; six other focused cases passed.",
     "The same Windows job failed on earlier PR head b1eea19e5, before the staged IMAGE changes. The observed output reaches the NOD refusal controls, but does not identify the failing function.",
     "The same reader matrix passes on macOS ARM64 normally, with a 1 MiB process stack, and with AddressSanitizer. This does not rule out an MSVC-specific stack or memory issue.",
-    "Windows-only progress markers were added around the NOD variants and subsequent matrix cases to identify the crash on the next hosted run."
+    "Hosted traced job 139915908419 completed all NOD variants and corrected retries, then crashed after reaching the header-writer group. The NOD diagnostics were not the crash location.",
+    "The test executable now receives the same MSVC-only 16 MiB stack reserve as the existing local-roundtrip matrix, and has markers around its large packed-header test. Stack exhaustion is a hypothesis pending another Windows run."
   ],
   "limits": [
-    "The crash remains unresolved; no Windows qualification or support promotion is claimed.",
+    "The cause and effect of the test-only stack change remain unverified; no Windows qualification or support promotion is claimed.",
     "Hosted Linux and macOS focused jobs and the fast lane passed on the earlier 651c2376c candidate; later source changes require fresh results."
   ]
 }

@@ -20938,7 +20938,13 @@ void testLegacySyntheticTableNullRoles(TestContext& t) {
 void testHeaderPackedFlags(TestContext& t);
 
 void testHeaderWriters(TestContext& t) {
+#ifdef _WIN32
+    std::cerr << "DWG matrix: header packed flags begin\n";
+#endif
     testHeaderPackedFlags(t);
+#ifdef _WIN32
+    std::cerr << "DWG matrix: header packed flags complete\n";
+#endif
     testLegacySyntheticTableNullRoles(t);
     testSyntheticRootDictionaryNullRoles(t);
     testStandardDimstyleDefaults<dwgWriter15>(t, DRW::AC1015, "AC1015");

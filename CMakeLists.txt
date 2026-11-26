@@ -1781,6 +1781,11 @@ if(LIBDXFRW_BUILD_TESTS)
     add_executable(libdxfrw_dwg_reader_matrix_tests
         tests/dwg_reader_matrix_tests.cpp
         ${_libdxfrw_reader_test_adapter_source})
+    # This matrix contains many large scoped HEADER test objects. Allow MSVC's
+    # generated test frame the same reserve as the local-roundtrip driver.
+    if(MSVC)
+        target_link_options(libdxfrw_dwg_reader_matrix_tests PRIVATE /STACK:16777216)
+    endif()
     target_compile_features(libdxfrw_dwg_reader_matrix_tests PRIVATE cxx_std_17)
     # Fixture paths belong to test drivers, never the reusable adapter TU.
     set_property(SOURCE tests/dwg_reader_matrix_tests.cpp APPEND PROPERTY COMPILE_DEFINITIONS

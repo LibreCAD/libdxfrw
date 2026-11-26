@@ -76,11 +76,14 @@ evidence are recorded in `docs/research/` and Git history.
   duplicate-key semantics. Continue P6-F with the existing
   [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
   do not regenerate unchanged samples without a new discriminator.
-- **Integration:** investigate the [Windows reader-matrix crash](docs/research/p8-windows-reader-matrix-crash-2026-11-26.json)
-  using the next traced hosted run; preserve its diagnostic artifact. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
+- **Integration:** investigate the [Windows reader-matrix crash](docs/research/p8-windows-reader-matrix-crash-2026-11-26.json).
+  The traced hosted run passed all NOD retries and reached the header-writer
+  group. A test-only MSVC stack-reserve change and finer trace are awaiting a
+  hosted rerun; stack exhaustion remains a hypothesis, not a confirmed cause.
+  Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 8dafd4af8665d66823c171a3f99aa826860a4d1c63758de9c563b4dc73382748
+  digest: 31ff4dc439fa69325cfc73d1f0eb118e9ad24b7b9672c7626612797bf4131a7a
   (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
