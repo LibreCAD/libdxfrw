@@ -20842,8 +20842,10 @@ bool dxfRW::processClasses() {
     if (classSource && !classSource->wantsDxfClassSource()) classSource = nullptr;
     auto* classShape = dynamic_cast<DRW_DxfClassShapeHandler*>(iface);
     if (classShape && !classShape->wantsDxfClassShape()) classShape = nullptr;
-    std::array<bool,3> pendingClassKnown{{false,false,false}};
-    std::array<bool,3> pendingClassHasInstanceCount{{false,false,false}};
+    // Keep observation bounded without allocating per CLASS row. Rows beyond
+    // this small inventory remain explicitly unavailable to observers.
+    std::array<bool,8> pendingClassKnown{};
+    std::array<bool,8> pendingClassHasInstanceCount{};
     bool classKnown = true;
     DxfReadRetainedReservation classTextReservation(
         reader->retainedByteBudget(), 0u);

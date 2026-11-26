@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-25",
+  "purpose": "Unblock bounded source observation for larger CLASS inventories without promoting cross-version output.",
+  "baseline_commit": "e22a9feeddd4814547fcce44b4ff904a6f1b618f",
+  "implementation_digest_sha256": "e0f52d874718040a6c894f3a5089255a6cfa05a73ad956131ce8f641275f371e",
+  "input_count": 775,
+  "change": "Fixed-size observation bound increased from three to eight CLASS rows; later rows remain unknown/unavailable.",
+  "focused_controls": [
+    "Generated five-row AC1015 source demonstrated the former rows-four-and-five unavailable behavior and now reports their known shape.",
+    "AC1015/AC1018 ASCII and binary nine-row generated outputs verify all first eight observations and explicit ninth-row unavailability.",
+    "Generated AC1015 unknown physical group in the fourth CLASS marks only that row unknown; fifth remains known.",
+    "IMAGEDEF 12/21 ASCII/binary matrix and valid/truncated block source controls pass.",
+    "Fixture-free CTest inventory remains 1402."
+  ],
+  "remaining": "The plot-style cross-version guard still requires an immutable complete selected source and output class inventory, mutation/refusal and corrected retry, plus independent readback. The observer alone grants no output or support authority.",
+  "fixtures": "All controls generated locally; no DWG/DXF fixture committed."
+}

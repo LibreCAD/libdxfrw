@@ -709,15 +709,19 @@ The [shared dictionary carrier check](docs/research/p8d-librecad-dictionary-comm
 The focused `dwg2dxf_image_dictionary_imported_common` regression still fails
 for generated AC1015 input exported strictly to AC1018: additional IMAGE class
 rows prevent the plot-style source profile from proving its complete class
-inventory. Keep the refusal and destination preservation. Implement an immutable
-whole-class-inventory proof that accounts for these rows and the emitted target
-classes; then add altered-class refusal and corrected retry, plus independent
-output/readback before admitting the cross-version graph.
+inventory. The bounded CLASS observer now retains shape observations for eight
+rows, marking later rows unavailable; the [bounded observer receipt](docs/research/p8-class-shape-eight-row-observation-2026-11-25.json) records the controls. This is transport only. Keep the refusal
+and destination preservation. Bind the complete selected CLASS inventory and its
+physical known-field/count shapes to an immutable snapshot, compare every live
+row and emitted target class, and require the IMAGE graph's existing source and
+output proofs. Add altered/extra CLASS refusal, unchanged destination and same-
+filter corrected retry, plus independent output/readback before admitting this
+cross-version graph.
 The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `b4801993f427afff1801c814754fa7d4129d50b11b65892c99ccbd2bd2032dd7` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `e0f52d874718040a6c894f3a5089255a6cfa05a73ad956131ce8f641275f371e` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).

@@ -30448,6 +30448,26 @@ bool readDxfClassesWireSnapshot(
 }
 
 void testClassesWireCensus(TestContext& t) {
+    class ClassShapeReader final : public dx_iface {
+    public:
+        bool wantsDxfClassSource() const noexcept override { return true; }
+        bool wantsDxfClassShape() const noexcept override { return true; }
+        void addDxfClassSource(const DRW_Class&, bool known) noexcept override {
+            if (sourceCount < sourceKnown.size()) sourceKnown[sourceCount] = known;
+            ++sourceCount;
+        }
+        void addDxfClassShape(const DRW_Class&, bool known, InstanceCountShape shape) noexcept override {
+            if (shapeCount < shapeKnown.size()) {
+                shapeKnown[shapeCount] = known;
+                shapes[shapeCount] = shape;
+            }
+            ++shapeCount;
+        }
+        std::array<bool, 9> sourceKnown{};
+        std::array<bool, 9> shapeKnown{};
+        std::array<InstanceCountShape, 9> shapes{};
+        std::size_t sourceCount{0}, shapeCount{0};
+    };
     struct Profile {
         DRW::Version version;
         bool binary;
@@ -30524,7 +30544,55 @@ void testClassesWireCensus(TestContext& t) {
                  (std::string(profile.name)
                   + " emits the exact ordered CLASSES group sequence")
                      .c_str());
+
+        if (profile.version == DRW::AC1015 || profile.version == DRW::AC1018) {
+            data.dxfClasses.clear();
+            for (unsigned i = 0; i < 7; ++i) {
+                definition.recName = "ACME_OBJECT_" + std::to_string(i);
+                definition.className = "AcDbAcmeObject" + std::to_string(i);
+                data.dxfClasses.push_back(definition);
+            }
+            const bool manyExported = interface_.fileExport(
+                path.string(), profile.version, profile.binary, &data, false);
+            dx_data parsed;
+            ClassShapeReader observer;
+            const bool imported = manyExported && observer.fileImport(path.string(), &parsed, false);
+            const auto expectedShape = profile.version == DRW::AC1015
+                ? DRW_DxfClassShapeHandler::InstanceCountShape::Absent
+                : DRW_DxfClassShapeHandler::InstanceCountShape::Present;
+            bool observed = imported && observer.sourceCount == 9 && observer.shapeCount == 9;
+            for (std::size_t i = 0; i < 8; ++i)
+                observed = observed && observer.sourceKnown[i] && observer.shapeKnown[i]
+                    && observer.shapes[i] == expectedShape;
+            observed = observed && !observer.sourceKnown[8] && !observer.shapeKnown[8]
+                && observer.shapes[8] == DRW_DxfClassShapeHandler::InstanceCountShape::Unavailable;
+            t.expect(observed, (std::string(profile.name)
+                + " observes eight CLASS shapes and marks the ninth unavailable").c_str());
+        }
     }
+    const auto unknownPath = std::filesystem::temp_directory_path()
+        / ("libdxfrw-class-unknown-shape-" + std::to_string(nonce) + ".dxf");
+    {
+        std::ofstream out(unknownPath);
+        out << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n0\nENDSEC\n"
+            << "0\nSECTION\n2\nCLASSES\n";
+        for (unsigned i = 0; i < 5; ++i) {
+            out << "0\nCLASS\n1\nROW" << i << "\n2\nClass" << i
+                << "\n3\nObjectDBX Classes\n90\n0\n280\n0\n281\n0\n";
+            if (i == 3) out << "100\nUnknownClassField\n";
+        }
+        out << "0\nENDSEC\n0\nEOF\n";
+    }
+    dx_data unknownData;
+    ClassShapeReader unknownReader;
+    const bool unknownImported = unknownReader.fileImport(unknownPath.string(), &unknownData, false);
+    std::error_code removeError;
+    std::filesystem::remove(unknownPath, removeError);
+    t.expect(unknownImported && unknownReader.sourceCount == 5 && unknownReader.shapeCount == 5
+             && !unknownReader.sourceKnown[3] && !unknownReader.shapeKnown[3]
+             && unknownReader.sourceKnown[4] && unknownReader.shapeKnown[4]
+             && unknownReader.shapes[3] == DRW_DxfClassShapeHandler::InstanceCountShape::Absent,
+             "unknown group in fourth CLASS does not taint the fifth source shape");
 }
 
 void testDimstyleSubclassWireCensus(TestContext& t) {
