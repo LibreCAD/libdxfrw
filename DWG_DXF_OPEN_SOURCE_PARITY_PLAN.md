@@ -130,8 +130,10 @@ evidence are recorded in `docs/research/` and Git history.
   comparisons; the [reverse conversion](docs/research/p8d-librecad3-binary-ascii-layout-2026-11-26.json)
   passes the equivalent five-version controls. An [isolated native Save As](docs/research/p8d-librecad3-native-binary-ascii-save-2026-11-26.json)
   using current persistence and an older viewer produced a matching AC1018 file;
-  native reopen timed out and the canvas was black. Recheck the current viewer;
-  rendering, editing and independent producer evidence remain open.
+  native reopen timed out and its viewer was older. An [instrumented current-viewer control](docs/research/p8d-librecad3-native-paper-edit-reopen-2026-11-26.json)
+  rendered a paper LINE to its framebuffer, edited and saved it, and reopened both
+  paper lines for one generated AC1018 case. The window capture remained black;
+  uninstrumented display, MPOLYGON, independent producer and other platforms remain open.
   The [preparation diagnostic](docs/research/p8d-librecad3-layout-preparation-diagnostic-2026-11-26.json)
   reports the reason when a checked graph can no longer be prepared. The [unowned-paper guard](docs/research/p8d-librecad3-unowned-paper-refusal-2026-11-26.json)
   refuses checked-codec outputs that cannot retain modeled extra-paper content;
