@@ -1,0 +1,14 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-image-reactor-version-refusal-control-2026-11-26",
+  "supportClaimEffect": "none",
+  "librecadCommit": "f5232fb6c7e4b2d5fca5ac577155508a56ca6c02",
+  "libdxfrwSourceCommit": "981341470231db84203dd4acc2858939927e4078",
+  "finding": "The shared IMAGE definition-plan validator already rejects reactor class versions other than 2, so the writer does not silently rewrite such an admitted source. No redundant consumer guard was added.",
+  "checks": [
+    "PASS macOS ARM64 focused IMAGE cases: 165 assertions across three cases. The new control changes both typed and retained physical reactor version to 3, checks refusal and destination preservation, restores them, and retries successfully."
+  ],
+  "limits": [
+    "This is a refusal and retry control, not support for reactor version 3, native CAD semantics, or multi-image output."
+  ]
+}

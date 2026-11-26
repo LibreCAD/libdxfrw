@@ -73,11 +73,12 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 288c4e67bb60738ff41161889906f591a20634d8b6882edd8d56db048cca651c
+  digest: c9eb3dc5cad86ed560fc208d9c03f37c746e4bb7f353ba55a735f9406e0c7822
   (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
-  adds the new test to the frozen inventory; earlier
+  adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
+  builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  33c2023ab238b9d2d7b382f8117b7d76ddd14491. Prior platform receipts apply only
+  f5232fb6c7e4b2d5fca5ac577155508a56ca6c02. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`; revalidate the final
