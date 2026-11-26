@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-qcad1-layer-default-width-2026-11-25",
+  "supportClaimEffect": "none",
+  "consumerCommit": "d99d480632002df37414327adbb3d7fd179f86dc",
+  "libraryImplementationDigestSha256": "6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e",
+  "problem": "The QCad-1 importer initialized a layer pen with the entity-only ByLayer lineweight even though the source layer carried no lineweight. The installed codec refused that recursive layer value on export.",
+  "change": "When applying a QCad-1 layer pen, normalize an inherited ByLayer or ByBlock width to the default layer width. Preserve explicitly concrete values if the importer acquires them in future.",
+  "validation": [
+    "The focused QCad-1 linetype/layer control passes 18 assertions with the system codec and 16 with the bundled codec, including physical default lineweight and save/reopen.",
+    "The system control also sets an invalid inherited layer width, checks refusal and destination preservation, restores the valid value, and retries through the same filter.",
+    "The system [filter][linetype] selector passes 49/52 cases and 1243/1281 assertions; three cases remain failing."
+  ],
+  "limits": [
+    "This fixes the QCad-1 import path; it does not globally normalize invalid layer lineweights.",
+    "Native GUI, final candidate and broader linetype qualification remain open. No generated drawing was committed."
+  ],
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm"
+  ]
+}
