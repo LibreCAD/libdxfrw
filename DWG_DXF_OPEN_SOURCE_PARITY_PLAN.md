@@ -81,6 +81,8 @@ evidence are recorded in `docs/research/` and Git history.
   The [R2000/R2004 extension](docs/research/p8d-librecad-legacy-multi-image-2026-11-26.json)
   admits the equivalent bounded graph without MATERIAL and independently checks
   model/block ownership and links. Legacy graphs carrying MATERIAL remain refused.
+  [Cross-version boundary controls](docs/research/p8d-librecad-image-boundaries-all-versions-2026-11-26.json)
+  exercise 32 distinct definitions and 33-image refusal in every admitted version.
   Extend other shapes only with equivalent closure. The bounded [IMAGEDEF](docs/research/p8d-shared-staged-imagedef-scalars-2026-11-26.json)
   and [IMAGE entity](docs/research/p8d-shared-staged-image-entity-scalars-2026-11-26.json)
   scalar checks and the [staged dictionary check](docs/research/p8d-shared-staged-dictionary-2026-11-26.json)

@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-image-boundaries-all-versions-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "bounded-generated-dxf-consumer-profile-only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "b758d7fa",
+  "codecCommit": "985a48c89",
+  "codecImplementationDigestSha256": "53fbd21f428eb2cfa15b347083c19460630649f7d00b769adeedd5104378818d",
+  "scope": "Exercise the existing image-capture bound and staged graph checks in AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032 ASCII DXF.",
+  "validation": [
+    "PASS: focused macOS ARM64 system-codec test, 618 assertions, covers 4/1, 8/4, 32/1, 32/4 and 32/32 image/definition counts, plus refusal of 33 images in each version. Admitted cases test malformed reactor ownership, destination preservation, late edit refusal and corrected retry with reimport.",
+    "PASS: ezdxf 1.4.5 independently reads all 30 admitted source/output pairs, matching geometry and filenames and checking dictionary ownership, reactor roles and reciprocal reactor lists; all 60 audits report no errors or fixes."
+  ],
+  "limits": "Generated model-space ASCII sources only; does not qualify larger source graphs, external producers, native rendering, cross-version export or DWG. The scratch-only DWG/DXF files were not committed."
+}
