@@ -53042,7 +53042,7 @@ bool dx_iface::inspectRasterOutput(const dxfRW::DxfObjectsWriteView& view) noexc
                 if (!match.text(102, "}") || !match.text(100, "AcDbRasterImageDef")
                     || !match.number(90, definition.imgVersion) || !match.text(1, definition.name)
                     || !match.real(10, definition.u) || !match.real(20, definition.v)
-                    || !match.real(11, definition.up) || !match.real(12, definition.vp)
+                    || !match.real(11, definition.up) || !match.real(21, definition.vp)
                     || !match.number(280, definition.loaded) || !match.number(281, definition.resolution)) return false;
             }
             for (const auto& v : source.extData) if (!value(*v)) return false;

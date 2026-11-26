@@ -86,7 +86,7 @@ public:
 
 // Immediate forwarding preserves dynamic types, pointers, source facets and
 // target-internal fallback calls. There is no queue or payload copy/lease.
-class Sink final:public DRW_Interface,public DRW_DxfTableSourceHandler,public DRW_DxfAttdefSourceHandler {
+class Sink final:public DRW_Interface,public DRW_DxfTableSourceHandler,public DRW_DxfAttdefSourceHandler,public DRW_DxfRasterSourceHandler {
     using C=DRW_DxfEntitiesCallback;
     using O=DRW_DxfEntitiesDeliveryEvent::Origin;
     DRW_Interface& target;
@@ -94,6 +94,7 @@ class Sink final:public DRW_Interface,public DRW_DxfTableSourceHandler,public DR
     DRW_DxfEntitiesDeliveryHandler* handler;
     DRW_DxfTableSourceHandler* table;
     DRW_DxfAttdefSourceHandler* attdef;
+    DRW_DxfRasterSourceHandler* raster;
     O origin{O::Parser};
     template<class F>void invoke(C kind,std::int32_t type,std::uint32_t handle,std::uint32_t owner,bool present,F callback,O provenance) {
         if(!handler) {callback();return;}
@@ -110,7 +111,7 @@ class Sink final:public DRW_Interface,public DRW_DxfTableSourceHandler,public DR
 public:
     Sink(DRW_Interface& destination,Capture& observation,DRW_DxfEntitiesDeliveryHandler* receiver) noexcept
         :target(destination),capture(observation),handler(receiver),table(dynamic_cast<DRW_DxfTableSourceHandler*>(&destination)),
-         attdef(dynamic_cast<DRW_DxfAttdefSourceHandler*>(&destination)){}
+         attdef(dynamic_cast<DRW_DxfAttdefSourceHandler*>(&destination)),raster(dynamic_cast<DRW_DxfRasterSourceHandler*>(&destination)){}
     class ProxyScope final {
         Sink* sink;O previous{O::Parser};
     public:
@@ -129,6 +130,14 @@ public:
     void addDxfAttdefSource(const DRW_Attdef& data,const DRW_RawDxfObject& raw,const DRW_DxfAttdefSourceContext& context) override {
         invoke(C::AttdefSource,static_cast<std::int32_t>(data.eType),data.handle,data.parentHandle,true,
             [&](){if(attdef)attdef->addDxfAttdefSource(data,raw,context);},O::SourceObserver);
+    }
+    bool wantsDxfImageSource() const override {return raster&&raster->wantsDxfImageSource();}
+    void addDxfImageSource(const DRW_Image& data,const DRW_RawDxfObject& raw) override {
+        invoke(C::ImageSource,static_cast<std::int32_t>(data.eType),data.handle,data.parentHandle,true,
+            [&](){if(raster)raster->addDxfImageSource(data,raw);},O::SourceObserver);
+    }
+    void addDxfImageDefSource(const DRW_ImageDef& data,const DRW_RawDxfObject& raw) override {
+        if(raster)raster->addDxfImageDefSource(data,raw);
     }
 #define DRW_ENTITIES_VALUE(method,type) \
     void method(const type& data) override {value(C::method,&data,[&](){target.method(data);});}

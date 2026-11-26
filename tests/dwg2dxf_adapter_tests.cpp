@@ -12675,7 +12675,10 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
                 ++importedSources;
                 for (const auto outputVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool outputBinary : {false, true}) {
                     if (!exporter.fileExport(target.string(), outputVersion, outputBinary, &imported, false, true) || !check(true))
-                        return fail("image dictionary actual-DXF common metadata reexport/readback failed");
+                        return fail("image dictionary actual-DXF common metadata reexport/readback failed: source="
+                            + std::to_string(static_cast<int>(targetVersion)) + " output="
+                            + std::to_string(static_cast<int>(outputVersion)) + " binary="
+                            + std::to_string(outputBinary));
                     ++importedCells;
                 }
                 if (targetVersion != DRW::AC1032 || !binary) continue;
@@ -13112,7 +13115,7 @@ bool selectedRasterReactorMetadata() {
     const std::vector<Fault> fields{
         {"IMAGEDEF", 0, 0}, {"IMAGEDEF", 5, 0}, {"IMAGEDEF", 330, 0}, {"IMAGEDEF", 330, 1},
         {"IMAGEDEF", 100, 0}, {"IMAGEDEF", 90, 0}, {"IMAGEDEF", 1, 0},
-        {"IMAGEDEF", 10, 0}, {"IMAGEDEF", 20, 0}, {"IMAGEDEF", 11, 0}, {"IMAGEDEF", 12, 0},
+        {"IMAGEDEF", 10, 0}, {"IMAGEDEF", 20, 0}, {"IMAGEDEF", 11, 0}, {"IMAGEDEF", 21, 0},
         {"IMAGEDEF", 280, 0}, {"IMAGEDEF", 281, 0},
         {"IMAGEDEF_REACTOR", 0, 0}, {"IMAGEDEF_REACTOR", 5, 0}, {"IMAGEDEF_REACTOR", 330, 0}, {"IMAGEDEF_REACTOR", 330, 1},
         {"IMAGEDEF_REACTOR", 360, 0}, {"IMAGEDEF_REACTOR", 1, 0}, {"IMAGEDEF_REACTOR", 100, 0},

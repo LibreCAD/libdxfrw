@@ -1358,12 +1358,29 @@ public:
  * identifies both real callback phases and the original pre-callback XDATA
  * state; source storage is immutable through the pair. Transport is not graph/output proof.
  * Kept separate so DRW_Interface's established vtable does not change. */
+#define LIBDXFRW_HAS_DXF_DICTIONARY_SOURCE_HANDLERS 1
 class DRW_DxfRootDictionarySourceHandler {
 public:
   virtual ~DRW_DxfRootDictionarySourceHandler() = default;
   virtual bool wantsDxfRootDictionarySource() const { return false; }
   virtual void addDxfRootDictionarySource(const DRW_Dictionary& dictionary,
                                          const DRW_RawDxfObject& source) = 0;
+};
+
+/** Optional IMAGE and IMAGEDEF source carriers, each delivered after its
+ * ordinary callback with a pre-callback typed snapshot. Raw capture uses the
+ * reader's bounded limits and may reject an oversized selected record. These
+ * carriers are not proof of graph closure or semantic support. */
+#define LIBDXFRW_HAS_DXF_RASTER_SOURCE_HANDLER 1
+class DRW_DxfRasterSourceHandler {
+public:
+  virtual ~DRW_DxfRasterSourceHandler() = default;
+  virtual bool wantsDxfImageSource() const { return false; }
+  virtual void addDxfImageSource(const DRW_Image&,
+                                 const DRW_RawDxfObject&) {}
+  virtual bool wantsDxfImageDefSource() const { return false; }
+  virtual void addDxfImageDefSource(const DRW_ImageDef& definition,
+                                    const DRW_RawDxfObject& source) = 0;
 };
 
 /** Opt-in BLOCK_RECORD source rows. Selection is latched per table batch;
@@ -1659,7 +1676,7 @@ enum class DRW_DxfBlockCallback : std::uint8_t {
   addDimDiametric,addDimAngular,addDimAngular3P,addDimOrdinate,addDimArc,
   addLeader,addHatch,addMPolygon,addViewport,addImage,addWipeout,addPointCloud,
   addPointCloudEx,addNavisworksModel,addSurface,addMLeader,addModelerGeometry,
-  addRawDxfEntity,AttdefSource,TableSource,addLight,Count
+  addRawDxfEntity,AttdefSource,TableSource,addLight,ImageSource,Count
 };
 struct DRW_DxfBlockDispatch {
   DRW_DxfPhysicalRecordSpan begin,end;
@@ -1744,7 +1761,7 @@ enum class DRW_DxfEntitiesCallback : std::uint8_t {
   addDimDiametric,addDimAngular,addDimAngular3P,addDimOrdinate,addDimArc,
   addLeader,addHatch,addMPolygon,addViewport,addImage,addWipeout,addPointCloud,
   addPointCloudEx,addNavisworksModel,addSurface,addMLeader,addModelerGeometry,
-  addRawDxfEntity,TableSource,AttdefSource,addLight,Count
+  addRawDxfEntity,TableSource,AttdefSource,addLight,ImageSource,Count
 };
 struct DRW_DxfEntitiesDeliveryEvent {
   enum class Origin : std::uint8_t {Parser,SourceObserver,ProxyRendering};

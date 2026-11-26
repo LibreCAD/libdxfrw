@@ -103,7 +103,8 @@ inline bool callbackName(DRW_DxfBlockCallback callback,std::string_view name) no
     DX_MEMBER_NAME(addTrace,"TRACE");DX_MEMBER_NAME(add3dFace,"3DFACE");
     DX_MEMBER_NAME(addSolid,"SOLID");DX_MEMBER_NAME(addMText,"MTEXT");DX_MEMBER_NAME(addTolerance,"TOLERANCE");
     DX_MEMBER_NAME(addCamera,"CAMERA");DX_MEMBER_NAME(addLight,"LIGHT");DX_MEMBER_NAME(addLeader,"LEADER");DX_MEMBER_NAME(addHatch,"HATCH");
-    DX_MEMBER_NAME(addMPolygon,"MPOLYGON");DX_MEMBER_NAME(addViewport,"VIEWPORT");DX_MEMBER_NAME(addImage,"IMAGE");
+    DX_MEMBER_NAME(addMPolygon,"MPOLYGON");DX_MEMBER_NAME(addViewport,"VIEWPORT");
+    case C::ImageSource:case C::addImage:return equal(name,"IMAGE");
     DX_MEMBER_NAME(addWipeout,"WIPEOUT");DX_MEMBER_NAME(addPointCloud,"POINTCLOUD");DX_MEMBER_NAME(addPointCloudEx,"POINTCLOUDEX");
     DX_MEMBER_NAME(addNavisworksModel,"NAVISWORKSMODEL");DX_MEMBER_NAME(addMLeader,"MULTILEADER");
     case C::AttdefSource:case C::addAttDef:return equal(name,"ATTDEF");
@@ -174,15 +175,19 @@ inline Audit audit(const void* container,std::uint64_t generation,std::shared_pt
         if(!compound&&at-first!=1u)range.reason=Reason::Sequence;
         if(insert&&((compound&&primary.follow!=1)||(!compound&&primary.follow==1)))range.reason=Reason::FollowFlag;
         const bool attdef=equal(records[first].name,"ATTDEF");
+        const bool image=equal(records[first].name,"IMAGE");
         const bool paired=dispatch.events&&((attdef&&source.events[dispatch.firstEvent].callback==DRW_DxfBlockCallback::AttdefSource)
-            ||(table&&source.events[dispatch.firstEvent].callback==DRW_DxfBlockCallback::TableSource));
+            ||(table&&source.events[dispatch.firstEvent].callback==DRW_DxfBlockCallback::TableSource)
+            ||(image&&dispatch.events==2u&&source.events[dispatch.firstEvent].callback==DRW_DxfBlockCallback::addImage
+                &&source.events[dispatch.firstEvent+1].callback==DRW_DxfBlockCallback::ImageSource));
         if(!dispatch.events)range.reason=Reason::Disposition;
         else if(dispatch.events!=(paired?2u:1u))range.reason=Reason::Callback;
         for(std::size_t e=0;e<dispatch.events;++e) {
             const auto& event=source.events[dispatch.firstEvent+e];
             if(!event.hasValue||event.handle!=primary.self||event.owner!=primary.owner||!callbackName(event.callback,records[first].name)
                 ||(attdef&&paired&&event.callback!=(e?DRW_DxfBlockCallback::addAttDef:DRW_DxfBlockCallback::AttdefSource))
-                ||(table&&paired&&event.callback!=(e?DRW_DxfBlockCallback::addTable:DRW_DxfBlockCallback::TableSource)))range.reason=Reason::Callback;
+                ||(table&&paired&&event.callback!=(e?DRW_DxfBlockCallback::addTable:DRW_DxfBlockCallback::TableSource))
+                ||(image&&paired&&event.callback!=(e?DRW_DxfBlockCallback::ImageSource:DRW_DxfBlockCallback::addImage)))range.reason=Reason::Callback;
         }
         out.ranges.push_back(range);
     }

@@ -2595,6 +2595,37 @@ public:
     DRW_DxfTableSourceHandler* tableSourceHandler() const noexcept {
         return dynamic_cast<DRW_DxfTableSourceHandler*>(&m_target);
     }
+    DRW_DxfRasterSourceHandler* rasterSourceHandler() const noexcept {
+        return dynamic_cast<DRW_DxfRasterSourceHandler*>(&m_target);
+    }
+
+    bool stageImageSource(DRW_Image&& value, DRW_RawDxfObject&& source,
+                          DRW_DxfRasterSourceHandler& handler) {
+        if (m_failed) return false;
+        struct Pair {
+            DRW_Image value;
+            const DRW_Image original;
+            const DRW_RawDxfObject source;
+            Pair(DRW_Image&& v, DRW_RawDxfObject&& s)
+                : value(std::move(v)), original(value), source(std::move(s)) {}
+        };
+        try {
+            auto pair=std::make_shared<Pair>(std::move(value),std::move(source));
+            const auto typedPlan=plan(DRW_DxfBlockCallback::addImage,&pair->value);
+            const auto sourcePlan=plan(DRW_DxfBlockCallback::ImageSource,&pair->original);
+            if (typedPlan.index==dxfBlockDelivery::Capture::NoEvent||sourcePlan.index==dxfBlockDelivery::Capture::NoEvent) {
+                m_events.emplace_back([pair=std::move(pair),&handler](DRW_Interface& target) {
+                    target.addImage(&pair->value); handler.addDxfImageSource(pair->original,pair->source);
+                });
+            } else {
+                m_events.emplace_back([this,pair=std::move(pair),&handler,typedPlan,sourcePlan](DRW_Interface& target) {
+                    invoke(typedPlan,&pair->value,nullptr,[&](){target.addImage(&pair->value);});
+                    invoke(sourcePlan,&pair->original,&pair->source,[&](){handler.addDxfImageSource(pair->original,pair->source);});
+                });
+            }
+        } catch (...) {m_failed=true;}
+        return !m_failed;
+    }
 
     bool stageTableSource(DRW_Table&& value,DRW_RawDxfObject&& source,DRW_DxfTableSourceHandler& handler) {
         static_assert(std::is_nothrow_move_constructible<DRW_Table>::value,"TABLE staging must transfer payload and parser state");
@@ -24138,6 +24169,13 @@ bool dxfRW::processImage() {
     DRW_DBG("dxfRW::processImage");
     int code;
     DRW_Image img;
+    auto* blockEvents = dynamic_cast<DxfBlockEventSink*>(iface);
+    auto* sourceHandler = blockEvents ? blockEvents->rasterSourceHandler()
+                                      : dynamic_cast<DRW_DxfRasterSourceHandler*>(iface);
+    const bool captureSource = sourceHandler && sourceHandler->wantsDxfImageSource();
+    DRW_RawDxfObject raw;
+    if (captureSource && !copyRawDxfCarrierName(raw, nextentity))
+        return setError(DRW::BAD_CODE_PARSED);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
@@ -24147,11 +24185,27 @@ bool dxfRW::processImage() {
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
             img.markIncompleteDxfClipBoundary();
-            iface->addImage(&img);
+            if (captureSource) {
+                if (blockEvents) {
+                    if (!blockEvents->stageImageSource(std::move(img),std::move(raw),*sourceHandler))
+                        return setError(DRW::BAD_READ_ENTITIES);
+                    return true;
+                }
+                try {
+                    const DRW_Image original(img);
+                    iface->addImage(&img);
+                    sourceHandler->addDxfImageSource(original, raw);
+                } catch (...) {
+                    return setError(DRW::BAD_READ_ENTITIES);
+                }
+            } else {
+                iface->addImage(&img);
+            }
             return true;  //found new entity or ENDSEC, terminate
         }
 
-        if (!img.parseCode(code, reader)) {
+        if (captureSource ? !captureAndParseRawDxfGroup(raw, code, img)
+                          : !img.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
     }
@@ -29868,17 +29922,33 @@ bool dxfRW::processImageDef() {
     DRW_DBG("dxfRW::processImageDef");
     int code;
     DRW_ImageDef img;
+    auto* sourceHandler = dynamic_cast<DRW_DxfRasterSourceHandler*>(iface);
+    const bool captureSource = sourceHandler && sourceHandler->wantsDxfImageDefSource();
+    DRW_RawDxfObject raw;
+    if (captureSource && !copyRawDxfCarrierName(raw, nextentity))
+        return setError(DRW::BAD_CODE_PARSED);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
             DRW_DBG(nextentity); DRW_DBG("\n");
-            iface->linkImage(&img);
+            if (captureSource) {
+                try {
+                    const DRW_ImageDef original(img);
+                    iface->linkImage(&img);
+                    sourceHandler->addDxfImageDefSource(original, raw);
+                } catch (...) {
+                    return setError(DRW::BAD_READ_OBJECTS);
+                }
+            } else {
+                iface->linkImage(&img);
+            }
             return true;  //found new entity or ENDSEC, terminate
         }
 
-        if (!img.parseCode(code, reader)) {
+        if (captureSource ? !captureAndParseRawDxfGroup(raw, code, img)
+                          : !img.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
     }

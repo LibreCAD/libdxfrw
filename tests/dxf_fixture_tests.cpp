@@ -18081,6 +18081,45 @@ void testImageDefPixelSizeCodeForms(TestContext& t) {
         DRW_Image image;
         bool written {false};
     };
+    class ImageSourceReader final : public dx_iface,
+                                    public DRW_DxfRasterSourceHandler {
+    public:
+        bool wantsDxfImageSource() const override { return true; }
+        void addImage(const DRW_Image* image) override {
+            dx_iface::addImage(image);
+            const_cast<DRW_Image*>(image)->basePoint.z += 1.0;
+        }
+        void addDxfImageSource(const DRW_Image& image,
+                               const DRW_RawDxfObject& source) override {
+            imageName = source.name;
+            imageVersion = source.m_version;
+            imageCaptured = source.name == "IMAGE" && source.m_version == DRW::AC1027;
+            capturedImageZ = image.basePoint.z;
+        }
+        bool wantsDxfImageDefSource() const override { return true; }
+        void linkImage(const DRW_ImageDef* definition) override {
+            dx_iface::linkImage(definition);
+            // The paired source callback must describe the pre-callback row.
+            const_cast<DRW_ImageDef*>(definition)->vp += 1.0;
+        }
+        void addDxfImageDefSource(const DRW_ImageDef& definition,
+                                  const DRW_RawDxfObject& source) override {
+            captured = true;
+            capturedVp = definition.vp;
+            capturedVersion = source.m_version;
+            for (const auto& group : source.groups)
+                if (group.code() == 12 || group.code() == 21)
+                    capturedCodes.push_back(group.code());
+        }
+        bool captured {false};
+        bool imageCaptured {false};
+        std::string imageName;
+        DRW::Version imageVersion {DRW::UNKNOWNV};
+        double capturedImageZ {0.0};
+        double capturedVp {0.0};
+        DRW::Version capturedVersion {DRW::UNKNOWNV};
+        std::vector<int> capturedCodes;
+    };
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch()
                            .count();
@@ -18174,7 +18213,7 @@ void testImageDefPixelSizeCodeForms(TestContext& t) {
                     : std::to_string(rawSlot.codes.front()))) .c_str());
 
             dx_data parsedData;
-            dx_iface reader;
+            ImageSourceReader reader;
             const bool imported = reader.fileImport(path.string(), &parsedData,
                                                     false);
             t.expect(imported && parsedData.mBlock->ent.size() == 1u,
@@ -18182,6 +18221,19 @@ void testImageDefPixelSizeCodeForms(TestContext& t) {
                  + caseLabel).c_str());
             if (!imported || parsedData.mBlock->ent.empty())
                 continue;
+            t.expect(reader.captured && reader.capturedVersion == DRW::AC1027
+                     && reader.imageCaptured && reader.capturedImageZ == 0.0
+                     && reader.capturedCodes == expectedCodes[static_cast<std::size_t>(mode)]
+                     && reader.capturedVp == expectedVp[static_cast<std::size_t>(mode)],
+                ("IMAGEDEF source callback retains the pre-callback fields: " + caseLabel
+                 + " definition=" + std::to_string(reader.captured)
+                 + " version=" + std::to_string(reader.capturedVersion)
+                 + " image=" + std::to_string(reader.imageCaptured)
+                 + " imageName=" + reader.imageName
+                 + " imageVersion=" + std::to_string(reader.imageVersion)
+                 + " z=" + std::to_string(reader.capturedImageZ)
+                 + " vp=" + std::to_string(reader.capturedVp)
+                 + " codes=" + std::to_string(reader.capturedCodes.size())).c_str());
             const auto* image = dynamic_cast<const DRW_Image*>(
                 parsedData.mBlock->ent.front());
             const DRW_ImageDef* definition = image == nullptr ? nullptr
@@ -18205,6 +18257,26 @@ void testImageDefPixelSizeCodeForms(TestContext& t) {
                  + (definition == nullptr ? std::string("missing")
                     : std::to_string(definition->vp))).c_str());
         }
+    }
+    for (const bool validFooter : {true, false}) {
+        const auto path = directory / (validFooter ? "image-block.dxf" : "image-block-truncated.dxf");
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        output << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n0\nENDSEC\n"
+               << "0\nSECTION\n2\nBLOCKS\n0\nBLOCK\n5\n20\n100\nAcDbEntity\n8\n0\n100\nAcDbBlockBegin\n"
+               << "2\nIMAGE_BLOCK\n70\n0\n10\n0\n20\n0\n30\n0\n3\nIMAGE_BLOCK\n"
+               << "0\nIMAGE\n5\n21\n100\nAcDbEntity\n8\n0\n100\nAcDbRasterImage\n"
+               << "90\n0\n10\n1\n20\n2\n30\n3\n11\n1\n21\n0\n31\n0\n"
+               << "12\n0\n22\n1\n32\n0\n13\n16\n23\n12\n340\n22\n";
+        if (validFooter) output << "0\nENDBLK\n5\n23\n100\nAcDbEntity\n8\n0\n100\nAcDbBlockEnd\n";
+        output << "0\nENDSEC\n0\nEOF\n";
+        output.close();
+        dx_data parsedData;
+        ImageSourceReader reader;
+        const bool imported = reader.fileImport(path.string(), &parsedData, false);
+        t.expect(validFooter ? imported && reader.imageCaptured && reader.capturedImageZ == 3.0
+                             : !imported && !reader.imageCaptured,
+                 validFooter ? "IMAGE block source is staged through a valid footer"
+                             : "truncated IMAGE block does not publish a source callback");
     }
 }
 
