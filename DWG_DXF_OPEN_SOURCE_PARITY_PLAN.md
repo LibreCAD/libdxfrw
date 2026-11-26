@@ -137,7 +137,9 @@ evidence are recorded in `docs/research/` and Git history.
   uninstrumented display, independent producer and other platforms remain open.
   A [native MPOLYGON move and reopen](docs/research/p8d-librecad3-native-mpolygon-move-2026-11-26.json)
   preserves one generated solid polygon's subtype, fill and translated offset,
-  independently read back without audit repairs; other edit and display profiles remain open.
+  independently read back without audit repairs. A [native rotation control](docs/research/p8d-librecad3-native-mpolygon-rotate-2026-11-26.json)
+  also preserves the fill and transformed world-space vertices after a 90-degree
+  rotation; other edit and display profiles remain open.
   The [MPOLYGON solid-fill color fix](docs/research/p8d-librecad3-mpolygon-solid-fill-color-2026-11-26.json)
   displays explicit ACI fill independently of the line color for a bounded DXF
   profile; [HATCH fallback](docs/research/p8d-librecad3-mpolygon-fallback-fill-2026-11-26.json)
