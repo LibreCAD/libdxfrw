@@ -37,7 +37,9 @@ evidence are recorded in `docs/research/` and Git history.
   two-layer profiles one source shape at a time. The [bounded raster capture](docs/research/p8d-librecad-multiple-image-source-capture-2026-11-26.json)
   retains multiple IMAGE and IMAGEDEF frames by handle. The [shared staged
   IMAGE-reference check](docs/research/p8d-shared-staged-image-references-2026-11-26.json)
-  is ready for consumer wiring; next qualify the complete graph, binding physical source,
+  now checks the existing single-IMAGE consumer graph; the [consumer slice](docs/research/p8d-librecad-staged-image-references-2026-11-26.json)
+  covers top-level and named-block references. Next qualify multi-image graph
+  admission and output objects, binding physical source,
   dictionary edge roles, dependencies, staged output, independent readback,
   rollback and retry. Multi-image, unknown fields, unqualified clipping,
   references, layers and native/platform behavior remain open; see P8.
@@ -75,7 +77,7 @@ evidence are recorded in `docs/research/` and Git history.
   (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
   adds the new test to the frozen inventory; earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  92c501cfb826245d4692af4386e0b31381f01ae8. Prior platform receipts apply only
+  33c2023ab238b9d2d7b382f8117b7d76ddd14491. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`; revalidate the final
