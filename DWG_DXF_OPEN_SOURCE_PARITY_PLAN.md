@@ -65,7 +65,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`9380a4b4545311ee18d7b47b0690fe69f91c95da`. The prior merge head built the
+`eacefd4777d359951b9caa65ce0e6e00a61c14f6`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -691,21 +691,33 @@ as LibreCAD's existing drawings and an independent LibreDWG conversion do.
 Autodesk's IMAGEDEF table lists 11/12, while its general point-code table and
 the observed producer/peer files use 11/21; the reader continues to accept
 both. The [wire and peer receipt](docs/research/p8d-image-pixel-size-peer-compatibility-2026-11-25.json)
-records the discrepancy and bounded ezdxf readback. The selected LibreCAD IMAGE
-reopen/resave still refuses during OBJECTS emission: connect its source IMAGEDEF,
-reactor and ACAD_IMAGE_DICT identities to the codec's preplanned graph, preserve
-dictionary edge roles and metadata, and test duplicate paths, edits, refusal,
-retry, independent output and both consumer codecs before claiming closure.
+records the discrepancy and bounded ezdxf readback. A bounded single-IMAGE
+same-version LibreCAD reopen/resave now connects the source IMAGEDEF, reactor,
+dictionary and entity identities to the preplanned graph; focused system and
+bundled codec checks, refusal/retry controls and independent ezdxf readback
+cover that profile; see the [bounded IMAGE receipt](docs/research/p8d-librecad-bounded-image-resave-2026-11-25.json). Remain fail-closed for multi-image or orphan graphs, unknown
+physical fields, nondefault entity attributes, unsupported clipping, source
+files over the capture bound, and cross-version IMAGE graphs. Extend one profile
+at a time with physical source, reference, destination-preservation, retry and
+independent readback proof before claiming broader support.
 The shared dictionary metadata now retains 350/360 edge roles for typed output;
 see the [focused consumer receipt](docs/research/p8d-librecad-dictionary-entry-roles-2026-11-25.json).
 The [MATERIAL admission follow-up](docs/research/p8d-librecad-material-dictionary-role-check-2026-11-25.json) checks typed/raw entry roles and refuses a root role the generated-root path cannot preserve.
 Use the [shared version-aware carrier frame check](docs/research/p8d-librecad-shared-dxf-carrier-frame-2026-11-25.json) for the remaining IMAGE dictionary source admission.
-The [shared dictionary carrier check](docs/research/p8d-librecad-dictionary-common-fields-2026-11-25.json) now validates the selected common fields and exact key spelling, order, target and role. IMAGE admission must still validate definition/reactor dependencies and incoming references.
+The [shared dictionary carrier check](docs/research/p8d-librecad-dictionary-common-fields-2026-11-25.json) validates the selected common fields and exact key spelling, order, target and role. The single-IMAGE admission also checks its definition, reactor, incoming references and physical entity/definition fields. Native consumer qualification remains open.
+
+The focused `dwg2dxf_image_dictionary_imported_common` regression still fails
+for generated AC1015 input exported strictly to AC1018: additional IMAGE class
+rows prevent the plot-style source profile from proving its complete class
+inventory. Keep the refusal and destination preservation. Implement an immutable
+whole-class-inventory proof that accounts for these rows and the emitted target
+classes; then add altered-class refusal and corrected retry, plus independent
+output/readback before admitting the cross-version graph.
 The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `0f89b0a60ff246b4cce2dd51d8de4b377c2c64df6634cddb92f19aebc154bdcd` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `b4801993f427afff1801c814754fa7d4129d50b11b65892c99ccbd2bd2032dd7` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).

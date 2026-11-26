@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-25",
+  "scope": "Generated single-IMAGE same-version DXF graph; evidence is bounded and does not promote format support claims.",
+  "libdxfrw_commit": "32bd137ac85a2fcbf0d9634aa049e922579b18b2",
+  "implementation_digest_sha256": "b4801993f427afff1801c814754fa7d4129d50b11b65892c99ccbd2bd2032dd7",
+  "digest_inputs": 775,
+  "librecad_commit": "eacefd4777d359951b9caa65ce0e6e00a61c14f6",
+  "source": "Locally authored DXF text and generated DWG/DXF; no new fixture committed.",
+  "checks": {
+    "system_codec": "18 cases, 930 assertions passed, including resave, edits, invalid field, bad owner, role, duplicates, destination preservation and corrected retry",
+    "bundled_codec": "14 cases, 508 assertions passed",
+    "system_linetype": "52 cases, 4905 assertions passed",
+    "image_definition_wire_matrix": "ASCII and binary 12/21 alias and source snapshots; valid and truncated block controls passed",
+    "library_image_ctest": "7/7 focused IMAGE, graph, reactor, CLI and retry tests passed",
+    "block_delivery_ctest": "2/2 block delivery and membership passed",
+    "inventory": "1402 tests; qualification inventory, manifest and workflow checks passed",
+    "independent_ezdxf": {
+      "version": "1.4.5",
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "sha256": "6815f854e037514e86f27c39805e6e7893fbc2e485fb82373e4ff0496143f680",
+      "image": "5A",
+      "insertion": [
+        1,
+        2,
+        3
+      ],
+      "u_vector": [
+        0.5,
+        0,
+        4
+      ],
+      "v_vector": [
+        0,
+        0.25,
+        5
+      ],
+      "dictionary": "5F",
+      "definition": "5D",
+      "definition_owner": "5F",
+      "definition_reactors": [
+        "5E"
+      ],
+      "reactor": "5E",
+      "reactor_owner": "5A"
+    }
+  },
+  "boundaries": [
+    "One image, one definition and reactor; same source and target version, AC1015 or newer.",
+    "Source file at most 256 KiB and bounded raw record capture.",
+    "Only the checked source fields, default common attributes and rectangular clipping are admitted.",
+    "Unrecognized data, ambiguous identity or missing graph closure refuse without overwriting output.",
+    "No native GUI, Linux/Windows FreeCAD, native AutoCAD or generalized interoperability qualification."
+  ],
+  "remaining_failure": {
+    "test": "dwg2dxf_image_dictionary_imported_common",
+    "source": "AC1015",
+    "target": "AC1018",
+    "observation": "Strict cross-version output refuses at the LAYER plot-style source profile when additional IMAGE class rows are present.",
+    "next": "Prove the complete immutable source and target class inventories and graph before admitting; keep refusal and transactional checks."
+  },
+  "claims": "All format claims remain EXPERIMENTAL."
+}
