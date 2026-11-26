@@ -121,8 +121,11 @@ evidence are recorded in `docs/research/` and Git history.
 - **LibreCAD_3 entity true color:** the [shared color and model-only binary fixes](docs/research/p8d-librecad3-truecolor-and-model-only-binary-2026-11-26.json)
   preserve selected imported RGB and color names through edits and R2004+ output,
   report indexed approximation for older versions, and avoid an orphaned synthetic
-  paper block when complete source inspection proves it absent. Qualify color books,
-  transparency, native applications and other platforms before broader claims.
+  paper block when complete source inspection proves it absent. The [layer color and
+  binding fix](docs/research/p8d-librecad3-layer-color-and-binding-2026-11-26.json)
+  preserves selected layer RGB and color metadata and connects BYLAYER entities to
+  the imported layer. Off-layer display, color books, transparency, native
+  applications and other platforms remain open.
 - **LibreCAD_3 layouts:** the bounded ASCII three-layout implementation and
   its current evidence are recorded in the [consumer receipt](docs/research/p8d-librecad3-plain-layout-graph-2026-11-26.json).
   Extend imported-binary replay beyond the [checked canonical profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json),

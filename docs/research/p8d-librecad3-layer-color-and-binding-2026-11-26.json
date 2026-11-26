@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "155892950c0c4d213d2647fe44507f8315be30a7",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "authority": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+  "problem": [
+    "The layer importer ignored 24-bit RGB, so BYLAYER geometry could display a palette fallback.",
+    "Entities could reference a different temporary layer object than the imported document layer; repeated references to an absent layer could create competing fallback layers.",
+    "The original signed palette index and color name were discarded on save."
+  ],
+  "change": [
+    "Use a case-insensitive per-import layer map for source and fallback layers, so delivered entities share the actual layer object.",
+    "Read layer RGB into the kernel color and bind source index/RGB/name provenance to the imported layer object by weak identity. Preserve unchanged source layer color data on supported output; use current color when the layer is replaced and report lost source name/on-off metadata.",
+    "Write explicit RGB for non-palette layer colors in R2004+, and report indexed approximation on earlier versions. Preserve unchanged negative color index while reporting that on/off state is not represented for editing."
+  ],
+  "validation": [
+    "72 DXF round-trip, three DXF export, 17 DWG/persistence and 17 layout tests pass; 31 plan checker tests and full, worktree and base-ref checks pass. Older bundled codec headers pass syntax checking.",
+    "A failing-before generated control covers imported layer 0 and a named layer, different-case entity references, true black, source color name, legacy palette approximation and replacement of a layer without replaying its stale name. A separate test covers a shared missing-layer fallback.",
+    "ezdxf 1.4.5 independently reads generated ASCII and binary with source RGB, signed indices and color name and reads the legacy approximation; all three outputs have zero audit errors and zero fixes."
+  ],
+  "artifacts": {
+    "source_sha256": "4e1168669da1c8b877ad89f8b90f7108dcb551d42116827639e2121280b78c05",
+    "ascii_sha256": "1cc56e875533d00fb743e3fe79580b968f77ae8e7ce68b90464a79b2b3772caa",
+    "binary_sha256": "c0fa451da550439943dae0b0d4dedeb4dccae0eb2123f1dddc345bd75b1a424e",
+    "legacy_sha256": "c43bb32e6f522dbcd277eaf3cc41002ca0e0ae6ccbb906af771707ca8ba15f70"
+  },
+  "limits": [
+    "Off-layer display/edit behavior is not modeled; the import warning is not native visibility qualification.",
+    "Changed or renamed layers and color-book semantics beyond the tested replacement remain unqualified.",
+    "Generated source only; no generated fixtures committed. Native GUI and Linux/Windows qualification remain open."
+  ],
+  "supportClaimEffect": "none"
+}
