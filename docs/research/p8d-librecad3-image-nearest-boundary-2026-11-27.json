@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-nearest-boundary-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "87fdb4d1",
+  "scope": "Selected LibreCAD_3 IMAGE boundary queries and path snapping in 3D.",
+  "problem": "Nearest-point methods previously returned the coordinate origin for every query.",
+  "implementation": "Project onto each finite boundary segment and select the nearest in 3D; degenerate segments resolve to their endpoint. Entity and path queries share the implementation.",
+  "validation": [
+    "The generated tilted, planar and degenerate nearest-point control failed before the change.",
+    "After the change, five focused tests passed, including selected tilted edge and endpoint queries, a vertical degenerate segment, point, planar case, path snap, image bounds and transforms, and selected image persistence."
+  ],
+  "redTestLogSha256": "5271608f68d3835ebd6b94d053e5c0dd211be323c1e9ba1ef98c5e303f8d1626",
+  "testLogSha256": "19126884f86a0929574b7fb6579b3a35f2cf103cac3ea9c55251c5f6409e10f4",
+  "limits": [
+    "This measures 3D boundary distance, not projected-screen selection for an elevated image. Existing snap filtering and other snap modes are unchanged.",
+    "Clipping boundaries, extreme floating-point magnitudes, arbitrary application GUI workflows, and complete image persistence remain unqualified."
+  ]
+}
