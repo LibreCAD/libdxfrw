@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-linux-f046-2026-11-26",
+  "date": "2026-11-26",
+  "status": "LINUX_FREECAD_GENERATED_PROFILE_PASS",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "runHead": "f046969e79b8502f64e4f0249761621dd86a9cbf",
+    "implementationDigestSha256": "151623ec636cffc0b2a63dd8c2bb9f1f8014d2cc5c0953cce5cdc32d2c60d23a",
+    "inputCount": 781
+  },
+  "hosted": {
+    "repository": "dxli/libdxfrw",
+    "runId": 45933711253,
+    "jobId": 140291950135,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45933711253",
+    "jobConclusion": "success",
+    "artifactId": 15169723327,
+    "artifactSha256": "2b1f9e32ee4da4798f872533492c5de3b9d761711a68e7dbdcac0774e7a2b008",
+    "lastTestLogSha256": "229c46089a24f1e2ede2f37bed8110511e7cbe6f49617bca28c0660a15252ba3"
+  },
+  "consumer": {
+    "version": "FreeCAD 1.1.4, revision 4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "Linux x86_64, glibc 2.39",
+    "verifiedReleaseAppImageSha256": "f6dc6ba676e5ac96a565ebc8d657232f94c6158e85b4352141bd1a46f6b43434",
+    "installedConverterSha256": "d1179ef9d382df59f542ae4f8d501b6dbace9a2c012c2845e0e95cc485ed6f5a",
+    "legacyImporterCommit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1"
+  },
+  "validation": "All 16 selected CTests passed: installed and CLI handoff, generated AC1021 line open/insert, AC1021/AC1024/AC1032 generated primitives open/insert, and legacy POLYFACE open/insert for the same three versions. Eight C++ importer and six legacy importer assertion reports identify the same installed converter hash.",
+  "limits": [
+    "The C++ importer reports the selected 3DFACE and SOLID unsupported and treats the selected POLYFACE as wireframe including the parent basepoint; the pinned legacy importer separately checks the faceted profile.",
+    "The controls are locally generated, headless, and limited to the recorded FreeCAD release and profiles. They do not establish general DWG/DXF, independent producer, GUI, or other-platform support.",
+    "The log identifies freecadcmd inside the verified AppImage, but does not record a separate executable-file hash. Recheck on changed candidate inputs or consumer/profile requirements."
+  ]
+}
