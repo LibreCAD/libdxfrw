@@ -38,7 +38,14 @@
   "bundledFollowup": {
     "consumerTestCommit": "68fa64d3",
     "finding": "The original test incorrectly expected the bundled codec to regenerate the two omitted plot-style records; it reported three failures. The standalone codec regenerates them in the selected profile, whereas the bundled codec omits them and reports skipped raw replay.",
-    "validation": "The corrected bundled version selector passed 146 assertions across eight cases. It checks both omissions, the report, and absence of dangling references. A rebuilt standalone selector is still running; its pre-correction equivalent passed 147 assertions across nine cases.",
+    "validation": "The corrected version selector passed 146 assertions across eight bundled cases and 147 assertions across nine standalone cases.",
     "limits": "Test correction only; it neither adds bundled plot-style regeneration nor qualifies a general cross-version profile."
+  },
+  "typeCollisionFollowup": {
+    "consumerCommit": "d4d84bec",
+    "finding": "A skipped cross-version raw object could share a handle with a different typed MLEADERSTYLE, suppressing the typed omission count. The pre-fix bundled control fails for that case.",
+    "change": "Deduplicate an ineligible typed omission against a skipped raw carrier only when both handle and case-insensitive object type match.",
+    "validation": "The version selector passed 158 assertions across nine bundled cases and 159 assertions across ten standalone cases, including same-type, case-variant and different-type collisions and existing version, output, destination and retry checks.",
+    "limits": "This controls version-ineligible typed omission reporting. It does not qualify all collisions or the distinct same-handle typed stand-in and reference-planning paths."
   }
 }
