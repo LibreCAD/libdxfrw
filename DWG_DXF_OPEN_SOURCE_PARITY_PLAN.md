@@ -49,7 +49,10 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    for `$FACETRES`, `$ISOLINES`, `$PELLIPSE`, `$TEXTQLTY`, field presence and
    extension semantics. Preserve ordinary R14 values and dimension precedence;
    do not weaken the existing nonzero PELLIPSE or unsupported-field refusals
-   without producer evidence. See the [authority comparison](docs/research/p8d-r14-display-header-authority-2026-11-26.json).
+   without producer evidence. The [R12 canonical linetype control](docs/research/p8d-librecad-r12-canonical-linetype-2026-11-27.json)
+   fixes selected metadata predeclaration and retains refusal and retry for
+   unsupported extension dictionaries; broader legacy metadata remains open.
+   See the [authority comparison](docs/research/p8d-r14-display-header-authority-2026-11-26.json).
 4. **Graph editing and 64-bit identities.** Complete associative HATCH edits,
    reverse links, copy behavior and collision handling with an explicit loss
    report where deassociation is required. The [empty HATCH export control](docs/research/p8d-librecad-hatch-loss-r12-2026-11-27.json)
