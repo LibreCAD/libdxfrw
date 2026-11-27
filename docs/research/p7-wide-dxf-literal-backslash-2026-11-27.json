@@ -20,5 +20,18 @@
     "Generated files and narrow fields only; no general DXF, producer, native application, or DWG parity claim.",
     "CIF/MIF, caret, controls, non-ASCII and other backslash-bearing fields remain outside this cross-encoding profile.",
     "Platform and package checks at earlier production heads need affected revalidation. No drawing fixture was committed."
-  ]
+  ],
+  "cliControl": {
+    "candidateCommit": "a08075dfb6788f981e935500f77a39974f03fe91",
+    "version": "AC1024",
+    "description": "The rebuilt dwg2dxf converted generated default-MATERIAL sources ASCII to Binary and Binary to ASCII. ezdxf 1.4.5 matched all three complete normalized material bodies and the exact path in both outputs.",
+    "sourceAudit": "Each generated source had zero errors and one ezdxf fix: invalid LAYER table-head handle. This limits the whole-source claim.",
+    "outputAudit": "Both outputs had zero errors and zero fixes.",
+    "hashes": {
+      "asciiSource": "fa74ad13a5b84672bcae30a2d622687e7f0332be6cfc15af06869b6c21f60f33",
+      "binaryOutput": "9d91133abde5edf74be5454cd94ef8376d741a967b13deaf08c137e5797d50ca",
+      "binarySource": "b9a5e79ea08aca505d92423a14077c781fa1bfd3f686056bff0a6c2534031bae",
+      "asciiOutput": "eff50e8e1b6cd223fd8274be6039eeb7f5c8e57695c748699e9c1e4c2274a8bb"
+    }
+  }
 }

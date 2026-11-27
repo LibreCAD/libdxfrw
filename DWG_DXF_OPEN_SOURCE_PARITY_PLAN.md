@@ -72,7 +72,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    The existing opt-in route is strict and same-version, with at most eight selected
    chains and 16 proven pointers per XRECORD. Cross-encoding transport is limited
    to the [safe-text source profile](docs/research/p7-wide-dxf-cross-encoding-2026-11-27.json)
-   and [selected literal-backslash fields](docs/research/p7-wide-dxf-literal-backslash-2026-11-27.json): AC1027 XRECORD group 1 and AC1024/AC1027 default MATERIAL group 2. Qualify escapes, non-ASCII text, other fields and graph types separately. Targets are
+   and [selected literal-backslash fields](docs/research/p7-wide-dxf-literal-backslash-2026-11-27.json): AC1027 XRECORD group 1 and AC1024/AC1027 default MATERIAL group 2. The rebuilt CLI and ezdxf also verify the selected AC1024 MATERIAL bodies in both directions; the generated source needs a LAYER table-head audit repair. Qualify escapes, non-ASCII text, other fields and graph types separately. Targets are
    restricted to the verified root, selected dictionaries and selected XRECORDs;
    see the [root-reference control](docs/research/p7-wide-dxf-xrecord-root-target-2026-11-27.json).
    The LibreCAD [typed-object stand-in guard](docs/research/p8d-librecad-version-gates-5e05-2026-11-27.json) covers selected SCALE and MLINESTYLE raw handle collisions and selected NAVISWORKSMODEL, GEOPOSITIONMARKER and SECTIONOBJECT source-to-output identities; other typed entities, fixed-object profiles, graph roles and broader live-identity ambiguity remain open. The public semantic API remains 32-bit; bind original-stream observation
