@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-filtered-dictionary-root-owner-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "d32849a0f8ba328b0bbc7302834bb7d07d60764f",
+  "problem": "The filtered dictionary reattachment path checked a surviving XRECORD owner but did not check the dictionary's own relationship to the source root.",
+  "implementation": "Record the observed source root identity and ambiguity; attach a filtered root entry only when the source root is the regenerated C handle and the dictionary's owner agrees. Otherwise retain the existing detached-dictionary loss report.",
+  "validation": [
+    "The wrong dictionary-owner control failed before the guard.",
+    "85 focused IMAGE and persistence tests pass, including a wrong dictionary owner and a source root at handle 50; both are detached while the selected root-C control remains attached."
+  ],
+  "redLogSha256": "6e76a3ebdc51bf04acc6c9f78a966b1bb3bff4aeb84949e21d8c1aad17d01929",
+  "testLogSha256": "373c80cc338997782c35f19401efd28be539af9e309f909dedb752677ecb9315",
+  "limits": [
+    "This conservative guard applies to filtered dictionaries only. A non-C source root is not remapped by this slice, and other dictionary graph profiles remain unqualified.",
+    "These are local generated-input controls, not native producer or full graph qualification."
+  ]
+}
