@@ -1,0 +1,876 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-explicit-links-current-candidate-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "3e9d2525d",
+  "implementationDigestSha256": "f5a373b6adbce3a1a181b62734b6223eadd3931fbbb265b41cb1913713640467",
+  "candidateSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+  "frameTestSha256": "35a5a80c271569e2e8cafee118778a6883756da325d595f80b70a779bbac343b",
+  "sourceReceipt": "docs/research/p6-ac1012-explicit-entity-links-2026-11-27.json",
+  "scratchDirectory": "/private/tmp/ac1012-current-candidate-sfhq1a4s",
+  "samples": {
+    "destination": {
+      "sourceSha256": "591886bfe380de443bba2d2d025a78cda961ea28bbf34563a3b0c109d85dd635",
+      "dictionaryFrameSha256": "0d005170285d2dbdc3887520bc5a018a708e58aff8568324818f1f918da95d07",
+      "lineFrameSha256": "44096a17d66d965c042a8e509412d1de8aba88ceae1e780b63b88497e7850f6a",
+      "frameTestOutput": "physical AC1012 dictionary frame and role/refusal/retry: PASS",
+      "candidate": {
+        "ascii": {
+          "strict": {
+            "mode": "strict",
+            "encoding": "ascii",
+            "executable": {
+              "path": "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "sha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d"
+            },
+            "command": [
+              "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/destination.dwg",
+              "-o",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/destination-candidate-strict-ascii.dxf",
+              "-v2010",
+              "-y",
+              "-d"
+            ],
+            "exitCode": 1,
+            "destinationPreservedOnRefusal": true,
+            "outputSha256": null,
+            "independentDxfAudit": null,
+            "diagnostics": [
+              "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1012 sourceVersionEnum=11 legacyError=0",
+              "frameCoverageStatus=2 frameSourceDenominator=observed sourceFrames=32 pending=0 deferred=0 staged=0 published=32 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0",
+              "Opaque callback dispositions: opaqueViewCallbacks=7 opaqueSourceFramesCaptured=7 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=4 standardObjectSourceReceiptsMatched=4 standardObjectTypedPayloadsMatched=4 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+              "DXF export preflight failed: AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification"
+            ]
+          },
+          "partial": {
+            "mode": "explicit-partial",
+            "encoding": "ascii",
+            "executable": {
+              "path": "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "sha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d"
+            },
+            "command": [
+              "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/destination.dwg",
+              "-o",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/destination-candidate-explicit-partial-ascii.dxf",
+              "-v2010",
+              "-y",
+              "-d",
+              "--allow-partial-dwg-read"
+            ],
+            "exitCode": 0,
+            "destinationPreservedOnRefusal": null,
+            "outputSha256": "cfcb4611e6fe5381a8c889f35c00cf15fab3b86fe1a2583c34ea421969f611bb",
+            "independentDxfAudit": {
+              "cloning_field_counts": {
+                "0": 4
+              },
+              "dictionaries": 4,
+              "dictionary_rows": [
+                {
+                  "cloning": 0,
+                  "entries": [
+                    {
+                      "code": 350,
+                      "handle": "D",
+                      "name": "ACAD_GROUP"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "17",
+                      "name": "ACAD_MLINESTYLE"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "19",
+                      "name": "ACAD_PLOTSETTINGS"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "E",
+                      "name": "ACAD_PLOTSTYLENAME"
+                    }
+                  ],
+                  "handle": "C",
+                  "owner": "0"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [],
+                  "handle": "D",
+                  "owner": "C"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [
+                    {
+                      "code": 350,
+                      "handle": "18",
+                      "name": "Standard"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "2E",
+                      "name": "SAME_KEY"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "2F",
+                      "name": "DEST_ONLY"
+                    }
+                  ],
+                  "handle": "17",
+                  "owner": "C"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [],
+                  "handle": "19",
+                  "owner": "C"
+                }
+              ],
+              "mlinestyle_objects": 3,
+              "mlinestyle_roots": [
+                {
+                  "entry_code": 350,
+                  "owner": "C",
+                  "styles": [
+                    {
+                      "end_angle": 90.0000000000002,
+                      "handle": "18",
+                      "key": "Standard",
+                      "line_count": 2,
+                      "name": "Standard",
+                      "owner": "17",
+                      "start_angle": 90.0000000000002
+                    },
+                    {
+                      "end_angle": 0.0,
+                      "handle": "2E",
+                      "key": "SAME_KEY",
+                      "line_count": 0,
+                      "name": "SAME_KEY",
+                      "owner": "17",
+                      "start_angle": 15.000000000000034
+                    },
+                    {
+                      "end_angle": 0.0,
+                      "handle": "2F",
+                      "key": "DEST_ONLY",
+                      "line_count": 0,
+                      "name": "DEST_ONLY",
+                      "owner": "17",
+                      "start_angle": 21.999999999999854
+                    }
+                  ],
+                  "target": {
+                    "cloning": 0,
+                    "entries": [
+                      {
+                        "code": 350,
+                        "handle": "18",
+                        "name": "Standard"
+                      },
+                      {
+                        "code": 350,
+                        "handle": "2E",
+                        "name": "SAME_KEY"
+                      },
+                      {
+                        "code": 350,
+                        "handle": "2F",
+                        "name": "DEST_ONLY"
+                      }
+                    ],
+                    "handle": "17",
+                    "owner": "C"
+                  }
+                }
+              ],
+              "mlinestyle_rows": [
+                {
+                  "end_angle": 90.0000000000002,
+                  "handle": "18",
+                  "line_count": 2,
+                  "name": "Standard",
+                  "owner": "17",
+                  "start_angle": 90.0000000000002
+                },
+                {
+                  "end_angle": 0.0,
+                  "handle": "2E",
+                  "line_count": 0,
+                  "name": "SAME_KEY",
+                  "owner": "17",
+                  "start_angle": 15.000000000000034
+                },
+                {
+                  "end_angle": 0.0,
+                  "handle": "2F",
+                  "line_count": 0,
+                  "name": "DEST_ONLY",
+                  "owner": "17",
+                  "start_angle": 21.999999999999854
+                }
+              ],
+              "path": "/private/tmp/ac1012-current-candidate-sfhq1a4s/destination-candidate-explicit-partial-ascii.dxf",
+              "sha256": "cfcb4611e6fe5381a8c889f35c00cf15fab3b86fe1a2583c34ea421969f611bb"
+            },
+            "diagnostics": [
+              "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1012 sourceVersionEnum=11 legacyError=0",
+              "frameCoverageStatus=2 frameSourceDenominator=observed sourceFrames=32 pending=0 deferred=0 staged=0 published=32 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0",
+              "Opaque callback dispositions: opaqueViewCallbacks=7 opaqueSourceFramesCaptured=7 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=4 standardObjectSourceReceiptsMatched=4 standardObjectTypedPayloadsMatched=4 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false"
+            ]
+          }
+        },
+        "binary": {
+          "strict": {
+            "mode": "strict",
+            "encoding": "binary",
+            "executable": {
+              "path": "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "sha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d"
+            },
+            "command": [
+              "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/destination.dwg",
+              "-o",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/destination-candidate-strict-binary.dxf",
+              "-v2010",
+              "-y",
+              "-b",
+              "-d"
+            ],
+            "exitCode": 1,
+            "destinationPreservedOnRefusal": true,
+            "outputSha256": null,
+            "independentDxfAudit": null,
+            "diagnostics": [
+              "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1012 sourceVersionEnum=11 legacyError=0",
+              "frameCoverageStatus=2 frameSourceDenominator=observed sourceFrames=32 pending=0 deferred=0 staged=0 published=32 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0",
+              "Opaque callback dispositions: opaqueViewCallbacks=7 opaqueSourceFramesCaptured=7 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=4 standardObjectSourceReceiptsMatched=4 standardObjectTypedPayloadsMatched=4 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+              "DXF export preflight failed: AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification"
+            ]
+          },
+          "partial": {
+            "mode": "explicit-partial",
+            "encoding": "binary",
+            "executable": {
+              "path": "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "sha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d"
+            },
+            "command": [
+              "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/destination.dwg",
+              "-o",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/destination-candidate-explicit-partial-binary.dxf",
+              "-v2010",
+              "-y",
+              "-b",
+              "-d",
+              "--allow-partial-dwg-read"
+            ],
+            "exitCode": 0,
+            "destinationPreservedOnRefusal": null,
+            "outputSha256": "7b659779b920f04842a7a71886f7ddc7746bc3cb5f37cbf5b9e9394248153d53",
+            "independentDxfAudit": {
+              "cloning_field_counts": {
+                "0": 4
+              },
+              "dictionaries": 4,
+              "dictionary_rows": [
+                {
+                  "cloning": 0,
+                  "entries": [
+                    {
+                      "code": 350,
+                      "handle": "D",
+                      "name": "ACAD_GROUP"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "17",
+                      "name": "ACAD_MLINESTYLE"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "19",
+                      "name": "ACAD_PLOTSETTINGS"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "E",
+                      "name": "ACAD_PLOTSTYLENAME"
+                    }
+                  ],
+                  "handle": "C",
+                  "owner": "0"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [],
+                  "handle": "D",
+                  "owner": "C"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [
+                    {
+                      "code": 350,
+                      "handle": "18",
+                      "name": "Standard"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "2E",
+                      "name": "SAME_KEY"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "2F",
+                      "name": "DEST_ONLY"
+                    }
+                  ],
+                  "handle": "17",
+                  "owner": "C"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [],
+                  "handle": "19",
+                  "owner": "C"
+                }
+              ],
+              "mlinestyle_objects": 3,
+              "mlinestyle_roots": [
+                {
+                  "entry_code": 350,
+                  "owner": "C",
+                  "styles": [
+                    {
+                      "end_angle": 90.0000000000002,
+                      "handle": "18",
+                      "key": "Standard",
+                      "line_count": 2,
+                      "name": "Standard",
+                      "owner": "17",
+                      "start_angle": 90.0000000000002
+                    },
+                    {
+                      "end_angle": 0.0,
+                      "handle": "2E",
+                      "key": "SAME_KEY",
+                      "line_count": 0,
+                      "name": "SAME_KEY",
+                      "owner": "17",
+                      "start_angle": 15.000000000000034
+                    },
+                    {
+                      "end_angle": 0.0,
+                      "handle": "2F",
+                      "key": "DEST_ONLY",
+                      "line_count": 0,
+                      "name": "DEST_ONLY",
+                      "owner": "17",
+                      "start_angle": 21.999999999999854
+                    }
+                  ],
+                  "target": {
+                    "cloning": 0,
+                    "entries": [
+                      {
+                        "code": 350,
+                        "handle": "18",
+                        "name": "Standard"
+                      },
+                      {
+                        "code": 350,
+                        "handle": "2E",
+                        "name": "SAME_KEY"
+                      },
+                      {
+                        "code": 350,
+                        "handle": "2F",
+                        "name": "DEST_ONLY"
+                      }
+                    ],
+                    "handle": "17",
+                    "owner": "C"
+                  }
+                }
+              ],
+              "mlinestyle_rows": [
+                {
+                  "end_angle": 90.0000000000002,
+                  "handle": "18",
+                  "line_count": 2,
+                  "name": "Standard",
+                  "owner": "17",
+                  "start_angle": 90.0000000000002
+                },
+                {
+                  "end_angle": 0.0,
+                  "handle": "2E",
+                  "line_count": 0,
+                  "name": "SAME_KEY",
+                  "owner": "17",
+                  "start_angle": 15.000000000000034
+                },
+                {
+                  "end_angle": 0.0,
+                  "handle": "2F",
+                  "line_count": 0,
+                  "name": "DEST_ONLY",
+                  "owner": "17",
+                  "start_angle": 21.999999999999854
+                }
+              ],
+              "path": "/private/tmp/ac1012-current-candidate-sfhq1a4s/destination-candidate-explicit-partial-binary.dxf",
+              "sha256": "7b659779b920f04842a7a71886f7ddc7746bc3cb5f37cbf5b9e9394248153d53"
+            },
+            "diagnostics": [
+              "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1012 sourceVersionEnum=11 legacyError=0",
+              "frameCoverageStatus=2 frameSourceDenominator=observed sourceFrames=32 pending=0 deferred=0 staged=0 published=32 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0",
+              "Opaque callback dispositions: opaqueViewCallbacks=7 opaqueSourceFramesCaptured=7 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=4 standardObjectSourceReceiptsMatched=4 standardObjectTypedPayloadsMatched=4 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false"
+            ]
+          }
+        }
+      }
+    },
+    "source": {
+      "sourceSha256": "f64932935008a0c4ff84aae0ae29bba22f3c34c856693cb035190639384564d0",
+      "dictionaryFrameSha256": "fbaf235e03a52ceacff32f57b3e0334dd4cb0a535b42e659eaa66bdd7c7a49c7",
+      "lineFrameSha256": "44096a17d66d965c042a8e509412d1de8aba88ceae1e780b63b88497e7850f6a",
+      "frameTestOutput": "physical AC1012 dictionary frame and role/refusal/retry: PASS",
+      "candidate": {
+        "ascii": {
+          "strict": {
+            "mode": "strict",
+            "encoding": "ascii",
+            "executable": {
+              "path": "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "sha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d"
+            },
+            "command": [
+              "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/source.dwg",
+              "-o",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/source-candidate-strict-ascii.dxf",
+              "-v2010",
+              "-y",
+              "-d"
+            ],
+            "exitCode": 1,
+            "destinationPreservedOnRefusal": true,
+            "outputSha256": null,
+            "independentDxfAudit": null,
+            "diagnostics": [
+              "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1012 sourceVersionEnum=11 legacyError=0",
+              "frameCoverageStatus=2 frameSourceDenominator=observed sourceFrames=32 pending=0 deferred=0 staged=0 published=32 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0",
+              "Opaque callback dispositions: opaqueViewCallbacks=7 opaqueSourceFramesCaptured=7 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=4 standardObjectSourceReceiptsMatched=4 standardObjectTypedPayloadsMatched=4 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+              "DXF export preflight failed: AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification"
+            ]
+          },
+          "partial": {
+            "mode": "explicit-partial",
+            "encoding": "ascii",
+            "executable": {
+              "path": "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "sha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d"
+            },
+            "command": [
+              "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/source.dwg",
+              "-o",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/source-candidate-explicit-partial-ascii.dxf",
+              "-v2010",
+              "-y",
+              "-d",
+              "--allow-partial-dwg-read"
+            ],
+            "exitCode": 0,
+            "destinationPreservedOnRefusal": null,
+            "outputSha256": "ae76ab4c897334f70a1f93c55b3dbf069c70eb8baadb06f5af3bec9d0779676f",
+            "independentDxfAudit": {
+              "cloning_field_counts": {
+                "0": 4
+              },
+              "dictionaries": 4,
+              "dictionary_rows": [
+                {
+                  "cloning": 0,
+                  "entries": [
+                    {
+                      "code": 350,
+                      "handle": "D",
+                      "name": "ACAD_GROUP"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "17",
+                      "name": "ACAD_MLINESTYLE"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "19",
+                      "name": "ACAD_PLOTSETTINGS"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "E",
+                      "name": "ACAD_PLOTSTYLENAME"
+                    }
+                  ],
+                  "handle": "C",
+                  "owner": "0"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [],
+                  "handle": "D",
+                  "owner": "C"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [
+                    {
+                      "code": 350,
+                      "handle": "18",
+                      "name": "Standard"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "2E",
+                      "name": "SAME_KEY"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "2F",
+                      "name": "SOURCE_ONLY"
+                    }
+                  ],
+                  "handle": "17",
+                  "owner": "C"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [],
+                  "handle": "19",
+                  "owner": "C"
+                }
+              ],
+              "mlinestyle_objects": 3,
+              "mlinestyle_roots": [
+                {
+                  "entry_code": 350,
+                  "owner": "C",
+                  "styles": [
+                    {
+                      "end_angle": 90.0000000000002,
+                      "handle": "18",
+                      "key": "Standard",
+                      "line_count": 2,
+                      "name": "Standard",
+                      "owner": "17",
+                      "start_angle": 90.0000000000002
+                    },
+                    {
+                      "end_angle": 0.0,
+                      "handle": "2E",
+                      "key": "SAME_KEY",
+                      "line_count": 0,
+                      "name": "SAME_KEY",
+                      "owner": "17",
+                      "start_angle": 36.999999999999886
+                    },
+                    {
+                      "end_angle": 0.0,
+                      "handle": "2F",
+                      "key": "SOURCE_ONLY",
+                      "line_count": 0,
+                      "name": "SOURCE_ONLY",
+                      "owner": "17",
+                      "start_angle": 51.00000000000011
+                    }
+                  ],
+                  "target": {
+                    "cloning": 0,
+                    "entries": [
+                      {
+                        "code": 350,
+                        "handle": "18",
+                        "name": "Standard"
+                      },
+                      {
+                        "code": 350,
+                        "handle": "2E",
+                        "name": "SAME_KEY"
+                      },
+                      {
+                        "code": 350,
+                        "handle": "2F",
+                        "name": "SOURCE_ONLY"
+                      }
+                    ],
+                    "handle": "17",
+                    "owner": "C"
+                  }
+                }
+              ],
+              "mlinestyle_rows": [
+                {
+                  "end_angle": 90.0000000000002,
+                  "handle": "18",
+                  "line_count": 2,
+                  "name": "Standard",
+                  "owner": "17",
+                  "start_angle": 90.0000000000002
+                },
+                {
+                  "end_angle": 0.0,
+                  "handle": "2E",
+                  "line_count": 0,
+                  "name": "SAME_KEY",
+                  "owner": "17",
+                  "start_angle": 36.999999999999886
+                },
+                {
+                  "end_angle": 0.0,
+                  "handle": "2F",
+                  "line_count": 0,
+                  "name": "SOURCE_ONLY",
+                  "owner": "17",
+                  "start_angle": 51.00000000000011
+                }
+              ],
+              "path": "/private/tmp/ac1012-current-candidate-sfhq1a4s/source-candidate-explicit-partial-ascii.dxf",
+              "sha256": "ae76ab4c897334f70a1f93c55b3dbf069c70eb8baadb06f5af3bec9d0779676f"
+            },
+            "diagnostics": [
+              "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1012 sourceVersionEnum=11 legacyError=0",
+              "frameCoverageStatus=2 frameSourceDenominator=observed sourceFrames=32 pending=0 deferred=0 staged=0 published=32 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0",
+              "Opaque callback dispositions: opaqueViewCallbacks=7 opaqueSourceFramesCaptured=7 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=4 standardObjectSourceReceiptsMatched=4 standardObjectTypedPayloadsMatched=4 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false"
+            ]
+          }
+        },
+        "binary": {
+          "strict": {
+            "mode": "strict",
+            "encoding": "binary",
+            "executable": {
+              "path": "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "sha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d"
+            },
+            "command": [
+              "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/source.dwg",
+              "-o",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/source-candidate-strict-binary.dxf",
+              "-v2010",
+              "-y",
+              "-b",
+              "-d"
+            ],
+            "exitCode": 1,
+            "destinationPreservedOnRefusal": true,
+            "outputSha256": null,
+            "independentDxfAudit": null,
+            "diagnostics": [
+              "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1012 sourceVersionEnum=11 legacyError=0",
+              "frameCoverageStatus=2 frameSourceDenominator=observed sourceFrames=32 pending=0 deferred=0 staged=0 published=32 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0",
+              "Opaque callback dispositions: opaqueViewCallbacks=7 opaqueSourceFramesCaptured=7 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=4 standardObjectSourceReceiptsMatched=4 standardObjectTypedPayloadsMatched=4 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+              "DXF export preflight failed: AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification"
+            ]
+          },
+          "partial": {
+            "mode": "explicit-partial",
+            "encoding": "binary",
+            "executable": {
+              "path": "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "sha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d"
+            },
+            "command": [
+              "/private/tmp/libdxfrw-wide-identity-build-20261126/dwg2dxf/dwg2dxf",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/source.dwg",
+              "-o",
+              "/private/tmp/ac1012-current-candidate-sfhq1a4s/source-candidate-explicit-partial-binary.dxf",
+              "-v2010",
+              "-y",
+              "-b",
+              "-d",
+              "--allow-partial-dwg-read"
+            ],
+            "exitCode": 0,
+            "destinationPreservedOnRefusal": null,
+            "outputSha256": "a4a135224799d10f86ebb5dd2c6e76a21e103cd7ef0f1f598297d9c4d09f9af1",
+            "independentDxfAudit": {
+              "cloning_field_counts": {
+                "0": 4
+              },
+              "dictionaries": 4,
+              "dictionary_rows": [
+                {
+                  "cloning": 0,
+                  "entries": [
+                    {
+                      "code": 350,
+                      "handle": "D",
+                      "name": "ACAD_GROUP"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "17",
+                      "name": "ACAD_MLINESTYLE"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "19",
+                      "name": "ACAD_PLOTSETTINGS"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "E",
+                      "name": "ACAD_PLOTSTYLENAME"
+                    }
+                  ],
+                  "handle": "C",
+                  "owner": "0"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [],
+                  "handle": "D",
+                  "owner": "C"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [
+                    {
+                      "code": 350,
+                      "handle": "18",
+                      "name": "Standard"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "2E",
+                      "name": "SAME_KEY"
+                    },
+                    {
+                      "code": 350,
+                      "handle": "2F",
+                      "name": "SOURCE_ONLY"
+                    }
+                  ],
+                  "handle": "17",
+                  "owner": "C"
+                },
+                {
+                  "cloning": 0,
+                  "entries": [],
+                  "handle": "19",
+                  "owner": "C"
+                }
+              ],
+              "mlinestyle_objects": 3,
+              "mlinestyle_roots": [
+                {
+                  "entry_code": 350,
+                  "owner": "C",
+                  "styles": [
+                    {
+                      "end_angle": 90.0000000000002,
+                      "handle": "18",
+                      "key": "Standard",
+                      "line_count": 2,
+                      "name": "Standard",
+                      "owner": "17",
+                      "start_angle": 90.0000000000002
+                    },
+                    {
+                      "end_angle": 0.0,
+                      "handle": "2E",
+                      "key": "SAME_KEY",
+                      "line_count": 0,
+                      "name": "SAME_KEY",
+                      "owner": "17",
+                      "start_angle": 36.999999999999886
+                    },
+                    {
+                      "end_angle": 0.0,
+                      "handle": "2F",
+                      "key": "SOURCE_ONLY",
+                      "line_count": 0,
+                      "name": "SOURCE_ONLY",
+                      "owner": "17",
+                      "start_angle": 51.00000000000011
+                    }
+                  ],
+                  "target": {
+                    "cloning": 0,
+                    "entries": [
+                      {
+                        "code": 350,
+                        "handle": "18",
+                        "name": "Standard"
+                      },
+                      {
+                        "code": 350,
+                        "handle": "2E",
+                        "name": "SAME_KEY"
+                      },
+                      {
+                        "code": 350,
+                        "handle": "2F",
+                        "name": "SOURCE_ONLY"
+                      }
+                    ],
+                    "handle": "17",
+                    "owner": "C"
+                  }
+                }
+              ],
+              "mlinestyle_rows": [
+                {
+                  "end_angle": 90.0000000000002,
+                  "handle": "18",
+                  "line_count": 2,
+                  "name": "Standard",
+                  "owner": "17",
+                  "start_angle": 90.0000000000002
+                },
+                {
+                  "end_angle": 0.0,
+                  "handle": "2E",
+                  "line_count": 0,
+                  "name": "SAME_KEY",
+                  "owner": "17",
+                  "start_angle": 36.999999999999886
+                },
+                {
+                  "end_angle": 0.0,
+                  "handle": "2F",
+                  "line_count": 0,
+                  "name": "SOURCE_ONLY",
+                  "owner": "17",
+                  "start_angle": 51.00000000000011
+                }
+              ],
+              "path": "/private/tmp/ac1012-current-candidate-sfhq1a4s/source-candidate-explicit-partial-binary.dxf",
+              "sha256": "a4a135224799d10f86ebb5dd2c6e76a21e103cd7ef0f1f598297d9c4d09f9af1"
+            },
+            "diagnostics": [
+              "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1012 sourceVersionEnum=11 legacyError=0",
+              "frameCoverageStatus=2 frameSourceDenominator=observed sourceFrames=32 pending=0 deferred=0 staged=0 published=32 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0",
+              "Opaque callback dispositions: opaqueViewCallbacks=7 opaqueSourceFramesCaptured=7 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=4 standardObjectSourceReceiptsMatched=4 standardObjectTypedPayloadsMatched=4 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "limits": [
+    "Selected frame and projection controls only; no native AutoCAD normal-open, duplicate merge, complete graph or general support claim."
+  ]
+}
