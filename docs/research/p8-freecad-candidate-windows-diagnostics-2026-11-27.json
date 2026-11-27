@@ -43,7 +43,11 @@
     "mesaOpenGLSha256": "b49b87248f6bb496318a7cbde469dd60c9ff6938b2a11bdb01fd9777c1d884a3",
     "guiGuardTests": 4,
     "guiGuardTestLogSha256": "30766769677edc5732c05e06be35089d53ff888a868e022d9b56817b9040bf2a",
-    "retry": "PENDING"
+    "retry": {
+      "run": "https://github.com/dxli/libdxfrw/actions/runs/46051681238",
+      "workflowHead": "923f677cd09ed0b7299811af8b8c4fb433c727c3",
+      "status": "in_progress"
+    }
   },
   "limitations": [
     "A green job conclusion is not GUI qualification when its captured process reports unhandled exceptions.",
