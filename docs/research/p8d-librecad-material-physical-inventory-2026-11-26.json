@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumer_commit": "4418f427a7e64e6b923b6beceeb80c64eece21f1",
+  "codec_capability_commit": "3a9c70ab3454139ff72d61cb09fbe788d8ee9f5f",
+  "codec_binary_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "codec_library_sha256": "715e638095a7994d091e3bf330a3710c993a703993df5cad709bababbb23f517",
+  "finding": "The previous physical-material guard required exactly one ENTITIES callback. This safely refused a DXF with no ENTITIES section, but callback counts alone did not bind all physical records to the whole-file source inventory.",
+  "change": [
+    "Advertise the existing optional whole-file physical identity source facet without changing codec vtables or binary implementation.",
+    "For bounded, explicitly opted-in replay, join each ENTITIES and BLOCK child physical record to the whole-file identity inventory by start/end ordinal. Require matching block begin/end and callback counts, at most one ENTITIES and BLOCKS section, a complete identity inventory and matching material handle/target snapshots.",
+    "Allow a genuinely absent ENTITIES section when the complete whole-file inventory proves it absent and all other replay gates pass; missing source evidence remains a refusal. Ordinary sparse-material replay remains guarded."
+  ],
+  "validation": [
+    "Twelve focused system-codec MATERIAL cases pass 1923 assertions, including omitted ENTITIES in four generated AC1021 profiles; removed, duplicate, quota and altered-boundary identity reports; and removed BLOCK, child LINE and ENDBLK records. Each fault checks destination preservation and corrected same-filter reimport/retry.",
+    "Seven IMAGE cases pass 7512 assertions and the bundled-codec filter object compiles. The latter is a compile check rather than a full bundled runtime test.",
+    "Three existing focused codec transport tests pass for the whole-file identity inventory, ENTITIES and BLOCK children; the underlying codec implementation was unchanged by the new capability marker.",
+    "Independent ezdxf readback of the generated omitted-ENTITIES output found no model-space LINE, retained PlainMat and Sibling, and confirmed matching layer and current-material handles with zero audit errors or repairs. ezdxf adds its standard materials."
+  ],
+  "empty_entities_output_sha256": "8b7ba64830fbdb61bd540d9a2c02dda1c3f9551435d30746e9ba6e3fdf169650",
+  "limits": [
+    "Ordinal coverage and complete physical transport do not establish semantic delivery of every supported entity, complete graph identity, or native behavior.",
+    "This is a bounded explicitly opted-in AC1021 control. Other producers, versions, encodings and missing-section combinations need independent qualification. Multiple ENTITIES or BLOCKS sections and unavailable inventories remain conservatively refused.",
+    "The normal exporter and support claims remain unchanged. No generated drawing fixture was committed."
+  ],
+  "supportClaimEffect": "none"
+}

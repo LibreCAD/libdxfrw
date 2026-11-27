@@ -33,8 +33,11 @@ evidence are recorded in `docs/research/` and Git history.
   [physical entity-source guard](docs/research/p8d-librecad-physical-entity-material-source-2026-11-26.json)
   rejects repeated or explicit-zero group 347 and incomplete source streams,
   and binds selected physical targets to imported references with ASCII, binary,
-  block, rollback and retry controls. Qualify additional entity and producer
-  profiles and complete semantic delivery separately.
+  block, rollback and retry controls. The [whole-file inventory join](docs/research/p8d-librecad-material-physical-inventory-2026-11-26.json)
+  binds source record boundaries and block counts, detects missing delivery, and
+  admits a verified absent ENTITIES section for the selected opt-in profile.
+  Qualify additional entity and producer profiles and complete semantic delivery
+  separately.
   A [duplicate-source control](docs/research/p8d-librecad-sparse-material-duplicate-entity-2026-11-26.json)
   verifies refusal, preserved destination and retry for one material/nonmaterial
   LINE collision; qualify other duplicate layouts separately.
