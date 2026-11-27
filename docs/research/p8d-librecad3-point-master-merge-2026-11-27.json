@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-point-master-merge-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/463",
+  "consumerCommit": "6edb7c02",
+  "masterCommit": "60727c6c55a84d416d42b4b3d1664d0feb10cf61",
+  "change": "Merge current master into the POINT editing branch, retain both plan review records, and resolve the plan ledger conflict. The POINT test and upstream viewer test are both registered after the merge.",
+  "validation": "A macOS ARM64 headless kernel build passes both Point3D tests. Python plan structure and actual-base changed-path checks pass; the merged candidate remains the five-path POINT change relative to the stated master.",
+  "limits": "The current standalone codec still requires the reserved-linetype correction in PR 460. The local build did not include persistence or GUI, and elevated POINT selection, snapping and dragging need separate viewer-level qualification. Hosted checks on the merge remain pending."
+}
