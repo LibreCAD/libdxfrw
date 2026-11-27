@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-wide-dxf-peer-dictionary-boundary-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateCommit": "b4a5d377d",
+  "implementationDigestSha256": "a935ef97828c05bebd4a3028036022304a853c986520be7d70829ac8543e6c1f",
+  "generator": "tools/research/generate_wide_dictionary_xrecord_control.py",
+  "generatorSha256": "efc3297214bb755fbeace090499ace13d5d40e3a406dbac460149958c4fd9379",
+  "scratchReceiptSha256": "d2fa4978ca01e75fd7509a0e8978d2befb60a293e996500213d88dc08d56e215",
+  "scratchDirectory": "/private/tmp/libdxfrw-wide-paired-control-20261126",
+  "probe": {
+    "ezdxfVersion": "1.4.5",
+    "candidateSha256": "828eef8a45f18b28239d449bb4cc05407d751e617c2a91763569ee0c289d426a",
+    "controls": [
+      {
+        "profile": "narrow",
+        "encoding": "asc",
+        "sourceSha256": "a5239ff5eddee551cbff911a7c4109d43a28a2acb6ddee1030e6f48bc26f7698",
+        "dictionaryHandle": "2F",
+        "dictionaryOwner": "A",
+        "recordHandle": "30",
+        "recordOwner": "2F",
+        "reference340": "2F",
+        "handseed": "34",
+        "peerAuditErrors": 0,
+        "peerAuditFixes": 0,
+        "candidate": {
+          "exitCode": 1,
+          "destinationPreserved": true,
+          "logSha256": "08c307a18a7fbca0930922d73a6292d4e5ec8712ded5c2f34818f33172f72788"
+        }
+      },
+      {
+        "profile": "narrow",
+        "encoding": "bin",
+        "sourceSha256": "ec543240b9d6dc11eba1a000ecfb09ac4517123ae986083a4d434765f733c370",
+        "dictionaryHandle": "2F",
+        "dictionaryOwner": "A",
+        "recordHandle": "30",
+        "recordOwner": "2F",
+        "reference340": "2F",
+        "handseed": "34",
+        "peerAuditErrors": 0,
+        "peerAuditFixes": 0,
+        "candidate": {
+          "exitCode": 1,
+          "destinationPreserved": true,
+          "logSha256": "3b7d8091cfc2c47ecd9c289335db91630e8242d33f321ec1e66a86fe64c466db"
+        }
+      },
+      {
+        "profile": "wide",
+        "encoding": "asc",
+        "sourceSha256": "fe59d9b8273f874e28bd24fd902dba461309cca28818a39db9d1a7b8bed6f948",
+        "dictionaryHandle": "100000010",
+        "dictionaryOwner": "A",
+        "recordHandle": "100000011",
+        "recordOwner": "100000010",
+        "reference340": "100000010",
+        "handseed": "100000012",
+        "peerAuditErrors": 0,
+        "peerAuditFixes": 0,
+        "candidate": {
+          "exitCode": 1,
+          "destinationPreserved": true,
+          "logSha256": "030774faeb8e8be35c6fbf62e3c72fdc3ea956f4abdf424ebdc81658d439f74d"
+        }
+      },
+      {
+        "profile": "wide",
+        "encoding": "bin",
+        "sourceSha256": "35a02cd4016eae778f47896a81bac6627710ff288a04ab295a460f4909dcb1b8",
+        "dictionaryHandle": "100000010",
+        "dictionaryOwner": "A",
+        "recordHandle": "100000011",
+        "recordOwner": "100000010",
+        "reference340": "100000010",
+        "handseed": "100000012",
+        "peerAuditErrors": 0,
+        "peerAuditFixes": 0,
+        "candidate": {
+          "exitCode": 1,
+          "destinationPreserved": true,
+          "logSha256": "53685896b86bbb0b81e632f54b21d74f7ee54f65ee8422bb300e6b82325b2069"
+        }
+      }
+    ]
+  },
+  "observations": [
+    "ezdxf 1.4.5 generated and reopened each AC1027 control with zero audit errors or fixes. The wide dictionary is 100000010, its XRECORD is 100000011, and the XRECORD owner and group-340 target both refer to the wide dictionary.",
+    "The candidate refuses both wide inputs at the root dictionary group-350 value 100000010 (DXF error 12), before reaching the graph output path, and preserves both preexisting destinations.",
+    "The same-document narrow controls pass that root entry and later fail in MATERIAL at group 73 (DXF error 14), preserving destinations. They are not complete successful retry controls."
+  ],
+  "next": "Add bounded, exact 64-bit source dictionary/self/owner/reference observation while retaining the 32-bit public semantic model; resolve the separate narrow MATERIAL failure or use a qualified narrow control before claiming end-to-end retry. Bind source roles to staged output and prove closure and independent readback before allowing wide publication.",
+  "limits": [
+    "Generated sources and same-library ezdxf reopen do not establish producer-independent semantics or general interoperability.",
+    "No DWG/DXF fixture is committed; all generated files and logs are scratch-only.",
+    "No successful complete conversion, corrected retry, graph closure, or wide-owner output is claimed."
+  ]
+}
