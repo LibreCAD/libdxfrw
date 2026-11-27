@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-filtered-dictionary-reattachment-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "8d970094198e285d90019966750ee2c418063bdb",
+  "problem": "Root planning inspected stale dictionary entries that the output path removed, detaching an otherwise valid dictionary and leaving its XRECORD with an invalid owner.",
+  "implementation": "Share source-bound skipped IMAGE handle collection and dictionary filtering between planning and emission. For filtered dictionaries, reattach only when surviving children have the checked text-only XRECORD shape and matching owner. Continue reserving ACAD_IMAGE_DICT for the generated graph.",
+  "validation": [
+    "85 focused IMAGE and persistence tests pass. Model space and named/anonymous block controls cover selected R2000/R2010 sources, foreign-source handle collision, custom dictionary groups, wrong child owner and unmodeled XRECORD reference. The latter three stay detached.",
+    "Independent ezdxf 1.4.5 confirms the selected root dictionary, XRECORD handle, reciprocal owner, text value and IMAGE polygon fields. Audit has zero errors and one remaining repair for an orphan paper-space block."
+  ],
+  "testLogSha256": "06c55afc16c63890423bb47a153c0d9ab3c12b5d80077fa4a41dea53ce067d22",
+  "peerOutputSha256": "e0076b76623c82289580e5a0178b26431a9d7d7e7c1485ed45c833883867597c",
+  "peerResultSha256": "418f1de796ff7e251758fcde3f6afde0906942d28fa57bca687e71f6970a8550",
+  "limits": [
+    "The source IMAGEDEF and reactor entries are intentionally lost and reported; source identity and complete image graph preservation are not established.",
+    "Unrecognized filtered dictionary children and custom application groups remain detached, and the orphan layout block remains unresolved. This is selected generated-input evidence, not native rendering or broad support."
+  ]
+}
