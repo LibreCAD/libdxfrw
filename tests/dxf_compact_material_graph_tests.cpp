@@ -7,10 +7,12 @@
 #include "libdwgr.h"
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -39,7 +41,7 @@ static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.
 
 // Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u, bool sharedRecord=false, unsigned crossReference=0u, int sharedReferenceCode=340, unsigned extraSelectedPointers=0u, const char* description="", const char* payload="payload") {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u, bool sharedRecord=false, unsigned crossReference=0u, int sharedReferenceCode=340, unsigned extraSelectedPointers=0u, const char* description="", const char* payload="payload", double factor=0.5) {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -86,7 +88,7 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
   if(!s(0,"MATERIAL")||!s(5,x.second)||!s(102,"{ACAD_REACTORS")||!s(330,"67")||!s(102,"}")
     ||!s(330,"67")||!s(100,"AcDbMaterial")||!s(1,x.first)||!s(2,description)||!h(70,0)||!d(40,1)
     ||!h(71,1)||!d(41,1)||!i(91,-1023410177)||!d(42,1)||!h(72,1)||!s(3,"")
-    ||!h(73,1)||!h(74,1)||!h(75,1)||!d(44,0.5)||!h(73,0)||!d(45,1)||!d(46,1)
+    ||!h(73,1)||!h(74,1)||!h(75,1)||!d(44,factor)||!h(73,0)||!d(45,1)||!d(46,1)
     ||!h(77,1)||!s(4,"")||!h(78,1)||!h(79,1)||!h(170,1)||!d(48,1)||!h(171,1)
     ||!s(6,"")||!h(172,1)||!h(173,1)||!h(174,1)||!d(140,1)||!d(141,1)
     ||!h(175,1)||!s(7,"")||!h(176,1)||!h(177,1)||!h(178,1)||!d(143,1)
@@ -198,6 +200,22 @@ static bool defaultUnsafeTranscode(const std::filesystem::path& in,const std::fi
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
  if(io.fileExport(out.string(),DRW::AC1027,!binary,&data,false,true)||bytes(out)!="sentinel")return false;
  return same();
+}
+
+static bool defaultNumericTranscode(const std::filesystem::path& in,const std::filesystem::path& out,bool binary) {
+ for(const double value:{-0.0,std::numeric_limits<double>::denorm_min(),
+                         std::nextafter(0.5,1.0),std::numeric_limits<double>::max()}) {
+  if(!defaultSource(in,binary,false,DRW::AC1027,false,nullptr,false,nullptr,false,0u,false,0u,340,0u,"","payload",value))return false;
+  dx_data data;Exporter io;
+  if(!io.fileImport(in.string(),&data,false)||!io.fileExport(out.string(),DRW::AC1027,!binary,&data,false,true))return false;
+  dx_data decoded;dx_iface reader;
+  if(!reader.fileImport(out.string(),&decoded,false)||decoded.rawMaterialObjects.size()!=3u)return false;
+  for(const auto& raw:decoded.rawMaterialObjects)
+   if(raw.groups.size()<=19u||raw.groups[19].code()!=44
+      ||raw.groups[19].type()!=DRW_Variant::DOUBLE
+      ||!dxfMaterial::sameValue(raw.groups[19].d_val(),value))return false;
+ }
+ return true;
 }
 
 static bool multiPlotRoundTrip(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision) {
@@ -809,6 +827,8 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
    if(!defaultRoundTrip(in,out,binary,collision,version))return 33;
  if(argc==1)for(bool binary:{false,true})
   if(!defaultUnsafeTranscode(in,out,binary))return 43;
+ if(argc==1)for(bool binary:{false,true})
+  if(!defaultNumericTranscode(in,out,binary))return 45;
  if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true})
   if(!multiPlotRoundTrip(in,out,binary,collision))return 34;
  if(argc==1)for(bool binary:{false,true})

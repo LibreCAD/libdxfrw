@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-27",
+  "scope": "Generated AC1027 default MATERIAL group 44 field transport between ASCII and binary DXF in both directions.",
+  "implementationDigestSha256": "126f1bb73e76375868f719ed71165651a5651a4f7f2a8b7dc05bbc9ec7cb2cba",
+  "test": "libdxfrw_dxf_compact_material_graph",
+  "controls": [
+    "negative zero",
+    "smallest positive binary64 subnormal",
+    "next representable binary64 above 0.5",
+    "largest finite binary64"
+  ],
+  "result": "PASS: for each value and both source encodings, strict cross-encoding export succeeds, fresh library readback succeeds, and all three default MATERIAL bodies contain bit-identical group-44 binary64 values. GCC strict syntax check also passes.",
+  "limits": [
+    "These are generated roundtrip controls, not independent peer or native material-renderer semantics.",
+    "No production code changed and no support claims are promoted.",
+    "No drawing fixture was added or committed."
+  ]
+}
