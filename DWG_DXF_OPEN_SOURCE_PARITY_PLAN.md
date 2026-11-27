@@ -128,6 +128,8 @@ evidence are recorded in `docs/research/` and Git history.
   models on/off state and tests rendering, selection, snapping, fit and nested
   inserts on generated controls. The [block-layer follow-up](docs/research/p8d-librecad3-block-layer-visibility-fit-2026-11-26.json)
   fixes layer changes inside blocks and visible-child fit, with undo and redo.
+  A [generated block save/reopen control](docs/research/p8d-librecad3-block-layer-save-reopen-2026-11-26.json)
+  checks both DXF encodings and independent readback.
   Frozen-layer semantics, color-name retention
   after replacement, color books, transparency, native toggling and other
   platforms remain open. The [source callback guard fix](docs/research/p8d-librecad3-layout-callback-guard-ci-2026-11-26.json)
