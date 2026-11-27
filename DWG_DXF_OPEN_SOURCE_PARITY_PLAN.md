@@ -610,13 +610,12 @@ integration gates below remain independent.
 | P8-D / NATIVE_CONSUMER_GATES_OPEN | Qualify the remaining native rendering, editing, save and reopen profiles against the final consumer and codec candidates on macOS, Linux and Windows. Recheck only profiles affected by later changes. | Review [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289) and [LibreCAD_3 PRs #460](https://github.com/LibreCAD/LibreCAD_3/pull/460), [#461](https://github.com/LibreCAD/LibreCAD_3/pull/461), [#462](https://github.com/LibreCAD/LibreCAD_3/pull/462) and [#463](https://github.com/LibreCAD/LibreCAD_3/pull/463), including upstream and bundled codecs where applicable. PRs #461 and #462 depend on #460; #3289 depends on libdxfrw #106, and #463 requires the #460 linetype fix. The current-candidate [macOS MPOLYGON move and reopen](docs/research/p8d-librecad3-current-candidate-mpolygon-move-2026-11-26.json) qualifies one locally authored profile; visible rendering, other producers and platforms remain open. The [LibreCAD MLINE copy](docs/research/p8d-librecad-mline-native-copy-750c-2026-11-26.json) and [named-linetype editing](docs/research/p8d-native-linetype-dialog-edit-288d-2026-11-26.json) controls are bounded and used earlier candidates; rerun where final inputs differ. Revalidate the [ownerless resave](docs/research/p8d-librecad-3289-ownerless-resave-fix-2026-11-20.json) and [DIMSTYLE null-handle](docs/research/p8d-dimstyle-null-xdictionary-cross-codec-2026-11-20.json) controls on final inputs. Qualify exact rational geometry, other HATCH spline and periodic profiles, singular-scale normals, elevated DWG MPOLYGON sources, tilted planes and native rendering separately. Headless results do not establish native GUI behavior; locally generated sources qualify only their tested profiles. |
 | P8-G / INTEGRATION_GATE | Set consumer/platform release thresholds and freeze the candidate. Recheck P8-A/B/C/E/F receipts against the final inputs and rerun only mismatched profiles. | After required package and platform gates close, build and test the complete GCC profile, run the broad suite and extended fuzz lane once for the frozen candidate, resolve required failures, and publish the evidence-backed support matrix. No required job may remain red and no unqualified route may be advertised. |
 
-The previous-candidate FreeCAD handoff passed its selected generated-profile
-checks on [Linux](docs/research/p8-freecad-linux-f046-2026-11-26.json) (16)
-and [Windows x64](docs/research/p8-freecad-windows-f046-2026-11-26.json) (17).
-The owner-inventory change has since changed the implementation digest; rerun
-affected profiles on the final candidate. These checks do not qualify native GUI behavior,
-independent producers, other platforms, or the FreeCAD importer features
-explicitly reported unsupported.
+The [owner-fix candidate FreeCAD handoff](docs/research/p8-freecad-linux-windows-b4a5-2026-11-26.json)
+passed its selected generated-profile checks on Linux (16) and Windows x64
+(17). The subsequent AC1027 MATERIAL change changed the implementation digest;
+rerun affected profiles on the final candidate. These checks do not qualify
+native GUI behavior, independent producers, other platforms, or the FreeCAD
+importer features explicitly reported unsupported.
 
 For PLOTSETTINGS, qualify additional source, version, EED, reactor, remap and
 edited-plot profiles only after their source and native semantics are
