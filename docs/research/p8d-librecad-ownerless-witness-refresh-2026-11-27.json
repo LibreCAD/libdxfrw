@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-ownerless-witness-refresh-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "69a997a4",
+  "scope": "Locally generated bundled-codec ownerless PLOTSETTINGS controls; system-codec replay remains pending.",
+  "capture": "Set LIBRECAD_TEST_CAPTURE_OWNERLESS_DWG_DIR to an existing empty scratch directory while running the ownerless plot regression. An existing witness causes QFile::copy refusal; inputs are never committed.",
+  "dwgSha256": {
+    "lc-viewport-before-dwg-2000.dwg": "6e612815a730cbe655699118233b60e6f0588d0774b2ac2704a4d71b589b4ab7",
+    "lc-viewport-before-dwg-2004.dwg": "5876228acd1a0093b8f38fc38fe8f62093ca7c80a18b363e87b62ae3dfa3ba3b",
+    "lc-viewport-before-dwg-2010.dwg": "b25533027337363be9669349464204a9f62e1cab404d1711f50b6b93fa49f9b8",
+    "lc-viewport-before-dwg-2013.dwg": "59db01970025f1daec2aa88eedb0fd25553df9a845a3de1c8ec2c77eabf8e488",
+    "lc-viewport-before-dwg-2018.dwg": "639374dc8ae9e644832822098872cee64179d1a9a1fffa5546cf2a38f083a154"
+  },
+  "verification": [
+    "135 assertions pass across generated AC1015, AC1018, AC1024, AC1027 and AC1032 controls.",
+    "All five file hashes match the earlier bundled-codec source witnesses.",
+    "A repeated capture refuses all existing paths and preserves every source hash; removing the capture request allows the same executable to pass the original 125 assertions."
+  ],
+  "limits": [
+    "Locally generated test inputs; no independent producer or native GUI qualification.",
+    "System-codec replay, final consumer commit and wider source profiles remain open."
+  ]
+}
