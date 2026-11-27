@@ -104,7 +104,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    selected zero-element styles gained an element during conversion. The newer
    [two-element pair](docs/research/p6-ac1012-populated-style-wire-2026-11-27.json)
    passes selected physical frame, role, failure/retry, current-codec output,
-   ODA conversion and independent DXF checks with both elements intact. Cadkit independently checks both dictionary bodies and six style common shells; it leaves the MLINESTYLE bodies unparsed. Its
+   ODA conversion and independent DXF checks with both elements intact. Cadkit independently checks both dictionary bodies and six style common shells; it leaves the MLINESTYLE bodies unparsed. LibreDWG reads all six style bodies, but also helped generate the samples, so this is same-family evidence. Its
    [simple root profile](docs/research/p6-ac1012-generated-simple-root-2026-11-27.json)
    has no root/style EED or extension in the audited frames. Use this pair and
    the [ODA-generated pair](docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json)

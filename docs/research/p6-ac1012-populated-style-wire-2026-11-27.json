@@ -508,5 +508,20 @@
       "The peer is a specification-directed decoder, labels R13 untested, and is not AutoCAD. Numeric handle values do not prove wire roles or clone semantics.",
       "No native open, native merging, target export, complete graph semantics or broad support is established."
     ]
+  },
+  "libredwgSameFamilyReadback": {
+    "tool": "GNU LibreDWG dwgread 0.14, minJSON",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "commandTemplate": "dwgread -O minJSON <drawing> -o <scratch.json>",
+    "outputSha256": {
+      "destination": "ade8c0945fb31479b6ee6d0e6f7099cccbadf31bdb3235dc2a99e6620e96ea12",
+      "source": "86cde967ec44082746e3306961f4ecdd408a4ca4b335e29f4605d4c10c1b96cd"
+    },
+    "checks": [
+      "Both reads returned success. All six style records have the expected names, start/end angles, two offsets, default colors/linetypes, and selected owner/reactor targets."
+    ],
+    "limits": [
+      "LibreDWG also helped generate these samples; this is a same-family decoder check, not independent producer evidence or native AutoCAD clone semantics."
+    ]
   }
 }
