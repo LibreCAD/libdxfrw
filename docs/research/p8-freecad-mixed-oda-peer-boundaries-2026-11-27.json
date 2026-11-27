@@ -40,5 +40,22 @@
     "These ODA-generated source files and all DXF/DWG derivatives remain scratch-only.",
     "Independent readback confirms only the listed authored fields, not complete source graph, native AutoCAD acceptance, or FreeCAD handoff.",
     "Retain strict and partial guards until the source-specific header and object-graph barriers are resolved."
-  ]
+  ],
+  "alternateLibreDwgProducer": {
+    "producer": "GNU LibreDWG dxf2dwg 0.14 from the same locally generated mixed DXF, targets r2000 and r2004.",
+    "results": {
+      "AC1015": {
+        "dwgSha256": "2c2cc0806d524cbd2b8ae6fd1e789414df1078a28ad9a24abcc52f754e6af466",
+        "odaErrorSha256": "983b99dff41f14a0ac027bcac536ed0c13089134a2c1ad0b2a9adee971f70490",
+        "libdxfrwFirstFailure": "table read (legacyError 9)"
+      },
+      "AC1018": {
+        "dwgSha256": "ea65735ae26e388ab396a312ae4f93d0de6a2957cc083a63062b5f79335ef641",
+        "odaErrorSha256": "7e4d5fd6856ef0c43efbf8f26f19094ef48d2cde85244e72fb2c018e21d5e25f",
+        "libdxfrwFirstFailure": "file header read (legacyError 5)"
+      }
+    },
+    "peer": "ODA rejected both with AcDbDimStyleTable improperly read; the GNU writer emitted DIMLDRBLK warnings, and r2004 also emitted handle-role warnings. No independent-source acceptance is claimed.",
+    "next": "Do not reuse these generated files as valid interoperability samples; retain both readers\u2019 failure diagnostics and seek a different source or fix the producer profile."
+  }
 }
