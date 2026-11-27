@@ -60,8 +60,8 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||(wideGraph&&(!s(9,"$HANDSEED")||!s(5,extraWide?seed.c_str():sharedRecord?"100000014":"100000012")))
     ||!s(9,"$CMATERIAL")||!s(347,blockHandle)||!s(0,"ENDSEC")
     ||!s(0,"SECTION")||!s(2,"TABLES")||!s(0,"TABLE")||!s(2,"LAYER")
-    ||(multiPlot&&(!s(5,"2")||!s(330,"0")||!s(100,"AcDbSymbolTable")))||!h(70,multiPlot?2:1)
-    ||!s(0,"LAYER")||!s(5,"90")||(multiPlot&&!s(330,"2"))||!s(100,"AcDbSymbolTableRecord")||!s(100,"AcDbLayerTableRecord")
+    ||!s(5,"2")||!s(330,"0")||!s(100,"AcDbSymbolTable")||!h(70,multiPlot?2:1)
+    ||!s(0,"LAYER")||!s(5,"90")||!s(330,"2")||!s(100,"AcDbSymbolTableRecord")||!s(100,"AcDbLayerTableRecord")
     ||!s(2,"RAWTEST")||!h(70,0)||!h(62,7)||!s(6,"CONTINUOUS")||!s(347,blockHandle)
     ||(multiPlot&&!s(390,"71")))return false;
  if(multiPlot&&(!s(0,"LAYER")||!s(5,duplicateLayerHandle?"90":"91")||!s(330,"2")||!s(100,"AcDbSymbolTableRecord")
@@ -134,6 +134,10 @@ static bool defaultRoundTrip(const std::filesystem::path& in,const std::filesyst
  if(!defaultSource(in,binary,collision,version))return false;
  dx_data data;Exporter io;
  if(!io.fileImport(in.string(),&data,false)||!defaultGraph(data,version))return false;
+ std::uint32_t sourceControl=0u,sourceDictionary=0u;
+ if(!data.getLayerTableControlExtensionDictionary(sourceControl,sourceDictionary)
+     ||sourceControl!=2u||sourceDictionary!=0u||data.layers.size()!=1u
+     ||data.layers.front().parentHandle!=sourceControl)return false;
  const auto write=[&](){return io.fileExport(out.string(),version,binary,&data,false,true);};
  const auto verify=[&](){
   dx_data check;dx_iface reader;
@@ -844,7 +848,16 @@ static bool wideSourceTest() {
     }
     return true;
 }
-int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("compact-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directories(dir);struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};auto in=dir/"in.dxf",out=dir/"out.dxf";
+int main(int argc,char**argv){
+ if(argc==5&&std::string(argv[1])=="--emit-default-material-source") {
+  const std::filesystem::path destination(argv[2]);const std::string version(argv[3]),encoding(argv[4]);
+  if(std::filesystem::exists(destination)||std::filesystem::is_symlink(destination)
+      ||(version!="AC1024"&&version!="AC1027")
+      ||(encoding!="ascii"&&encoding!="binary"))return 1;
+  return defaultSource(destination,encoding=="binary",false,version=="AC1024"?DRW::AC1024:DRW::AC1027,
+      false,nullptr,false,nullptr,false,0u,false,0u,340,0u,"C:\\textures\\tile.png")?0:1;
+ }
+ auto dir=std::filesystem::temp_directory_path()/("compact-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directories(dir);struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};auto in=dir/"in.dxf",out=dir/"out.dxf";
  for(bool binary:{false,true}){if(argc==2){std::filesystem::copy_file(argv[1],in,std::filesystem::copy_options::overwrite_existing);}else if(argc!=1||!source(in,binary))return 1;
   dxfRW direct(in.string().c_str());Old old;if(direct.read(&old,false)||old.typed||old.raw)return 2;Facet f;f.enabled=false;if(direct.read(&f,false)||f.typed||f.raw)return 3;f.enabled=true;if(!direct.read(&f,false)||f.typed!=3||f.raw!=3)return 4;
   DRW_Material copied=f.last;DRW_Material moved=std::move(copied);if(!moved.requiresRawDxfMaterialReplay())return 20;std::ofstream(out,std::ios::trunc)<<"sentinel";dxfRW standalone(out.string().c_str());DirectWriter typed(standalone);typed.material=moved;if(standalone.write(&typed,DRW::AC1027,binary)||typed.ok||bytes(out)!="sentinel")return 21;dwgRW dwg(out.string().c_str());DirectDwgWriter typedDwg(dwg);typedDwg.material=moved;if(dwg.write(&typedDwg,DRW::AC1027,true)||!typedDwg.registered||typedDwg.ok||bytes(out)!="sentinel")return 22;
