@@ -22,6 +22,6 @@
     "consumerCommit": "b4be27ee",
     "failure": "Hosted Linux ARM64 run 45965811535 failed the Python all-writable-variants test: R12 export correctly reported one explicit layer-lineweight loss, while the test required no loss.",
     "change": "Require exactly one layer-lineweight omission and its warning for R12/R14, retaining zero-loss expectations for newer formats.",
-    "validation": "The local macOS ARM64 14-variant Python round trip and legacy layer-width regression pass, as do plan structure, candidate and actual-base checks plus 31 checker regressions. Hosted rerun is pending."
+    "validation": "The local macOS ARM64 14-variant Python round trip and legacy layer-width regression pass, as do plan structure, candidate and actual-base checks plus 31 checker regressions. At b4be27ee, hosted Linux ARM64 passed (run 45967979013, job 140401176083); plan sync and the DWG sanitizer job also passed. Other hosted jobs remain pending."
   }
 }
