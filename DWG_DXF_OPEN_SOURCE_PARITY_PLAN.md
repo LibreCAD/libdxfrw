@@ -29,8 +29,12 @@ evidence are recorded in `docs/research/` and Git history.
   rejects embedded-NUL carrier handles and dictionary strings before writing,
   with ASCII/binary mutation controls and retry. The [entity-source binding](docs/research/p8d-librecad-sparse-material-source-entity-edges-2026-11-26.json)
   refuses selected deleted, redirected or replaced material references before
-  export and on late checks, with block-owner and retry controls. Complete
-  physical entity-source coverage and zero-versus-absent group 347 remain open.
+  export and on late checks, with block-owner and retry controls. The
+  [physical entity-source guard](docs/research/p8d-librecad-physical-entity-material-source-2026-11-26.json)
+  rejects repeated or explicit-zero group 347 and incomplete source streams,
+  and binds selected physical targets to imported references with ASCII, binary,
+  block, rollback and retry controls. Qualify additional entity and producer
+  profiles and complete semantic delivery separately.
   A [duplicate-source control](docs/research/p8d-librecad-sparse-material-duplicate-entity-2026-11-26.json)
   verifies refusal, preserved destination and retry for one material/nonmaterial
   LINE collision; qualify other duplicate layouts separately.
