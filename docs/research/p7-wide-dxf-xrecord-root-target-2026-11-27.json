@@ -1,7 +1,7 @@
 {
   "date": "2026-11-27",
   "scope": "Generated AC1027 ASCII and binary DXF XRECORD referencing the verified named-object root dictionary with group 341.",
-  "implementationDigestSha256": "   most eight selected chains and 16 proven pointers per XRECORD. Targets are\n   restricted to the verified root, selected dictionaries and selected XRECORDs;\n   see the [root-reference control](docs/research/p7-wide-dxf-xrecord-root-target-2026-11-27.json).\n   The public semantic API remains 32-bit;",
+  "implementationDigestSha256": "2f93149bf4699cf7aeb9c59e03867c229a36c8443fdff1d6484be662b33be387",
   "converterSha256": "93aa154b836f12f72e57f1eddb1911a6653f20d802aac6c3bc3d725fdcac1b78",
   "change": "Allow a selected XRECORD pointer to target the already-verified root dictionary, reusing source identity, alias, live binding and staged output checks. Unselected dictionaries and other unqualified target types remain refused.",
   "hashes": {

@@ -39,7 +39,7 @@ static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.
 
 // Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u, bool sharedRecord=false, unsigned crossReference=0u, int sharedReferenceCode=340, unsigned extraSelectedPointers=0u) {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u, bool sharedRecord=false, unsigned crossReference=0u, int sharedReferenceCode=340, unsigned extraSelectedPointers=0u, const char* description="") {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -84,7 +84,7 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
   if(!s(3,x.first)||!s(350,x.second))return false;
  for(const auto& x:std::vector<std::pair<const char*,const char*>>{{"ByBlock",blockHandle},{"ByLayer","68"},{"Global","6A"}}) {
   if(!s(0,"MATERIAL")||!s(5,x.second)||!s(102,"{ACAD_REACTORS")||!s(330,"67")||!s(102,"}")
-    ||!s(330,"67")||!s(100,"AcDbMaterial")||!s(1,x.first)||!s(2,"")||!h(70,0)||!d(40,1)
+    ||!s(330,"67")||!s(100,"AcDbMaterial")||!s(1,x.first)||!s(2,description)||!h(70,0)||!d(40,1)
     ||!h(71,1)||!d(41,1)||!i(91,-1023410177)||!d(42,1)||!h(72,1)||!s(3,"")
     ||!h(73,1)||!h(74,1)||!h(75,1)||!d(44,0.5)||!h(73,0)||!d(45,1)||!d(46,1)
     ||!h(77,1)||!s(4,"")||!h(78,1)||!h(79,1)||!h(170,1)||!d(48,1)||!h(171,1)
@@ -155,6 +155,12 @@ static bool defaultRoundTrip(const std::filesystem::path& in,const std::filesyst
   if(dxfMaterial::hasEzdxfDefaultShape(bad))return false;
   bad=raw.groups;bad[dxfMaterial::ezdxfDefaultPrefixSize]=DRW_Variant(73,std::string("0"));
   if(dxfMaterial::hasEzdxfDefaultShape(bad))return false;}
+ {auto unsafe=raw.groups;unsafe[7]=DRW_Variant(2,std::string("unsafe^text"));
+  if(dx_material_body::safeOpaqueTranscode(unsafe))return false;
+  unsafe[7]=DRW_Variant(2,std::string("unsafe\\text"));
+  if(dx_material_body::safeOpaqueTranscode(unsafe))return false;
+  unsafe[7]=DRW_Variant(2,std::string("unsafe\xc3\xa9"));
+  if(dx_material_body::safeOpaqueTranscode(unsafe))return false;}
  if(!reject([&](){raw.groups.back()=DRW_Variant(94,62);},[&](){raw=original;}))return false;
  auto& material=data.materials.front();const auto name=material.m_name;
  if(!reject([&](){material.m_name="changed";},[&](){material.m_name=name;}))return false;
@@ -168,9 +174,30 @@ static bool defaultRoundTrip(const std::filesystem::path& in,const std::filesyst
  if(!lateRefused||bytes(out)!="sentinel"||!write()||!verify())return false;
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
  if(io.fileExport(out.string(),version==DRW::AC1024?DRW::AC1027:DRW::AC1024,binary,&data,false,true)||bytes(out)!="sentinel")return false;
- std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
- if(io.fileExport(out.string(),version,!binary,&data,false,true)||bytes(out)!="sentinel")return false;
+ if(!io.fileExport(out.string(),version,!binary,&data,false,true))return false;
+ {dx_data converted;dx_iface reader;
+  if(!reader.fileImport(out.string(),&converted,false)||!defaultGraph(converted,version))return false;
+  for(const auto& source:data.rawMaterialObjects){
+   const auto found=std::find_if(converted.rawMaterialObjects.begin(),converted.rawMaterialObjects.end(),
+       [&](const auto& item){return item.groups.size()==source.groups.size()
+           &&item.groups[6].type()==DRW_Variant::STRING&&source.groups[6].type()==DRW_Variant::STRING
+           &&*item.groups[6].content.s==*source.groups[6].content.s;});
+   if(found==converted.rawMaterialObjects.end())return false;
+   for(std::size_t i=5u;i<source.groups.size();++i)
+    if(!dx_material_body::equal(source.groups[i],found->groups[i]))return false;
+  }}
  return write()&&verify();
+}
+
+static bool defaultUnsafeTranscode(const std::filesystem::path& in,const std::filesystem::path& out,bool binary) {
+ if(!defaultSource(in,binary,false,DRW::AC1027,false,nullptr,false,nullptr,false,0u,false,0u,340,0u,"unsafe^text"))return false;
+ dx_data data;Exporter io;
+ if(!io.fileImport(in.string(),&data,false))return false;
+ const auto same=[&](){return io.fileExport(out.string(),DRW::AC1027,binary,&data,false,true);};
+ if(!same())return false;
+ std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+ if(io.fileExport(out.string(),DRW::AC1027,!binary,&data,false,true)||bytes(out)!="sentinel")return false;
+ return same();
 }
 
 static bool multiPlotRoundTrip(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision) {
@@ -759,6 +786,8 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
  if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true})
   for(const auto version:{DRW::AC1024,DRW::AC1027})
    if(!defaultRoundTrip(in,out,binary,collision,version))return 33;
+ if(argc==1)for(bool binary:{false,true})
+  if(!defaultUnsafeTranscode(in,out,binary))return 43;
  if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true})
   if(!multiPlotRoundTrip(in,out,binary,collision))return 34;
  if(argc==1)for(bool binary:{false,true})

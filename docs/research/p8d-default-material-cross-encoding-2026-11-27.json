@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-27",
+  "scope": "Unchanged raw-only ezdxf-shaped default MATERIAL graphs, DXF AC1024 and AC1027, same version ASCII/binary conversion; safe printable ASCII strings only.",
+  "implementationDigestSha256": "2c95d9eaf9ca292ecaf2ed204c0d03716ecbb4e814d235da6511ba9127aaa498",
+  "converterSha256": "cb4f899fe6711650a93f73fc039a3f47b7cae4e103d5653ffe0d9d56b1d94420",
+  "change": "Transcode the complete unchanged opaque MATERIAL body through its typed DXF scalars without assigning a meaning to its second group 73; require the same modeled-prefix reconciliation and source identity checks. Escape-sensitive, non-ASCII and control text remains refused across encodings.",
+  "independentReadback": {
+    "reader": "ezdxf 1.4.5",
+    "generatedSource": "Locally generated AC1027 graph with three default MATERIALs, two layers, dictionary, XRECORD and plot-style dependencies; source is output of a prior libdxfrw control, not an independent producer.",
+    "asciiToBinary": {
+      "source": "2c345ffa12341d2a7ae9434d69650123994d253f38d213a77d166676b45b6d6c",
+      "output": "a9668025e8c84db83ef9e7868de2488685741ccc45806a946db767eefbc86138"
+    },
+    "binaryToAscii": {
+      "source": "bde9dbed5a625180ead4a5a3ae010bb2273a1af964674ec0b0f35b69348b518f",
+      "output": "7e9d358777bbb169962aca411a1fddab4e78ee3be1d5faa14e97cb0dafbdab1e"
+    },
+    "comparison": "All 55 ordered MATERIAL body groups per material match after type-aware decoding; group 91 compares its 32-bit color pattern because ASCII and binary can use unsigned and signed spellings. Mapped 27 graph objects and 26 dictionary entries, owner/reactor edges, XRECORD payloads, two layer references, and plot-style links match; source and output audits report zero errors and fixes."
+  },
+  "validation": [
+    "Generated AC1024/AC1027 source controls cover both directions, handle collisions and all MATERIAL groups, plus same-version successful retry.",
+    "Escaped-text source is refused without replacing destination across encodings and can be retried in its source encoding; helper also rejects backslash and non-ASCII text.",
+    "Three focused CTests pass: whole source capture, compact MATERIAL graph, DWG AC1024 plot style.",
+    "GCC strict syntax check of test translation unit passes."
+  ],
+  "limits": [
+    "This is field-transport and graph evidence, not native MATERIAL rendering or proof of the unknown group 73 meaning.",
+    "Cross-encoding wide-handle graph projection remains refused; other producer profiles, escaped or non-ASCII text, edited opaque bodies and cross-version exports remain outside this slice.",
+    "No external drawing fixture was added or committed."
+  ]
+}

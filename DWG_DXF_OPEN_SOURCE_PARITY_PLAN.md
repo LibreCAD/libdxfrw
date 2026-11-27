@@ -15,11 +15,11 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current implementation digest is
-`2f93149bf4699cf7aeb9c59e03867c229a36c8443fdff1d6484be662b33be387`
+`2c95d9eaf9ca292ecaf2ed204c0d03716ecbb4e814d235da6511ba9127aaa498`
 (782 inputs). Current-head hosted checks are pending. The previous
 [focused, package and FreeCAD matrix](docs/research/p8-native-freecad-f6c0-2026-11-27.json)
 and [fast lane](docs/research/p8-fast-lane-f6c0-2026-11-27.json) pass for the
-preceding digest; recheck profiles affected by the root-reference change.
+preceding digest; recheck profiles affected by the default MATERIAL transcode.
 All support claims remain experimental.
 
 ## Ready work and cross-cutting dependencies
@@ -35,7 +35,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    unqualified sparse-MATERIAL saves. Extend the 256 KiB capture only with
    aggregate memory accounting. Reuse the [physical inventory join](docs/research/p8d-librecad-material-physical-inventory-2026-11-26.json),
    [entity reference guard](docs/research/p8d-librecad-physical-entity-material-source-2026-11-26.json),
-   and [binary replay profile](docs/research/p8d-sparse-binary-material-to-ascii-2026-11-26.json).
+   and [binary replay profile](docs/research/p8d-sparse-binary-material-to-ascii-2026-11-26.json). The bounded [unchanged default MATERIAL cross-encoding control](docs/research/p8d-default-material-cross-encoding-2026-11-27.json) retains group 73 as opaque; extend escaped/non-ASCII text and other producer bodies only with separate proof.
    Verify native FreeCAD and LibreCAD paths separately.
 2. **IMAGE and plot-style graphs.** Extend beyond the admitted 32-image bound,
    additional layouts/versions, unknown fields, layers, clipping and references

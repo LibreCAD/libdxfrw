@@ -329,6 +329,16 @@ inline bool spelling(const DRW_Variant& value,std::string& result) {
     if(begin==std::string::npos||text.empty()||text.back()!='\n')return false;
     result=text.substr(begin+1u,text.size()-begin-2u);return true;
 }
+// A cross-encoding replay must not reinterpret text escape sequences or
+// depend on the source code page. Numeric fields retain their typed values.
+inline bool safeOpaqueTranscode(const std::vector<DRW_Variant>& groups) {
+    for (const auto& group : groups) {
+        if (group.type()!=DRW_Variant::STRING || !group.content.s) continue;
+        for (const unsigned char c : *group.content.s)
+            if (c<0x20u || c>0x7eu || c=='^' || c=='\\') return false;
+    }
+    return true;
+}
 // Reconcile each represented field against an immutable import baseline.
 // Disjoint raw/typed edits compose; a same-field disagreement refuses. A raw
 // edit owns unknown groups. Only changed represented slots are rewritten.
@@ -339,11 +349,12 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
     const bool sourceBinary=!baseline.hasRawValues;
     if (typed.requiresRawDxfMaterialReplay()) {
         // The AC1024/AC1027 default shape has an ambiguous second group 73. Replay
-        // only its unchanged source, in the same encoding, after matching the
+        // only its unchanged source, after matching the
         // modeled prefix; staged OBJECTS inspection still verifies output.
         if ((baseline.m_version==DRW::AC1024 || baseline.m_version==DRW::AC1027)
             && dxfMaterial::hasEzdxfDefaultShape(baseline.groups)) {
-            if (binary!=sourceBinary || raw.name!=baseline.name || raw.handle!=baseline.handle
+            if ((binary!=sourceBinary && !safeOpaqueTranscode(baseline.groups))
+                || raw.name!=baseline.name || raw.handle!=baseline.handle
                 || raw.parentHandle!=baseline.parentHandle || raw.m_version!=baseline.m_version
                 || raw.hasRawValues!=baseline.hasRawValues || raw.rawValues!=baseline.rawValues
                 || raw.groups.size()!=baseline.groups.size()
@@ -359,7 +370,9 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
             if(!decode(prefix,original,sourceBinary)
                 || !commonEqual(original,typed,baseline.m_version)
                 || !dxfMaterial::sameBodyState(original,typed)) return false;
-            output=raw;name=typed.m_name;return true;
+            output=raw;
+            if(binary){output.hasRawValues=false;output.rawValues.clear();}
+            name=typed.m_name;return true;
         }
         constexpr int codes[]={5,102,330,102,330,100,1,72,94};
         if (baseline.m_version!=DRW::AC1027 || baseline.groups.size()!=9u
