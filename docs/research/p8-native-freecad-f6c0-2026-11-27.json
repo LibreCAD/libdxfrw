@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-27",
+  "headSha": "f6c06139829194b43f35caa5fc976e36c83bd247",
+  "implementationDigestSha256": "31042294e6ebc544fdb2894e8fff382256052a47f0b3382c6bce7bba63193e71",
+  "focused": {
+    "run": "https://github.com/dxli/libdxfrw/actions/runs/45954792288",
+    "result": "PASS: workflow contract and seven focused CTests on each of Linux GCC, macOS Clang and Windows MSVC; broad and extended fuzz jobs not run.",
+    "receiptSha256": {
+      "windows-msvc": "4c998c326a63b7ecb946134f0ba740ee633e225541522ccfcce99dae61621e51",
+      "macos-clang": "0385ecca9eee58e2c15a07e58ddd463401c9894feacbe1b368c2ea65436ab51c",
+      "linux-gcc": "685790829497e644ce971b413fde3cc9d3c1c8f320727b19cba6240095c5fd8e"
+    }
+  },
+  "package": {
+    "run": "https://github.com/dxli/libdxfrw/actions/runs/45954792258",
+    "result": "PASS: static and shared installed-package relocation and ABI version boundary checks on Linux, macOS and Windows; each downloaded receipt reports version 2 rejected and version 3 accepted."
+  },
+  "freecad": {
+    "run": "https://github.com/dxli/libdxfrw/actions/runs/45954878528",
+    "result": "PASS: FreeCAD 1.1.4 installed converter handoff; 16 Linux and 17 Windows tests.",
+    "lastTestSha256": {
+      "linux": "0dc549125ffa4a147b85373f79b38f58034ae145981b4752dcc7fa9b3fcba665",
+      "windows": "30db3f2382c10ef25237e6ef1aca3533ed6bb4d6c5d597729d9c8cd07783fd36"
+    },
+    "profiles": "Generated AC1021 line, AC1021/AC1024/AC1032 primitives, legacy POLYFACE open/insert and CLI controls; the Windows set also checks batch output names."
+  },
+  "limits": [
+    "Applies to this code head and digest; later documentation-only commits have the same implementation inputs.",
+    "Focused consumer and package checks do not establish full C++ ABI, GUI behavior, native producer semantics or broad DWG/DXF/3D parity.",
+    "FreeCAD candidate-build and GUI jobs, final broad suite and extended fuzz were not run.",
+    "No support claim or package gate promoted."
+  ]
+}

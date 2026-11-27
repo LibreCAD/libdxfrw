@@ -16,12 +16,10 @@ advisory, and excluded. Completed slice history and validation remain in
 
 The current implementation digest is
 `31042294e6ebc544fdb2894e8fff382256052a47f0b3382c6bce7bba63193e71`
-(782 inputs). The [current code-head fast lane](docs/research/p8-fast-lane-f6c0-2026-11-27.json)
-passes; remaining current-head hosted jobs must finish before release. The prior
-[`219b5164` focused matrix](docs/research/p8-native-focused-219b-2026-11-27.json),
-[fast lane](docs/research/p8-fast-lane-219b-2026-11-27.json), and
-[FreeCAD handoff](docs/research/p8-freecad-platform-219b-2026-11-27.json)
-do not qualify later changed code. All support claims remain experimental.
+(782 inputs). The [code-head focused, package and FreeCAD matrix](docs/research/p8-native-freecad-f6c0-2026-11-27.json)
+and [fast lane](docs/research/p8-fast-lane-f6c0-2026-11-27.json) pass for the
+current implementation; recheck any profile affected by later code changes.
+All support claims remain experimental.
 
 ## Ready work and cross-cutting dependencies
 
