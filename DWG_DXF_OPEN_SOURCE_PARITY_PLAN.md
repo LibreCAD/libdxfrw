@@ -84,7 +84,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    covers selected flat and nested create/lock/edit cases and repeated new IDs;
    the [shared shadow probe](docs/research/p8d-librecad3-new-stack-group-preflight-2026-11-27.json)
    also projects six tested source entity types from selected built-in stacks,
-   including [loop and removal effects](docs/research/p8d-librecad3-loop-removal-group-preflight-2026-11-27.json). [POINT projection and layer rebinding](docs/research/p8d-librecad3-point-3d-layer-edits-2026-11-27.json) now preserve its three coordinates through selected transforms and layer changes.
+   including [loop and removal effects](docs/research/p8d-librecad3-loop-removal-group-preflight-2026-11-27.json). [POINT projection and layer rebinding](docs/research/p8d-librecad3-point-3d-layer-edits-2026-11-27.json) now preserve its three coordinates through selected transforms and layer changes; [POINT mirror](docs/research/p8d-librecad3-point-reflection-2026-11-27.json) uses the existing shared 3D line-reflection semantics.
    The [removal journal repair](docs/research/p8d-librecad3-actual-removal-journal-2026-11-27.json)
    restores current entities and blocks rather than stale or absent snapshots.
    Cover viewport
