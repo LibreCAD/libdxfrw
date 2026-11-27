@@ -36,6 +36,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    unqualified sparse-MATERIAL saves. Extend the 256 KiB capture only with
    aggregate memory accounting. Reuse the [physical inventory join](docs/research/p8d-librecad-material-physical-inventory-2026-11-26.json),
    [entity reference guard](docs/research/p8d-librecad-physical-entity-material-source-2026-11-26.json),
+   [LINE delivery guard](docs/research/p8d-librecad-sparse-material-line-delivery-2026-11-27.json),
    and [binary replay profile](docs/research/p8d-sparse-binary-material-to-ascii-2026-11-26.json). The bounded [unchanged default MATERIAL cross-encoding control](docs/research/p8d-default-material-cross-encoding-2026-11-27.json) retains group 73 as opaque; the [numeric boundary control](docs/research/p8d-default-material-transcode-numeric-boundaries-2026-11-27.json) covers exact binary64 transport. Extend escaped/non-ASCII text and other producer bodies only with separate proof.
    Verify native FreeCAD and LibreCAD paths separately.
 2. **IMAGE and plot-style graphs.** Extend beyond the admitted 32-image bound,

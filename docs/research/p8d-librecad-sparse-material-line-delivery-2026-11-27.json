@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-line-delivery-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "f610d3be",
+  "finding": "Opt-in sparse-MATERIAL replay compared material-bearing entity callbacks to the physical references but did not verify delivery of an unrelated LINE without group 347. Suppressing that callback caused four generated graph variants to export successfully and overwrite an existing destination despite the missing line.",
+  "change": "For the opted-in bounded source, retain physical LINE identities with model or block scope and compare them to LINEs delivered to LibreCAD. Reject missing or duplicate identities, malformed handles and scope mismatches before graph replay. Reset observations on reimport and retain the existing graph and output checks.",
+  "validation": {
+    "focused": "Current installed codec: 9474 assertions in 19 MATERIAL and IMAGE cases passed on macOS ARM64, including missing unmaterialized lines in model space and a block, destination preservation, corrected same-filter reimport and retry. Bundled filter translation unit compiled.",
+    "independent": "ezdxf 1.4.5 read a successful generated AC1021 retry, found both expected LINE endpoints, confirmed the first LINE and ACAD_MATERIAL dictionary target the same PlainMat object, and found no material link on the second LINE. Audit: zero errors and zero fixes.",
+    "outputSha256": "cff771fca18c2a049626b0c002a4febb8a75274c45c9475903f4028e5dd430b4"
+  },
+  "limits": [
+    "This proves selected LINE identity delivery and model-versus-block scope, not LINE geometry preservation in every profile, exact block ownership, all entity types, or independent producer semantics.",
+    "Ordinary sparse-MATERIAL replay remains disabled; external producer and native platform qualification remain open.",
+    "No drawing fixture was committed."
+  ]
+}
