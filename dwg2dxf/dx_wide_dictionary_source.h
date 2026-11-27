@@ -120,9 +120,9 @@ inline bool recordReferences(const Object& object,std::size_t body,std::vector<R
         // roles need separate closure proof. Do not treat them as harmless.
         if(f.code==102||f.code==101||f.code==1001||f.code==100
             ||f.code==5||f.code==105||f.code==1005
-            ||(f.code>=320&&f.code<=369&&!(f.code>=332&&f.code<=349))
+            ||(f.code>=320&&f.code<=369&&!(f.code>=330&&f.code<=349))
             ||(f.code>=390&&f.code<=399)||(f.code>=480&&f.code<=481))return false;
-        if(f.code>=332&&f.code<=349) {
+        if(f.code>=330&&f.code<=349) {
             std::uint64_t value=0u;
             if(references.size()>=16u||!hex(f.text,value)||!value)return false;
             references.push_back({f,value});

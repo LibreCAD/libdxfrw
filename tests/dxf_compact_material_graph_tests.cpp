@@ -401,10 +401,10 @@ static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std:
  if(!roleRefused||bytes(out)!="sentinel"||!write()||!verify())return false;
  if(extraSelectedPointers) {
   auto first=std::find_if(record.m_dataEntries.begin(),record.m_dataEntries.end(),
-      [](const auto& value){return value.code()>=332&&value.code()<=349;});
+      [](const auto& value){return value.code()>=330&&value.code()<=349;});
   if(first==record.m_dataEntries.end())return false;
   auto second=std::find_if(std::next(first),record.m_dataEntries.end(),
-      [](const auto& value){return value.code()>=332&&value.code()<=349;});
+      [](const auto& value){return value.code()>=330&&value.code()<=349;});
   if(second==record.m_dataEntries.end())return false;
   std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
   std::iter_swap(first,second);const bool orderRefused=!write();record=saved;
@@ -420,11 +420,6 @@ static bool wideGraphCrossReferenceRetry(const std::filesystem::path& in,const s
  Exporter io;if(!io.enableDxfWideGraphProjection())return false;
  if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,0u,true,true))return false;
  dx_data rejected;std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
- if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
- // Some independent readers consume an XRECORD body group 330 as an owner.
- if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true,330))return false;
- if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
- if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true,331))return false;
  if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
  if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true,332,16u))return false;
  if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
@@ -775,6 +770,8 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u)
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u,341)
      ||!wideGraphSharedDictionary(in,out,binary,collision,1u,349)
+     ||!wideGraphSharedDictionary(in,out,binary,collision,2u,330)
+     ||!wideGraphSharedDictionary(in,out,binary,collision,2u,331)
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u,332)
      ||!wideGraphSharedDictionary(in,out,binary,collision,1u,339)
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u,341,3u)
