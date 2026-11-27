@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-curves-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "f7edc1c7",
+  "codecLibrarySha256": "715e638095a7994d091e3bf330a3710c993a703993df5cad709bababbb23f517",
+  "finding": "The bounded ordinary sparse-material profile accepted only LINE records and refused otherwise eligible CIRCLE and ARC entities, including edits and newly added curves.",
+  "change": [
+    "Share bounded physical-to-delivered identity checks across LINE, CIRCLE and ARC, including records without material references; reject missing delivery, duplicate handles or wrong entity type.",
+    "Extend source-field, decoded geometry, default appearance and live-output checks to planar circles and non-reversed arcs. Enforce LibreCAD geometry validity, finite values, supported angle bounds and the existing material graph/staged-output gates.",
+    "Retain refusal and destination-preserving retry for unsupported geometry or source data."
+  ],
+  "validation": {
+    "focused": "macOS ARM64 current installed codec: 10032 assertions across 20 MATERIAL and IMAGE cases pass. The bundled-codec filter translation unit compiles. Cases cover mixed and single-kind sources, linked and unlinked curves, edited and newly added circles/arcs, reopen/resave, a 300-to-20-degree wrapped arc, unsupported thickness/elevation/angles, reverse direction, duplicate identities, suppressed delivery, modified typed or physical geometry, destination preservation and same-filter retry.",
+    "peer": "ezdxf 1.4.5 independently read three locally generated resaves. It confirmed edited linked circle and arc geometry and material links; the unlinked wrapped arc preserved its 300-to-20-degree bounds; newly added unlinked curves kept their geometry. Each selected LINE, layer, header and ACAD_MATERIAL dictionary named the same material. Audits reported zero errors and fixes.",
+    "scratchOutputSha256": {
+      "editedLinked": "f65155c5fd9ebf719782f48b110bc4a398e4babcd26133ebbcb190fe466b053e",
+      "wrappedResave": "ece89cc9e19b1640002089abb830402aa1948ca679e97405a1d5a8c517187656",
+      "addedCurves": "34620b9828c9229f3ada7482b735a4fea599321e7e8befcdb82124e14c7cec48"
+    }
+  },
+  "limits": [
+    "Only the previously bounded ASCII AC1021 graph and simple planar/default-appearance LINE, CIRCLE and non-reversed ARC profile is admitted. Elevated, thick, nondefault-extrusion, unsupported angle, nondefault appearance and other entity profiles remain guarded.",
+    "Generated inputs and independent output readback do not establish native producer semantics, broad DXF/DWG parity, GUI qualification or other platform support. No drawing fixture was committed."
+  ]
+}
