@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-image-refresh-shared-path-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "97475fb8ff1052651a47a5949399e996bd3bf350",
+  "parent": "57e44de6376790723832fd331095243ef27152a1",
+  "change": "Resolve raster files for display without modifying the stored IMAGE path. Refreshing or cloning one live image no longer makes shared IMAGEDEF paths disagree merely by converting one absolute path to relative.",
+  "validation": [
+    "Before the fix a Qt QApplication offscreen two-image shared-definition refresh failed to export, matching the path-divergence mechanism.",
+    "After the fix the Qt regression covers 2 and 64 locally generated images with one shared definition, one refreshed and moved image, divergent-path refusal preserving a sentinel, corrected same-filter retry, and fresh reopen.",
+    "Qt GUI selector passes 150 assertions in 8 cases; system-codec IMAGE selector passes 9718 assertions in 10 cases. The changed image translation unit compiles with the bundled codec.",
+    "ezdxf 1.4.5 independently checks a 64-image source and edited output: one image moves from (1827,2,0) to (4,2,0), 63 remain unchanged, one IMAGEDEF and 64 reciprocal IMAGEDEF_REACTOR links pass and both audits are clean."
+  ],
+  "proof": {
+    "sourceSha256": "81f989064dee2ae1d5158044f2c5bb95030b60fb6c1b224934b63d3b32f2e06b",
+    "outputSha256": "894106f4552abafd60e24b9929792aaf577d4dd177dec78fad6047af1401152e",
+    "redLogSha256": "8a1041fb2afb1ed517c971d6ed581d138f2e739f68f83a595dc32f308bf7012e",
+    "guiLogSha256": "0a0399819f927f44d46c8bf650eb24b360aaf2fe3b29d5df34d5ec67fc003b6f",
+    "imageSuiteLogSha256": "de39f328aba6a9cc2436d3fb7ac31ab39f7725360af23faf68b6a864c1f12cde"
+  },
+  "limits": [
+    "The earlier native 64-image canvas rendered, but its save failed; the reproduced refresh-path mechanism is consistent with that failure, not proof of its exclusive cause. The fixed native app has not been rerun.",
+    "Generated AC1021 profile with one shared definition, selected editing and Qt offscreen; no external producer, broad native GUI, platform or general image parity claim.",
+    "Stored absolute paths now remain absolute during display refresh; portable path rewriting is not established by this test. No drawing fixture was committed."
+  ]
+}
