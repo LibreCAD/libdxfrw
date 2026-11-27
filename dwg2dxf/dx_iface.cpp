@@ -94673,7 +94673,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !m_dxfAssociativeValueSources.empty()
             || needsDwgBlockRepresentationDataOutput
             || needsDwgDynamicBlockOutput
-            || needsDxfDynamicReplay || needsDxfAssociativeReplay || m_dxfLayerMaterialState.legacyPlotCrossVersion)
+            || needsDxfDynamicReplay || needsDxfAssociativeReplay
+            || m_dxfLayerMaterialState.legacyPlotCrossVersion
+            || m_dxfLayerMaterialState.auditedDefaultPlotSource)
         && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgLayoutsOutput, needsDwgLayerStateOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, needsDwgBlockRepresentationDataOutput, needsDwgDynamicBlockOutput, needsDxfDynamicReplay, needsDxfAssociativeReplay, debug, requireResolvedOwners](const auto& view) {
             const auto reject = [debug, requireResolvedOwners](
                     const char* stage) {
@@ -97265,17 +97267,29 @@ bool repeatMaterialSource(const DRW_RawDxfObject& raw) noexcept {
     for(std::size_t i=0u;i<raw.groups.size();++i)if(raw.groups[i].code()!=codes[i])return false;
     return true;
 }
-bool repeatDictionarySource(const DRW_RawDxfObject& raw,const DRW_Dictionary& model) noexcept {
+bool repeatDictionarySource(const DRW_RawDxfObject& raw,const DRW_Dictionary& model,
+                            bool allowOmittedHardOwner=false) noexcept {
     try {
+        const bool omitted=allowOmittedHardOwner
+            && raw.groups.size()==4u+2u*model.m_entries.size();
         if(raw.name!="DICTIONARY" || raw.handle!=model.handle || raw.parentHandle!=model.parentHandle
-            || model.hardOwner!=0 || model.cloning!=1 || raw.groups.size()!=5u+2u*model.m_entries.size()) return false;
+            || model.hardOwner<0 || model.hardOwner>1
+            || (!allowOmittedHardOwner && model.hardOwner!=0)
+            || (omitted && model.hardOwner!=0) || model.cloning!=1
+            || !model.extData.empty() || !model.appData.empty()
+            || !model.reactorHandles.empty() || model.xDictHandle
+            || (!omitted && raw.groups.size()!=5u+2u*model.m_entries.size())) return false;
         std::size_t i=0;
         auto number=[&](int code,std::uint64_t expected){if(i>=raw.groups.size()||raw.groups[i].code()!=code)return false;std::uint64_t value=0;return dx_standard_output::handleValue(raw.groups[i++],value)&&value==expected;};
         auto text=[&](int code,std::string_view expected){if(i>=raw.groups.size()||raw.groups[i].code()!=code)return false;return dx_attdef_source::text(raw.groups[i++])==expected;};
         auto integer=[&](int code,int expected){if(i>=raw.groups.size()||raw.groups[i].code()!=code||raw.groups[i].type()!=DRW_Variant::INTEGER)return false;return raw.groups[i++].i_val()==expected;};
-        if(!number(5,model.handle)||!number(330,model.parentHandle)||!text(100,"AcDbDictionary")||!integer(280,0)||!integer(281,1))return false;
-        for(const auto& entry:model.m_entries)if(entry.m_dxfHandleCode!=DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
-            ||!text(3,entry.m_name)||!number(350,entry.m_handle))return false;
+        if(!number(5,model.handle)||!number(330,model.parentHandle)||!text(100,"AcDbDictionary")
+            ||(!omitted&&!integer(280,model.hardOwner))||!integer(281,1))return false;
+        for(const auto& entry:model.m_entries) {
+            const int role=static_cast<int>(entry.m_dxfHandleCode);
+            if ((role!=350 && (!allowOmittedHardOwner || role!=360))
+                ||!text(3,entry.m_name)||!number(role,entry.m_handle))return false;
+        }
         return i==raw.groups.size();
     } catch (...) { return false; }
 }
@@ -97500,6 +97514,134 @@ bool dx_iface::finalizeLegacyPlot() const noexcept {
             &&dxfW->dxfWriteRecordHandleCount(root)==1u&&dxfW->dxfWriteRecordHandleCount(dict)==1u
             &&dxfW->dxfWriteRecordHandleCount(place)==1u
             &&dxfW->dxfWriteRecordHasIdentity(0x10u,"LAYER","TABLES")&&dxfW->dxfWriteRecordHasOwner(0x10u,2u);
+    } catch (...) {return false;}
+}
+
+bool dx_iface::hasUnchangedDxfAuditedDefaultPlot() const noexcept {
+    const auto& state=m_dxfLayerMaterialState;
+    try {
+        if (!state.auditedDefaultPlotSource || !state.plotActive
+            || !state.defaultPlotSourceActive || !state.active || !cData
+            || cData!=state.owner || cData->sourceFormat!=dx_source_format::DXF
+            || cData->sourceVersion!=DRW::AC1027 || state.version!=DRW::AC1027
+            || cData->importGeneration!=state.generation
+            || cData->layers.size()<2u || cData->layers.size()>64u
+            || cData->layers.size()!=state.rows.size()
+            || cData->dictionaries.size()>64u
+            || cData->dictionaryWithDefaults.size()!=1u
+            || cData->rawDictionaryWithDefaults.size()!=1u
+            || cData->rawPlaceholders.size()!=1u || !cData->placeholders.empty()
+            || !cData->hasSingleSuccessfulDictionaryDefaultImport()
+            || !hasUnchangedDxfMaterialSources() || !hasUnchangedDxfLayerMaterials()) return false;
+        const auto& capture=cData->m_tableDxfSource;
+        const auto plot=plotStyleSourceReport(*cData);
+        const auto resources=resourceOriginReport(*cData);
+        const auto& audit=capture.plotSourceAudit;
+        if (!plot.originalSourcesMatched || resources.state!=ResourceOriginState::OriginsBound
+            || !audit || !audit->root || !audit->root->input
+            || !audit->root->originBound || !audit->root->bodyMatched
+            || !audit->root->stateComplete || !audit->root->input->model
+            || !audit->root->input->raw || audit->records.size()!=2u
+            || audit->namedTargets!=1u || audit->plotTargets.size()!=1u
+            || audit->dictionary!=state.plotOwner || audit->defaultTarget!=state.plotTarget
+            || !audit->plotTargets.count(state.plotTarget)
+            || state.plotOwner!=state.defaultPlotDictionarySource
+            || state.plotTarget!=state.defaultPlotPlaceholderSource
+            || !state.plotTarget || state.plotTarget==DRW::NoHandle) return false;
+        const auto* root=dynamic_cast<const DRW_Dictionary*>(audit->root->input->model.get());
+        if (!root || root->parentHandle || root->m_entries.empty() || root->m_entries.size()>16u
+            || !cData->hasNamedObjectDictionary
+            || !repeatDictionarySource(*audit->root->input->raw,*root,true)
+            || !mlineDictionaryKeysEqual(*root,cData->namedObjectDictionary,{},DRW::AC1027)) return false;
+        std::unordered_set<std::uint32_t> targets;
+        unsigned plotRoots=0u;
+        std::size_t childEntries=0u;
+        for (const auto& entry:root->m_entries) {
+            if (!entry.m_handle || entry.m_handle==DRW::NoHandle
+                || !targets.insert(entry.m_handle).second) return false;
+            if (entry.m_name=="ACAD_PLOTSTYLENAME") {
+                if (entry.m_handle!=state.plotOwner || ++plotRoots!=1u) return false;
+                continue;
+            }
+            const auto original=capture.structuralAudits.find(entry.m_handle);
+            if (original==capture.structuralAudits.end() || !original->second
+                || !original->second->input || !original->second->input->model
+                || !original->second->input->raw
+                || !original->second->originBound || !original->second->bodyMatched
+                || !original->second->stateComplete) return false;
+            const auto* source=dynamic_cast<const DRW_Dictionary*>(original->second->input->model.get());
+            const DRW_Dictionary* live=nullptr;
+            for (const auto& dictionary:cData->dictionaries) if (dictionary.handle==entry.m_handle) {
+                if (live) return false;
+                live=&dictionary;
+            }
+            if (!source || !live || source->parentHandle!=root->handle
+                || source->m_entries.size()>256u-childEntries
+                || !repeatDictionarySource(*original->second->input->raw,*source,true)
+                || !mlineDictionaryKeysEqual(*source,*live,{},DRW::AC1027)) return false;
+            childEntries+=source->m_entries.size();
+        }
+        if (plotRoots!=1u) return false;
+        const auto dictionary=audit->records.find(state.plotOwner);
+        const auto placeholder=audit->records.find(state.plotTarget);
+        if (dictionary==audit->records.end() || placeholder==audit->records.end()
+            || !dictionary->second || !placeholder->second
+            || !dictionary->second->input || !placeholder->second->input
+            || !dictionary->second->input->model || !dictionary->second->input->raw
+            || !placeholder->second->input->raw) return false;
+        const auto& sourceDictionary=*dictionary->second->input->model;
+        const auto& rawDictionary=*dictionary->second->input->raw;
+        const auto& rawPlaceholder=*placeholder->second->input->raw;
+        const auto number=[](const DRW_Variant& group,int code,std::uint32_t expected) {
+            std::uint64_t value=0u;
+            return group.code()==code && dx_standard_output::handleValue(group,value) && value==expected;
+        };
+        const auto text=[](const DRW_Variant& group,int code,std::string_view expected) {
+            return group.code()==code && group.type()==DRW_Variant::STRING
+                && group.c_str()!=nullptr && std::string_view(group.c_str())==expected;
+        };
+        if (sourceDictionary.handle!=state.plotOwner || sourceDictionary.parentHandle!=root->handle
+            || state.plotOwner==root->handle || state.plotTarget==root->handle
+            || state.plotOwner==state.plotTarget
+            || sourceDictionary.hardOwner!=0 || sourceDictionary.cloning!=1
+            || sourceDictionary.m_entries.size()!=1u || sourceDictionary.m_entries.front().m_name!="Normal"
+            || sourceDictionary.m_entries.front().m_handle!=state.plotTarget
+            || sourceDictionary.m_entries.front().m_dxfHandleCode!=DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
+            || sourceDictionary.m_defaultEntryHandle!=state.plotTarget
+            || !sourceDictionary.hasCompleteDxfPayload() || !sourceDictionary.extData.empty()
+            || !sourceDictionary.appData.empty() || !sourceDictionary.reactorHandles.empty()
+            || sourceDictionary.xDictHandle || rawDictionary.name!="ACDBDICTIONARYWDFLT"
+            || rawDictionary.groups.size()!=8u || rawPlaceholder.name!="ACDBPLACEHOLDER"
+            || rawPlaceholder.groups.size()!=2u || rawPlaceholder.handle!=state.plotTarget
+            || rawPlaceholder.parentHandle!=state.plotOwner
+            || !number(rawDictionary.groups[0],5,state.plotOwner)
+            || !number(rawDictionary.groups[1],330,root->handle)
+            || !text(rawDictionary.groups[2],100,"AcDbDictionary")
+            || rawDictionary.groups[3].code()!=281
+            || rawDictionary.groups[3].type()!=DRW_Variant::INTEGER
+            || rawDictionary.groups[3].i_val()!=1
+            || !text(rawDictionary.groups[4],3,"Normal")
+            || !number(rawDictionary.groups[5],350,state.plotTarget)
+            || !text(rawDictionary.groups[6],100,"AcDbDictionaryWithDefault")
+            || !number(rawDictionary.groups[7],340,state.plotTarget)
+            || !number(rawPlaceholder.groups[0],5,state.plotTarget)
+            || !number(rawPlaceholder.groups[1],330,state.plotOwner)
+            || !plotSourceModelsEqual(sourceDictionary,cData->dictionaryWithDefaults.front(),DRW::AC1027)
+            || !retainedRawDxfObjectsEqual(rawDictionary,cData->rawDictionaryWithDefaults.front())
+            || !retainedRawDxfObjectsEqual(rawPlaceholder,cData->rawPlaceholders.front())) return false;
+        std::unordered_set<std::uint32_t> layerHandles;
+        for (const auto& layer:cData->layers) {
+            if (!layer.handle || layer.handle==DRW::NoHandle
+                || !layerHandles.insert(layer.handle).second) return false;
+            const auto found=capture.resourceOriginAudits.find(layer.handle);
+            if (found==capture.resourceOriginAudits.end() || !found->second || !found->second->input
+                || !found->second->originBound || !found->second->bodyMatched || !found->second->stateComplete) return false;
+            const auto* source=dynamic_cast<const DRW_Layer*>(found->second->input->sourceModel.get());
+            std::uint32_t target=0u;bool present=false;
+            if (!source || !layerSourceEqual(*source,layer,DRW::AC1027)
+                || !layer.getDxfPlotStyleHandle(target,present) || !present || target!=state.plotTarget) return false;
+        }
+        return true;
     } catch (...) {return false;}
 }
 
@@ -97755,6 +97897,33 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                 return false;
         }
 
+        // Multiple AC1027 layers may share one source-bound default plot
+        // placeholder. Admit only the exact immutable graph checked below;
+        // the existing staged TABLES/OBJECTS and finalization checks remain
+        // mandatory for every selected row and target.
+        if (cData->sourceVersion==DRW::AC1027 && version==DRW::AC1027
+            && cData->layers.size()>1u && state.active
+            && !cData->rawDictionaryWithDefaults.empty()) {
+            bool referenced=false;
+            for (const auto& layer:cData->layers) {
+                std::uint32_t target=0u;bool present=false;
+                if (!layer.getDxfPlotStyleHandle(target,present)) return false;
+                referenced=referenced||(present && target!=0u);
+            }
+            if (referenced) {
+                const auto& audit=cData->m_tableDxfSource.plotSourceAudit;
+                if (!audit || !audit->dictionary || !audit->defaultTarget) return false;
+                state.plotActive=true;
+                state.auditedDefaultPlotSource=true;
+                state.plotOwner=audit->dictionary;
+                state.plotTarget=audit->defaultTarget;
+                state.defaultPlotSourceActive=true;
+                state.defaultPlotDictionarySource=audit->dictionary;
+                state.defaultPlotPlaceholderSource=audit->defaultTarget;
+                return hasUnchangedDxfAuditedDefaultPlot();
+            }
+        }
+
         std::uint32_t selected = 0u; unsigned relevant = 0u;
         for (const auto& layer : cData->layers) {
             if (layer.handlePlotS.empty()) continue;
@@ -97782,6 +97951,7 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
 bool dx_iface::hasUnchangedDxfLayerPlot() const noexcept {
     const auto& state = m_dxfLayerMaterialState;
     if (!state.plotActive) return true;
+    if (state.auditedDefaultPlotSource) return hasUnchangedDxfAuditedDefaultPlot();
     try {
         if (!cData || cData != state.owner || cData->sourceFormat != dx_source_format::DXF
             || cData->sourceVersion != DRW::AC1027 || cData->importGeneration != state.generation
@@ -97878,6 +98048,135 @@ bool dx_iface::inspectDxfLayerPlotObjects(const dxfRW::DxfObjectsWriteView& view
         const auto dictionary=dxfW->remapHandle(state.plotOwner);
         const auto target=dxfW->remapHandle(state.plotTarget);
         if(!root||!dictionary||!target||root==dictionary||root==target||dictionary==target)return false;
+        if (state.auditedDefaultPlotSource) {
+            if (view.bytes.size()>8u*1024u*1024u
+                || !hasUnchangedXrecordWriteSources()) return false;
+            const auto& capture=cData->m_tableDxfSource;
+            if (!capture.identityInput || !capture.identityInput->source
+                || !capture.identityAudit) return false;
+            const auto& physical=capture.identityInput->source->records;
+            std::vector<dxfRW::DxfDictionaryOutputExpectation> entries;
+            std::map<std::uint32_t,const DRW_XRecord*> xrecords;
+            std::map<std::uint32_t,std::string> leaves;
+            std::unordered_set<std::uint32_t> wanted;
+            for (const auto& rootEntry:cData->namedObjectDictionary.m_entries) {
+                if (rootEntry.m_handle==state.plotOwner) continue;
+                for (const auto& childDictionary:cData->dictionaries)
+                    if (childDictionary.handle==rootEntry.m_handle)
+                        for (const auto& child:childDictionary.m_entries)
+                            if (!wanted.insert(child.m_handle).second) return false;
+            }
+            struct LeafModel { const DRW_TableEntry* value; std::string_view type; };
+            std::unordered_map<std::uint32_t,LeafModel> models;
+            const auto collect=[&](const auto& values,std::string_view type) {
+                for (const auto& value:values)
+                    if (wanted.count(value.handle)
+                        && !models.emplace(value.handle,LeafModel{&value,type}).second) return false;
+                return true;
+            };
+            if (!collect(cData->layouts,"LAYOUT") || !collect(cData->materials,"MATERIAL")
+                || !collect(cData->mLeaderStyles,"MLEADERSTYLE")
+                || !collect(cData->mLineStyles,"MLINESTYLE")
+                || !collect(cData->dictionaryVars,"DICTIONARYVAR")
+                || !collect(cData->xRecords,"XRECORD")) return false;
+            std::unordered_map<std::uint32_t,const DRW_XRecord*> frozenXrecords;
+            for (const auto& value:m_xrecordWriteSources)
+                if (wanted.count(value.handle)
+                    && !frozenXrecords.emplace(value.handle,&value).second) return false;
+            entries.reserve(cData->namedObjectDictionary.m_entries.size());
+            for (const auto& entry:cData->namedObjectDictionary.m_entries) {
+                const auto emitted=dxfW->remapHandle(entry.m_handle);
+                const char* type=entry.m_handle==state.plotOwner
+                    ? "ACDBDICTIONARYWDFLT" : "DICTIONARY";
+                if (!emitted || emitted==DRW::NoHandle
+                    || dxfW->dxfWriteRecordHandleCount(emitted)!=1u
+                    || !dxfW->dxfWriteRecordHasIdentity(emitted,type,"OBJECTS")
+                    || !dxfW->dxfWriteRecordHasOwner(emitted,root)) return false;
+                entries.push_back({entry.m_name,emitted,static_cast<int>(entry.m_dxfHandleCode)});
+                if (entry.m_handle==state.plotOwner) continue;
+                const DRW_Dictionary* source=nullptr;
+                for (const auto& candidate:cData->dictionaries)
+                    if (candidate.handle==entry.m_handle) {
+                        if (source) return false;
+                        source=&candidate;
+                    }
+                if (!source) return false;
+                std::vector<dxfRW::DxfDictionaryOutputExpectation> children;
+                children.reserve(source->m_entries.size());
+                for (const auto& child:source->m_entries) {
+                    const auto identity=capture.identityAudit->identities.find(child.m_handle);
+                    const auto childTarget=dxfW->remapHandle(child.m_handle);
+                    if (identity==capture.identityAudit->identities.end()
+                        || identity->second>=physical.size() || !childTarget
+                        || childTarget==DRW::NoHandle) return false;
+                    const auto& record=physical[identity->second];
+                    if (record.kind!=DRW_DxfIdentitySource::Kind::Object
+                        || (record.name!="LAYOUT" && record.name!="MATERIAL"
+                            && record.name!="MLEADERSTYLE" && record.name!="MLINESTYLE"
+                            && record.name!="DICTIONARYVAR" && record.name!="XRECORD")
+                        || dxfW->dxfWriteRecordHandleCount(childTarget)!=1u
+                        || !dxfW->dxfWriteRecordHasIdentity(childTarget,record.name,"OBJECTS")
+                        || !dxfW->dxfWriteRecordHasOwner(childTarget,emitted)) return false;
+                    if (!leaves.emplace(childTarget,record.name).second) return false;
+                    const auto model=models.find(child.m_handle);
+                    if (model==models.end() || model->second.type!=record.name
+                        || model->second.value->xDictHandle
+                        || !model->second.value->extData.empty()) return false;
+                    if (record.name=="XRECORD") {
+                        const auto found=frozenXrecords.find(child.m_handle);
+                        if (found==frozenXrecords.end()
+                            || !xrecords.emplace(childTarget,found->second).second) return false;
+                    }
+                    children.push_back({child.m_name,childTarget,static_cast<int>(child.m_dxfHandleCode)});
+                }
+                if (!dxfW->inspectDxfDictionaryOutput(view,emitted,root,
+                        source->hardOwner,source->cloning,children)) return false;
+            }
+            const std::vector<const DRW_RawDxfObject*> raw{
+                &cData->rawDictionaryWithDefaults.front(),&cData->rawPlaceholders.front()};
+            if (dxfW->dxfWriteRecordHandleCount(root)!=1u
+                || dxfW->dxfWriteRecordHandleCount(target)!=1u
+                || !dxfW->dxfWriteRecordHasIdentity(root,"DICTIONARY","OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(root,0u)
+                || !dxfW->dxfWriteRecordHasIdentity(target,"ACDBPLACEHOLDER","OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(target,dictionary)
+                || !dxfW->inspectDxfDictionaryOutput(view,root,0u,
+                    cData->namedObjectDictionary.hardOwner,
+                    cData->namedObjectDictionary.cloning,entries)
+                || !dxfW->inspectDxfRawObjectRecords(view,raw)) return false;
+            dx_standard_output::Decoder decoder(view);
+            std::size_t inspected=0u,inspectedLeaves=0u;
+            auto map=[this](std::uint32_t source,std::uint32_t& emitted) {
+                emitted=source?dxfW->remapHandle(source):0u;
+                return !source || (emitted && emitted!=DRW::NoHandle);
+            };
+            if (!decoder.good() || !dx_standard_output::inspectSelected(view,
+                [&](std::string_view name,std::uint32_t handle) {
+                    const auto found=leaves.find(handle);
+                    return found!=leaves.end() && found->second==name;
+                },[&](const auto& shape,std::string_view body) {
+                    dx_standard_output::RecordCursor cursor(body,view);
+                    dx_standard_output::RecordCursor::Token token;
+                    while (!cursor.done()) {
+                        if (!cursor.next(token) || token.code==1001
+                            || (token.code==102 && token.text=="{ACAD_XDICTIONARY")) return false;
+                    }
+                    ++inspectedLeaves;
+                    const auto found=xrecords.find(shape.handle);
+                    if (found==xrecords.end()) return true;
+                    if (!shape.valid) return false;
+                    std::vector<std::uint32_t> references;
+                    const bool equal=decoder.decodeRecord<DRW_XRecord>(body,[&](const auto& actual) {
+                        return dx_standard_output::equal(*found->second,actual,map,references);
+                    });
+                    if (!equal) return false;
+                    for (const auto reference:references)
+                        if (reference && dxfW->dxfWriteRecordHandleCount(reference)!=1u) return false;
+                    ++inspected;return true;
+                }) || inspected!=xrecords.size() || inspectedLeaves!=leaves.size()) return false;
+            state.plotObjectsInspected=true;
+            return true;
+        }
         unsigned rootRows=0,dictRows=0,placeRows=0;
         const bool good=dx_standard_output::inspectSelected(view,
           [](std::string_view name,std::uint32_t){return name=="DICTIONARY"||name=="ACDBDICTIONARYWDFLT"||name=="ACDBPLACEHOLDER";},

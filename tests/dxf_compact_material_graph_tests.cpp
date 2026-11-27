@@ -31,7 +31,7 @@ static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.
 
 // Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version) {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false) {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -44,14 +44,25 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
  const char* blockHandle=collision?"1F":"69";
  if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,versionName)
     ||!s(9,"$CMATERIAL")||!s(347,blockHandle)||!s(0,"ENDSEC")
-    ||!s(0,"SECTION")||!s(2,"TABLES")||!s(0,"TABLE")||!s(2,"LAYER")||!h(70,1)
-    ||!s(0,"LAYER")||!s(5,"90")||!s(100,"AcDbSymbolTableRecord")||!s(100,"AcDbLayerTableRecord")
+    ||!s(0,"SECTION")||!s(2,"TABLES")||!s(0,"TABLE")||!s(2,"LAYER")
+    ||(multiPlot&&(!s(5,"2")||!s(330,"0")||!s(100,"AcDbSymbolTable")))||!h(70,multiPlot?2:1)
+    ||!s(0,"LAYER")||!s(5,"90")||(multiPlot&&!s(330,"2"))||!s(100,"AcDbSymbolTableRecord")||!s(100,"AcDbLayerTableRecord")
     ||!s(2,"RAWTEST")||!h(70,0)||!h(62,7)||!s(6,"CONTINUOUS")||!s(347,blockHandle)
-    ||!s(0,"ENDTAB")||!s(0,"ENDSEC")||!s(0,"SECTION")||!s(2,"OBJECTS")
+    ||(multiPlot&&!s(390,"71")))return false;
+ if(multiPlot&&(!s(0,"LAYER")||!s(5,"91")||!s(330,"2")||!s(100,"AcDbSymbolTableRecord")
+    ||!s(100,"AcDbLayerTableRecord")||!s(2,"0")||!h(70,0)||!h(62,7)
+    ||!s(6,"CONTINUOUS")||!s(347,blockHandle)||!s(390,"71")))return false;
+ if(!s(0,"ENDTAB")||!s(0,"ENDSEC")||!s(0,"SECTION")||!s(2,"OBJECTS")
     ||!s(0,"DICTIONARY")||!s(5,"C")||!s(330,"0")||!s(100,"AcDbDictionary")
-    ||!h(280,0)||!h(281,1)||!s(3,"ACAD_MATERIAL")||!s(350,"67")
-    ||!s(0,"DICTIONARY")||!s(5,"67")||!s(102,"{ACAD_REACTORS")||!s(330,"C")
-    ||!s(102,"}")||!s(330,"C")||!s(100,"AcDbDictionary")||!h(281,1))return false;
+    ||!h(280,0)||!h(281,1)||(multiPlot&&(!s(3,"ACAD_GROUP")||!s(350,"D")))
+    ||!s(3,"ACAD_MATERIAL")||!s(350,"67")
+    ||(multiPlot&&(!s(3,"ACAD_PLOTSTYLENAME")||!s(350,"70")
+                    ||!s(3,"CODEX_GRAPH")||!s(350,"72"))))return false;
+ if(multiPlot&&(!s(0,"DICTIONARY")||!s(5,"D")||!s(330,"C")
+    ||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)))return false;
+ if(!s(0,"DICTIONARY")||!s(5,"67")
+    ||(!multiPlot&&(!s(102,"{ACAD_REACTORS")||!s(330,"C")||!s(102,"}")))
+    ||!s(330,"C")||!s(100,"AcDbDictionary")||!h(281,1))return false;
  for(const auto& x:std::vector<std::pair<const char*,const char*>>{{"ByBlock",blockHandle},{"ByLayer","68"},{"Global","6A"}})
   if(!s(3,x.first)||!s(350,x.second))return false;
  for(const auto& x:std::vector<std::pair<const char*,const char*>>{{"ByBlock",blockHandle},{"ByLayer","68"},{"Global","6A"}}) {
@@ -66,6 +77,14 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||!d(146,1)||!h(273,1)||!s(9,"")||!h(274,1)||!h(275,1)||!h(276,1)
     ||!d(42,1)||!h(72,1)||!s(3,"")||!h(73,1)||!h(74,1)||!h(75,1)||!i(94,63))return false;
  }
+ if(multiPlot&&(!s(0,"ACDBDICTIONARYWDFLT")||!s(5,"70")||!s(330,"C")
+    ||!s(100,"AcDbDictionary")||!h(281,1)||!s(3,"Normal")||!s(350,"71")
+    ||!s(100,"AcDbDictionaryWithDefault")||!s(340,"71")
+    ||!s(0,"ACDBPLACEHOLDER")||!s(5,"71")||!s(330,"70")
+    ||!s(0,"DICTIONARY")||!s(5,"72")||!s(330,"C")||!s(100,"AcDbDictionary")
+    ||!h(280,0)||!h(281,1)||!s(3,"RECORD")||!s(350,"73")
+    ||!s(0,"XRECORD")||!s(5,"73")||!s(330,"72")||!s(100,"AcDbXrecord")
+    ||!h(280,1)||!s(1,"payload")||!s(340,"72")))return false;
  return s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();
 }
 
@@ -122,6 +141,63 @@ static bool defaultRoundTrip(const std::filesystem::path& in,const std::filesyst
  if(io.fileExport(out.string(),version,!binary,&data,false,true)||bytes(out)!="sentinel")return false;
  return write()&&verify();
 }
+
+static bool multiPlotRoundTrip(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision) {
+ if(!defaultSource(in,binary,collision,DRW::AC1027,true))return false;
+ dx_data data;Exporter io;
+ if(!io.fileImport(in.string(),&data,false)||data.layers.size()!=2u
+    ||data.dictionaryWithDefaults.size()!=1u||data.rawDictionaryWithDefaults.size()!=1u
+    ||data.rawPlaceholders.size()!=1u||data.xRecords.size()!=1u)return false;
+ const auto write=[&](){return io.fileExport(out.string(),DRW::AC1027,binary,&data,false,true);};
+ const auto verify=[&](){
+  dx_data decoded;dx_iface reader;
+  if(!reader.fileImport(out.string(),&decoded,false)||decoded.layers.size()!=2u
+     ||decoded.dictionaryWithDefaults.size()!=1u||decoded.rawPlaceholders.size()!=1u
+     ||decoded.xRecords.size()!=1u)return false;
+  const auto& dictionary=decoded.dictionaryWithDefaults.front();
+  if(dictionary.m_entries.size()!=1u||dictionary.m_entries.front().m_name!="Normal"
+     ||dictionary.m_entries.front().m_handle!=dictionary.m_defaultEntryHandle
+     ||decoded.rawPlaceholders.front().handle!=dictionary.m_defaultEntryHandle
+     ||decoded.rawPlaceholders.front().parentHandle!=dictionary.handle)return false;
+  for(const auto& layer:decoded.layers){std::uint32_t target=0u;bool present=false;
+   if(!layer.getDxfPlotStyleHandle(target,present)||!present||target!=dictionary.m_defaultEntryHandle)return false;}
+  const auto& record=decoded.xRecords.front();const auto owner=record.parentHandle;
+  if(record.m_dataEntries.size()!=2u||record.m_dataEntries[0].code()!=1
+     ||record.m_dataEntries[1].code()!=340
+     ||record.m_dataEntries[1].type()!=DRW_Variant::INTEGER64
+     ||record.m_dataEntries[1].i64_val()!=static_cast<std::int64_t>(owner))return false;
+  return true;
+ };
+ if(!write()||!verify()){std::cerr<<"multi-layer plot graph initial output failed\n";return false;}
+ const auto reject=[&](const std::function<void()>& mutate,const std::function<void()>& restore){
+  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";mutate();
+  const bool refused=!write();restore();return refused&&bytes(out)=="sentinel"&&write()&&verify();};
+ auto& layer=data.layers.front();const auto originalPlot=layer.handlePlotS;
+ if(!reject([&](){layer.handlePlotS="72";},[&](){layer.handlePlotS=originalPlot;}))return false;
+ auto& dictionary=data.dictionaryWithDefaults.front();const auto originalDefault=dictionary.m_defaultEntryHandle;
+ if(!reject([&](){dictionary.m_defaultEntryHandle=0x72u;},[&](){dictionary.m_defaultEntryHandle=originalDefault;}))return false;
+ auto& raw=data.rawDictionaryWithDefaults.front();const auto saved=raw;
+ if(!reject([&](){raw.groups.back()=DRW_Variant(340,std::string("72"));},[&](){raw=saved;}))return false;
+ auto& root=data.namedObjectDictionary;const auto rootEntries=root.m_entries;
+ if(!reject([&](){root.m_entries.push_back(root.m_entries.front());},[&](){root.m_entries=rootEntries;}))return false;
+ if(!reject([&](){root.m_entries.back().m_dxfHandleCode=DRW_Dictionary::Entry::DxfHandleCode::HardOwner;},[&](){root.m_entries=rootEntries;}))return false;
+ auto child=std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& value){return value.handle==0x67u;});
+ if(child==data.dictionaries.end()||child->m_entries.empty())return false;
+ const auto childEntries=child->m_entries;
+ if(!reject([&](){child->m_entries.front().m_handle=0x71u;},[&](){child->m_entries=childEntries;}))return false;
+ auto& record=data.xRecords.front();const auto savedRecord=record;
+ if(!reject([&](){record.xDictHandle=0x74u;},[&](){record=savedRecord;}))return false;
+ io.late=[&](){record.m_dataEntries[0]=DRW_Variant(1,std::string("changed"));};
+ std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+ const bool refusedRecord=!write();io.late={};record=savedRecord;
+ if(!refusedRecord||bytes(out)!="sentinel"||!write()||!verify())return false;
+ io.late=[&](){layer.handlePlotS="72";};std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+ const bool refused=!write();io.late={};layer.handlePlotS=originalPlot;
+ if(!refused||bytes(out)!="sentinel"||!write()||!verify())return false;
+ std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+ if(io.fileExport(out.string(),DRW::AC1024,binary,&data,false,true)||bytes(out)!="sentinel")return false;
+ return write()&&verify();
+}
 int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("compact-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directories(dir);struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};auto in=dir/"in.dxf",out=dir/"out.dxf";
  for(bool binary:{false,true}){if(argc==2){std::filesystem::copy_file(argv[1],in,std::filesystem::copy_options::overwrite_existing);}else if(argc!=1||!source(in,binary))return 1;
   dxfRW direct(in.string().c_str());Old old;if(direct.read(&old,false)||old.typed||old.raw)return 2;Facet f;f.enabled=false;if(direct.read(&f,false)||f.typed||f.raw)return 3;f.enabled=true;if(!direct.read(&f,false)||f.typed!=3||f.raw!=3)return 4;
@@ -149,4 +225,6 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
  if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true})
   for(const auto version:{DRW::AC1024,DRW::AC1027})
    if(!defaultRoundTrip(in,out,binary,collision,version))return 33;
+ if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true})
+  if(!multiPlotRoundTrip(in,out,binary,collision))return 34;
  return 0;}

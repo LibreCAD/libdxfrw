@@ -144,26 +144,13 @@ evidence are recorded in `docs/research/` and Git history.
   bind the selected DICTIONARY/XRECORD roles and mappings to staged records,
   then require rooted closure, atomic refusal, corrected retry and independent
   ASCII/Binary readback. The [AC1027 default MATERIAL raw replay](docs/research/p7-ac1027-ezdxf-default-material-2026-11-26.json)
-  resolves the narrow control's earlier MATERIAL boundary; its complete file
-  now reaches a separate LAYER plot-style preflight refusal. Resolve that graph
-  or use another qualified narrow control before claiming complete retry.
-  Qualify consumers independently.
-- **AC1027 default plot style:** the peer control has two LAYER group-390
-  references to placeholder `13`, rooted through NOD `A` and the `Normal`
-  dictionary `12`. Extend the existing default-only source gate only after
-  binding each original layer, dictionary and placeholder to immutable source
-  audits and a common nonzero target; do not assume the target is `F`. Reuse
-  the existing caller plot-style graph writer and staged TABLES/OBJECTS
-  inspection. Exercise wrong or mixed targets, duplicates, changed source and
-  late mutations, remapping, destination preservation and corrected retry in
-  both encodings, then independently read back the full selected graph. Keep
-  unqualified nodes and cross-version behavior refused. For this control the
-  [existing source audits](docs/research/p8-ac1027-plotstyle-source-audit-2026-11-26.json)
-  bind both LAYER rows and the two plot-style objects,
-  but do not qualify output; its NOD has 13 entries and its three MATERIALs are
-  raw-only, whereas the current single-layer proof requires exactly three NOD
-  entries and typed MATERIALs. Extend both source checks and emitted graph
-  checks together, rather than relaxing only the layer-count guard.
+  and [multi-layer plot graph](docs/research/p8-ac1027-audited-multilayer-plot-2026-11-26.json)
+  now allow the complete narrow control to round-trip and pass independent
+  readback in both encodings. The wide control still refuses atomically at the
+  root dictionary reference. Preserve this distinction and qualify consumers
+  independently. Extend other plot-style shapes only with equivalent immutable
+  source, staged output and graph-closure proof; cross-version conversion and
+  unverified nested extensions remain refused.
 - **LibreCAD_3 entity true color:** the [shared color and model-only binary fixes](docs/research/p8d-librecad3-truecolor-and-model-only-binary-2026-11-26.json)
   preserve selected imported RGB and color names through edits and R2004+ output,
   report indexed approximation for older versions, and avoid an orphaned synthetic
@@ -282,12 +269,12 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: ba76b71d87dcf9d42f81c820396f6f13afd99e0fe245cb8d93b94a0f41c3f317
+  digest: 5b05412039f1a6ab56f7db1379bc8bd5721a1bd4a2a32205319ea74fa20b7f42
   (781 inputs); the official digest and support checks pass in a clean staged
-  checkout. The [current focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
-  pass on Linux, macOS and Windows; the hosted fast lane also passes (55 tests,
-  one locale test skipped). Revalidate affected consumer profiles on the final
-  candidate. The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
+  checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
+  passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,
+  one locale test skipped). Revalidate affected profiles on this candidate and
+  the final head. The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;
   its [GCC allocator follow-up](docs/research/p8-sat-gcc-allocator-harness-2026-11-26.json)
   preserves warning-clean allocation fault injection. Hosted results for the

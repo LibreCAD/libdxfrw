@@ -4826,6 +4826,7 @@ private:
         bool legacyMultipleNullLayers{false};
         DRW::Version legacyPlotTargetVersion{DRW::UNKNOWNV};
         bool defaultPlotSourceActive{false};
+        bool auditedDefaultPlotSource{false};
         std::uint32_t defaultPlotDictionarySource{0u};
         std::uint32_t defaultPlotPlaceholderSource{0u};
         void clear() noexcept {
@@ -4835,7 +4836,7 @@ private:
             bytes=0u; active=false; inspected=false; plotActive=false; plotObjectsInspected=false; plotTarget=plotOwner=0u;
             legacyPlotCrossVersion=legacyTablesInspected=legacyObjectsInspected=false;
             legacyMultipleNullLayers=false;
-            legacyPlotTargetVersion=DRW::UNKNOWNV;defaultPlotSourceActive=false; defaultPlotDictionarySource=0u;
+            legacyPlotTargetVersion=DRW::UNKNOWNV;defaultPlotSourceActive=false; auditedDefaultPlotSource=false; defaultPlotDictionarySource=0u;
             defaultPlotPlaceholderSource=0u;
         }
     } m_dxfLayerMaterialState;
@@ -4848,6 +4849,7 @@ private:
     bool inspectLegacyPlotObjects(const dxfRW::DxfObjectsWriteView&) noexcept;
     bool finalizeLegacyPlot() const noexcept;
     bool prepareDxfLayerPlot(DRW::Version, bool) noexcept;
+    bool hasUnchangedDxfAuditedDefaultPlot() const noexcept;
     bool hasUnchangedDxfLayerPlot() const noexcept;
     bool inspectDxfLayerPlotObjects(const dxfRW::DxfObjectsWriteView&) noexcept;
     bool hasUnchangedDxfLayerMaterials() const noexcept;
