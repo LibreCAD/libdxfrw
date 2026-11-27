@@ -115,7 +115,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    passed the affected Windows tests. Two later stream-sharing failures were fixed
    in the [unit and spline cleanup](docs/research/p8d-librecad3-windows-unit-spline-cleanup-2026-11-27.json);
    the hosted Windows run at bdeb2046 passed build and packaging but failed
-   six LF-only layout tests on CRLF output. The [line-ending repair](docs/research/p8d-librecad3-windows-layout-crlf-2026-11-27.json) passes 18 local layout tests; hosted Windows qualification on the updated head remains open. Preserve the FreeCAD
+   six LF-only layout tests on CRLF output. The [line-ending repair](docs/research/p8d-librecad3-windows-layout-crlf-2026-11-27.json) passes 18 local layout tests; its [updated hosted Linux and Windows persistence jobs](docs/research/p8d-librecad3-1395-hosted-2026-11-27.json) pass, while the main Windows feature test remains running. Preserve the FreeCAD
    3DFACE, SOLID and polyface limitations until their independent gates close.
    Freeze the candidate before broad suites and release claims.
 
