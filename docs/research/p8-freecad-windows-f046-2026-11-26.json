@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-windows-f046-2026-11-26",
+  "date": "2026-11-26",
+  "status": "WINDOWS_FREECAD_GENERATED_PROFILE_PASS",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "runHead": "f046969e79b8502f64e4f0249761621dd86a9cbf",
+    "implementationDigestSha256": "151623ec636cffc0b2a63dd8c2bb9f1f8014d2cc5c0953cce5cdc32d2c60d23a",
+    "inputCount": 781
+  },
+  "hosted": {
+    "repository": "dxli/libdxfrw",
+    "runId": 45933711253,
+    "jobId": 140291950504,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45933711253",
+    "jobConclusion": "success",
+    "artifactId": 15169209845,
+    "artifactSha256": "3fe1472337395655b9ac0782ac666226004ffa93462026c9a16b2f21f2788cc4",
+    "lastTestLogSha256": "2e2b3c8a5aebbf9595205f969104d98375f2a752b952f851164ec446f1a3b835"
+  },
+  "consumer": {
+    "version": "FreeCAD 1.1.4, revision 4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "Windows Server 2022 x64, OS build 20348",
+    "verifiedReleaseArchiveSha256": "4828741fc91ee37fafcdb97a1abacb18b04ba451ac4372d9ff7a7349b36f4d6d",
+    "installedConverterSha256": "273b2e2ef46a7a1e608e99c6b326842c745b5244703030a0739531671b249058",
+    "legacyImporterCommit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1"
+  },
+  "validation": "All 17 selected CTests passed: Windows batch naming, installed and CLI handoff, generated AC1021 line open/insert, AC1021/AC1024/AC1032 generated primitives open/insert, and legacy POLYFACE open/insert for the same three versions. Eight C++ importer and six legacy importer assertion reports identify the same installed converter hash.",
+  "limits": [
+    "The C++ importer reports the selected 3DFACE and SOLID unsupported and treats the selected POLYFACE as wireframe including the parent basepoint; the pinned legacy importer separately checks the faceted profile.",
+    "The controls are locally generated, headless, and limited to the recorded FreeCAD release and profiles. They do not establish general DWG/DXF, independent producer, GUI, or other-platform support.",
+    "The log identifies freecadcmd.exe inside the verified release archive, but does not record a separate executable-file hash. Recheck on changed candidate inputs or consumer/profile requirements."
+  ]
+}
