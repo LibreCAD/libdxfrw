@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-spatial-coordinate-scale-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPR": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "bad672e7",
+  "problem": "The origin-based scalar and component-wise Coordinate::scale overloads discarded Z, unlike the equivalent multiplication operators; the new C++ control failed before the repair.",
+  "change": "Delegate both overloads to the existing component-wise multiplication operators. Two-dimensional values still have zero Z; an explicit zero Z factor remains zero.",
+  "verification": [
+    "PASS 78 focused macOS headless coordinate, B\u00e9zier, builder, canvas, geometry and fit-only spline tests.",
+    "PASS four focused C++, Python and Lua binding tests, including positive/negative spatial factors and planar controls.",
+    "Scripting-linked macOS test build succeeds; hosted PR checks pending."
+  ],
+  "limits": [
+    "No native GUI, general transformation stack, tilted-plane, DWG/DXF, or cross-platform qualification follows from these controls."
+  ]
+}
