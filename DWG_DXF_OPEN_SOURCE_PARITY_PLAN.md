@@ -139,11 +139,16 @@ evidence are recorded in `docs/research/` and Git history.
   refuses to certify multiple common-header owners and retains rollback and
   wide-owner detection. A [peer-generated paired graph](docs/research/p7-wide-dxf-peer-dictionary-boundary-2026-11-26.json)
   exposes an earlier input boundary: root DICTIONARY group 350 rejects its
-  64-bit target before replay. Preserve exact source self, owner and entry
-  lexemes in a bounded side channel without narrowing the 32-bit semantic API;
-  bind the selected DICTIONARY/XRECORD roles and mappings to staged records,
-  then require rooted closure, atomic refusal, corrected retry and independent
-  ASCII/Binary readback. The [AC1027 default MATERIAL raw replay](docs/research/p7-ac1027-ezdxf-default-material-2026-11-26.json)
+  64-bit target before replay. A [bounded source observer](docs/research/p7-wide-dxf-dictionary-source-observer-2026-11-27.json)
+  now captures selected self, owner and entry lexemes, roles and physical spans
+  in both encodings, with a 64-bit physical identity census and malformed-source
+  refusal. It is a standalone prepass and is not connected to import or output;
+  it does not establish whole-drawing closure. Next bind it to the exact immutable
+  bytes consumed by the actual importer, preserve the existing 32-bit consumer API,
+  and retain the selected graph without publishing truncated handles. Implement
+  collision-safe source-to-output mappings and staged DICTIONARY/XRECORD role and
+  reference checks; then require rooted closure, atomic refusal, corrected retry
+  and independent ASCII/Binary readback. The [AC1027 default MATERIAL raw replay](docs/research/p7-ac1027-ezdxf-default-material-2026-11-26.json)
   and [multi-layer plot graph](docs/research/p8-ac1027-audited-multilayer-plot-2026-11-26.json)
   now allow the complete narrow control to round-trip and pass independent
   readback in both encodings. The wide control still refuses atomically at the
@@ -274,8 +279,8 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 2b9dfe13b2ce552f2c5dd498a9a7454cd08b11544e4a5d6ab21f012b999fbe11
-  (781 inputs); the official digest and support checks pass in a clean staged
+  digest: 2dedc8b5d12320a2906cd28c4d64874f52ccc54f3f0712ee0e104cbfbf344c9c
+  (782 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,
   one locale test skipped). Revalidate affected profiles on this candidate and

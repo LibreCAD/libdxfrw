@@ -204,6 +204,7 @@ dwg2dxf/dx_table_value_source_profile.h
 dwg2dxf/dx_viewucs_source.h
 dwg2dxf/dx_viewucs_source_profile.h
 dwg2dxf/dx_visualstyle_source_profile.h
+dwg2dxf/dx_wide_dictionary_source.h
 dwg2dxf/main.cpp
 dwg2dxf/source-files.am
 dwg2dxf/source-files.cmake

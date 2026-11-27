@@ -71,4 +71,5 @@ dist_noinst_HEADERS = \
     dx_table_value_source_profile.h \
     dx_viewucs_source.h \
     dx_viewucs_source_profile.h \
-    dx_visualstyle_source_profile.h
+    dx_visualstyle_source_profile.h \
+    dx_wide_dictionary_source.h

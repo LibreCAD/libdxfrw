@@ -74,4 +74,5 @@ set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_viewucs_source.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_viewucs_source_profile.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_visualstyle_source_profile.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_wide_dictionary_source.h"
 )

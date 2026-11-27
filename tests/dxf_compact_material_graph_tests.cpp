@@ -2,6 +2,7 @@
 #include "lc3_compat_check.cpp"
 #include "dwg2dxf/dx_iface.h"
 #include "dwg2dxf/dx_material_body.h"
+#include "dwg2dxf/dx_wide_dictionary_source.h"
 #include "intern/dxfwriter.h"
 #include "libdwgr.h"
 #include <algorithm>
@@ -11,6 +12,7 @@
 #include <iterator>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 struct Old : LC3CompatCheck {int typed=0,raw=0;DRW_Material last;void addMaterial(const DRW_Material& m)override{last=m;++typed;}void addRawDxfObject(const DRW_RawDxfObject& o)override{if(o.name=="MATERIAL")++raw;}};
@@ -217,6 +219,86 @@ static bool multiPlotReactorRefusal(const std::filesystem::path& in,const std::f
  }
  return true;
 }
+enum class WideSourceVariant { Wide, Narrow, WrongDictionaryOwner, WrongRecordOwner,
+    WrongReference, UnknownReference, DuplicateSelf, DuplicateEntry, DuplicateNameCase, DuplicateTarget,
+    MissingEnd, InvalidHandle, AlternateRole };
+static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
+    std::ostringstream out(std::ios::binary);
+    if(binary)out.write("AutoCAD Binary DXF\r\n\x1a\0",22);
+    std::unique_ptr<dxfWriter> writer=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&out))
+        :std::unique_ptr<dxfWriter>(new dxfWriterAscii(&out));
+    writer->setVersion("AC1027",true);
+    const auto text=[&](int c,const char* v){return writer->writeString(c,v);};
+    const auto number=[&](int c,int v){return writer->writeInt16(c,v);};
+    const bool narrow=variant==WideSourceVariant::Narrow;
+    const char* dict=narrow?"0000002f":"0000000100000010";
+    const char* record=narrow?"30":"100000011";
+    if(!text(0,"SECTION")||!text(2,"HEADER")||!text(9,"$ACADVER")||!text(1,"AC1027")
+        ||!text(0,"ENDSEC")||!text(0,"SECTION")||!text(2,"OBJECTS")
+        ||!text(0,"DICTIONARY")||!text(5,"000a")||!text(330,"0")
+        ||!text(100,"AcDbDictionary")||!number(281,1)||!text(3,"CODEX_GRAPH")
+        ||!text(variant==WideSourceVariant::AlternateRole?360:350,variant==WideSourceVariant::InvalidHandle?"10000000000000000":dict))return {};
+    if(variant==WideSourceVariant::DuplicateEntry&&(!text(3,"CODEX_GRAPH")||!text(350,dict)))return {};
+    if(variant==WideSourceVariant::DuplicateNameCase&&(!text(3,"codex_graph")||!text(350,"B")))return {};
+    if(variant==WideSourceVariant::DuplicateTarget&&(!text(3,"ALIAS")||!text(350,dict)))return {};
+    if(!text(0,"DICTIONARY")||!text(5,dict)||!text(330,variant==WideSourceVariant::WrongDictionaryOwner?"B":"A")
+        ||!text(100,"AcDbDictionary")||!number(280,1)||!number(281,1)
+        ||!text(3,"CODEX_RECORD")||!text(350,record)
+        ||!text(0,"XRECORD")||!text(5,record)||!text(330,variant==WideSourceVariant::WrongRecordOwner?"A":dict)
+        ||!text(100,"AcDbXrecord")||!number(280,1)||!text(1,"value")
+        ||!text(340,variant==WideSourceVariant::WrongReference?"A":dict))return {};
+    if(variant==WideSourceVariant::UnknownReference&&!text(341,"A"))return {};
+    if(variant==WideSourceVariant::DuplicateSelf&&(!text(0,"XRECORD")||!text(5,record)
+        ||!text(330,dict)||!text(100,"AcDbXrecord")||!number(280,1)))return {};
+    if(!text(0,"ENDSEC")||(variant!=WideSourceVariant::MissingEnd&&!text(0,"EOF"))||writer->hasWriteError())return {};
+    return out.str();
+}
+static bool runWideSourceCase(bool binary,WideSourceVariant variant,bool expected) {
+    auto bytes=wideSourceBytes(binary,variant);if(bytes.empty())return false;
+    std::istringstream input(bytes,std::ios::binary);
+    dx_wide_dictionary_source::Graph graph;
+    graph.root=123u;graph.rootSelf.text="stale";
+    const bool ok=dx_wide_dictionary_source::capture(input,"CODEX_GRAPH","CODEX_RECORD",graph);
+    if(ok!=expected)return false;
+    if(!ok)return graph.root==0u&&graph.rootSelf.text.empty();
+    const bool narrow=variant==WideSourceVariant::Narrow;
+    const std::uint64_t dictionary=narrow?0x2fu:UINT64_C(0x100000010);
+    const std::uint64_t record=narrow?0x30u:UINT64_C(0x100000011);
+    return graph.binary==binary&&graph.root==0xau&&graph.dictionary==dictionary&&graph.record==record
+        &&graph.rootSelf.text=="000a"&&graph.rootOwner.text=="0"
+        &&graph.rootEntry.text==(narrow?"0000002f":"0000000100000010")
+        &&graph.dictionarySelf.text==graph.rootEntry.text&&graph.dictionaryOwner.text=="A"
+        &&graph.dictionaryEntry.text==(narrow?"30":"100000011")
+        &&graph.recordSelf.text==graph.dictionaryEntry.text&&graph.recordOwner.text==graph.rootEntry.text
+        &&graph.recordReference.text==graph.rootEntry.text
+        &&graph.rootEntry.raw==graph.rootEntry.text&&graph.recordReference.raw==graph.recordReference.text
+        &&graph.rootEntry.code==(variant==WideSourceVariant::AlternateRole?360:350)
+        &&graph.dictionaryEntry.code==350&&graph.recordReference.code==340
+        &&graph.rootSelf.ordinal<graph.rootEntry.ordinal&&graph.rootEntry.ordinal<graph.dictionarySelf.ordinal
+        &&graph.dictionarySelf.ordinal<graph.dictionaryEntry.ordinal&&graph.dictionaryEntry.ordinal<graph.recordSelf.ordinal
+        &&graph.recordSelf.ordinal<graph.recordReference.ordinal&&graph.recordReference.begin<graph.recordReference.end;
+}
+static bool wideSourceTest() {
+    for(bool binary:{false,true}) {
+        for(auto v:{WideSourceVariant::Wide,WideSourceVariant::Narrow,WideSourceVariant::AlternateRole})
+            if(!runWideSourceCase(binary,v,true))return false;
+        for(auto v:{WideSourceVariant::WrongDictionaryOwner,WideSourceVariant::WrongRecordOwner,
+                    WideSourceVariant::WrongReference,WideSourceVariant::UnknownReference,
+                    WideSourceVariant::DuplicateSelf,WideSourceVariant::DuplicateEntry,
+                    WideSourceVariant::DuplicateNameCase,WideSourceVariant::DuplicateTarget,
+                    WideSourceVariant::MissingEnd,WideSourceVariant::InvalidHandle})
+            if(!runWideSourceCase(binary,v,false))return false;
+        dx_wide_dictionary_source::Graph state;
+        auto good=wideSourceBytes(binary,WideSourceVariant::Wide);
+        auto bad=wideSourceBytes(binary,WideSourceVariant::WrongReference);
+        std::istringstream first(good,std::ios::binary),invalid(bad,std::ios::binary),retry(good,std::ios::binary);
+        if(!dx_wide_dictionary_source::capture(first,"CODEX_GRAPH","CODEX_RECORD",state)
+            ||dx_wide_dictionary_source::capture(invalid,"CODEX_GRAPH","CODEX_RECORD",state)
+            ||state.root!=0u||!state.rootSelf.text.empty()
+            ||!dx_wide_dictionary_source::capture(retry,"CODEX_GRAPH","CODEX_RECORD",state))return false;
+    }
+    return true;
+}
 int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("compact-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directories(dir);struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};auto in=dir/"in.dxf",out=dir/"out.dxf";
  for(bool binary:{false,true}){if(argc==2){std::filesystem::copy_file(argv[1],in,std::filesystem::copy_options::overwrite_existing);}else if(argc!=1||!source(in,binary))return 1;
   dxfRW direct(in.string().c_str());Old old;if(direct.read(&old,false)||old.typed||old.raw)return 2;Facet f;f.enabled=false;if(direct.read(&f,false)||f.typed||f.raw)return 3;f.enabled=true;if(!direct.read(&f,false)||f.typed!=3||f.raw!=3)return 4;
@@ -248,4 +330,5 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
   if(!multiPlotRoundTrip(in,out,binary,collision))return 34;
  if(argc==1)for(bool binary:{false,true})
   if(!multiPlotReactorRefusal(in,out,binary))return 35;
+ if(argc==1&&!wideSourceTest())return 36;
  return 0;}
