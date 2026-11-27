@@ -39,7 +39,14 @@
   },
   "limits": [
     "The seven focused tests and shared-package workflow are bounded regression evidence, not general DWG/DXF, native GUI, or independent semantic qualification.",
-    "The head following c9d06a308 contains documentation and source-release inventory changes; the selected implementation digest is the same.",
-    "The separate fast-regression workflow was still running when this receipt was created."
-  ]
+    "The head following c9d06a308 contains documentation and source-release inventory changes; the selected implementation digest is the same."
+  ],
+  "fastRegression": {
+    "runId": 45937511150,
+    "jobId": 140304008537,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45937511150",
+    "runHead": "ccb032ea9f3c3cbba2beecf1d090b3c81d3f0666",
+    "conclusion": "success",
+    "results": "7 fast executables plus 56 selected CTests: 55 passed, 1 skipped (libdxfrw_numeric_process_locale); source-release inventory and policy checks passed."
+  }
 }
