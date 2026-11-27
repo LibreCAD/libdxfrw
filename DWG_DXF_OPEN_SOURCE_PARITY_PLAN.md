@@ -299,6 +299,8 @@ evidence are recorded in `docs/research/` and Git history.
   passes selected open/insert and installed CLI controls on codec `219b5164`;
   the [focused native and shared-package matrix](docs/research/p8-native-focused-219b-2026-11-27.json)
   also passes on Linux, macOS and Windows for that head.
+  Its [hosted fast lane](docs/research/p8-fast-lane-219b-2026-11-27.json)
+  passes seven executables and 58 CTests, with the locale test skipped.
   recheck the final head and other profiles. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation

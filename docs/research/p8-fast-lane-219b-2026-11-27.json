@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-27",
+  "workflowRun": "https://github.com/dxli/libdxfrw/actions/runs/45952820281",
+  "headSha": "219b5164a41650dc834ab96d499cba8cf6030764",
+  "implementationDigestSha256": "defe1f69008aa5109d960a443628fdf050f2932e37ce46328a9dd9010cd007d0",
+  "result": "PASS: fast focus ran seven executables and 58 required CTests; zero failures. libdxfrw_numeric_process_locale was skipped.",
+  "testDurationSeconds": 53.51,
+  "limits": [
+    "Hosted fast profile only; current local 330/331 changes and later head require affected-profile recheck.",
+    "Broad suite and extended fuzz remain deferred until candidate freeze.",
+    "No support claim or package gate promoted."
+  ]
+}
