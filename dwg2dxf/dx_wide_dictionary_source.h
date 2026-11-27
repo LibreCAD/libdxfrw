@@ -161,9 +161,12 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
         std::vector<Field> handles;std::vector<Object> rows;std::size_t retained=0u;int code=0;
         while(reader->readRec(&code)){
             DxfReadRecordView v;if(!reader->currentRecordView(v))return false;
+            const bool literalBackslash = objects && !rows.empty()
+                && ((rows.back().name=="MATERIAL" && code==2)
+                    || (rows.back().name=="XRECORD" && code==1));
             if(v.kind==DxfReadRecordView::Text
-                &&(!dx_dxf_text_safety::safeOpaqueTranscode(v.text)
-                    ||!dx_dxf_text_safety::safeOpaqueTranscode(v.raw)))crossEncodingSafe=false;
+                &&(!dx_dxf_text_safety::safeOpaqueTranscode(v.text,literalBackslash)
+                    ||!dx_dxf_text_safety::safeOpaqueTranscode(v.raw,literalBackslash)))crossEncodingSafe=false;
             if(handleCandidate(code)) {
                 if(v.kind!=DxfReadRecordView::Text||sizeof(Field)>maxBytes-retained)return false;
                 retained+=sizeof(Field);if(v.text.size()>maxBytes-retained)return false;

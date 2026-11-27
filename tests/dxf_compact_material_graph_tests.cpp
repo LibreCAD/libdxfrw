@@ -159,7 +159,13 @@ static bool defaultRoundTrip(const std::filesystem::path& in,const std::filesyst
   if(dxfMaterial::hasEzdxfDefaultShape(bad))return false;}
  {auto unsafe=raw.groups;unsafe[7]=DRW_Variant(2,std::string("unsafe^text"));
   if(dx_material_body::safeOpaqueTranscode(unsafe))return false;
-  unsafe[7]=DRW_Variant(2,std::string("unsafe\\text"));
+  for(const auto* escape:{"unsafe\\U+0041","unsafe\\u+0041","unsafe\\M+11234","unsafe\\m+11234"}) {
+   unsafe[7]=DRW_Variant(2,std::string(escape));
+   if(dx_material_body::safeOpaqueTranscode(unsafe))return false;
+  }
+  unsafe[7]=DRW_Variant(2,std::string("C:\\textures\\tile.png"));
+  if(!dx_material_body::safeOpaqueTranscode(unsafe))return false;
+  unsafe=raw.groups;unsafe[8]=DRW_Variant(100,std::string("unsafe\\text"));
   if(dx_material_body::safeOpaqueTranscode(unsafe))return false;
   unsafe[7]=DRW_Variant(2,std::string("unsafe\xc3\xa9"));
   if(dx_material_body::safeOpaqueTranscode(unsafe))return false;}
@@ -348,15 +354,55 @@ static bool wideGraphRoundTrip(const std::filesystem::path& in,const std::filesy
 }
 
 static bool wideGraphUnsafeTranscode(const std::filesystem::path& in,const std::filesystem::path& out,bool binary) {
- for(bool material:{false,true}) {
+ for(const char* unsafe:{"unsafe^text","unsafe\\U+0041","unsafe\\m+11234"}) for(bool material:{false,true}) {
   if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,0u,false,0u,340,0u,
-      material?"unsafe^text":"",material?"payload":"unsafe^text"))return false;
+      material?unsafe:"",material?"payload":unsafe))return false;
   dx_data data;Exporter io;
   if(!io.enableDxfWideGraphProjection()||!io.fileImport(in.string(),&data,false))return false;
   const auto same=[&](){return io.fileExport(out.string(),DRW::AC1027,binary,&data,false,true);};
   if(!same())return false;
   std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
   if(io.fileExport(out.string(),DRW::AC1027,!binary,&data,false,true)||bytes(out)!="sentinel"||!same())return false;
+ }
+ return true;
+}
+
+static bool literalBackslashTranscode(const std::filesystem::path& in,
+                                       const std::filesystem::path& out, bool binary,
+                                       DRW::Version version, bool wide) {
+ for (const std::string path : {"C:\\textures\\tile.png", "C:\\Users\\Me\\", "\\\\server\\maps\\a.dxf"}) {
+  if (!defaultSource(in,binary,false,version,wide,nullptr,wide,nullptr,false,0u,false,0u,340,0u,
+                     path.c_str(),path.c_str())) return false;
+  dx_data data; Exporter io;
+  if ((wide && !io.enableDxfWideGraphProjection()) || !io.fileImport(in.string(),&data,false)) return false;
+  const auto verify=[&](const dx_data& value) {
+   unsigned descriptions=0, payloads=0;
+   for (const auto& object:value.rawMaterialObjects)
+    for (const auto& group:object.groups)
+     if (group.code()==2 && group.type()==DRW_Variant::STRING && group.content.s && *group.content.s==path) ++descriptions;
+   for (const auto& record:value.xRecords)
+    for (const auto& group:record.m_dataEntries)
+     if (group.code()==1 && group.type()==DRW_Variant::STRING && group.content.s && *group.content.s==path) ++payloads;
+   return descriptions==3u && payloads==(wide?1u:0u);
+  };
+  const auto write=[&](){return io.fileExport(out.string(),version,!binary,&data,false,true);};
+  const auto readback=[&](){dx_data decoded;dx_iface reader;return reader.fileImport(out.string(),&decoded,false)&&verify(decoded);};
+  if (!verify(data) || !write() || !readback()) { std::cerr << "literal path initial failed version=" << version << " binary=" << binary << " wide=" << wide << " path=" << path << "\n"; return false; }
+  if (wide) {
+   auto& record=data.xRecords.front();const auto saved=record;
+   if (record.m_dataEntries.empty() || record.m_dataEntries[0].code()!=1) return false;
+   std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+   record.m_dataEntries[0]=DRW_Variant(1,std::string("changed\\U+0041"));
+   const bool unsafeRefused=!write();record=saved;
+   if (!unsafeRefused || bytes(out)!="sentinel" || !write() || !readback()) return false;
+   std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+   io.late=[&](){record.m_dataEntries[0]=DRW_Variant(1,path+"changed");};
+   const bool refused=!write();io.late={};record=saved;
+   const bool intact=bytes(out)=="sentinel";
+   const bool retried=write();
+   const bool reread=retried && readback();
+   if (!refused || !intact || !retried || !reread) { std::cerr << "literal path retry failed " << path << " refused=" << refused << " intact=" << intact << " retry=" << retried << " read=" << reread << "\n"; return false; }
+  }
  }
  return true;
 }
@@ -853,6 +899,9 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
   if(!wideGraphChainBoundary(in,out,binary))return 40;
   if(!wideGraphCrossReferenceRetry(in,out,binary))return 42;
   if(!wideGraphUnsafeTranscode(in,out,binary))return 44;
+  if(!literalBackslashTranscode(in,out,binary,DRW::AC1027,true)
+     ||!literalBackslashTranscode(in,out,binary,DRW::AC1027,false)
+     ||!literalBackslashTranscode(in,out,binary,DRW::AC1024,false))return 45;
  }
  if(argc==1)for(bool binary:{false,true})
   if(!wideGraphImportRetry(in,out,binary))return 39;

@@ -335,7 +335,7 @@ inline bool spelling(const DRW_Variant& value,std::string& result) {
 inline bool safeOpaqueTranscode(const std::vector<DRW_Variant>& groups) {
     for (const auto& group : groups) {
         if (group.type()!=DRW_Variant::STRING || !group.content.s) continue;
-        if (!dx_dxf_text_safety::safeOpaqueTranscode(*group.content.s)) return false;
+        if (!dx_dxf_text_safety::safeOpaqueTranscode(*group.content.s, group.code()==2)) return false;
     }
     return true;
 }

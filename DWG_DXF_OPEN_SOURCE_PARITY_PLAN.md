@@ -15,10 +15,9 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`126f1bb73e76375868f719ed71165651a5651a4f7f2a8b7dc05bbc9ec7cb2cba`
+`40ec6265f985d04c16121ea32191409c46f28771bc54c741a0f124e43fbf031a`
 (783 inputs). The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
-passes on the current production code. The fast and focused native lanes also
-pass at the numeric-test head; package checks used the same production sources. The [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed 16 Linux and 17 Windows checks against codec head 2e4ae17b. This covers the specified CLI and legacy importer profiles, not GUI or general 3D parity.
+and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs; the current dwg2dxf text-safety change requires affected checks to be repeated. FreeCAD covered specified CLI and legacy importer profiles, not GUI or general 3D parity.
 Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
 
@@ -72,8 +71,8 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    encodings and producers only after source/target closure and output proof.
    The existing opt-in route is strict and same-version, with at most eight selected
    chains and 16 proven pointers per XRECORD. Cross-encoding transport is limited
-   to the [safe-text source profile](docs/research/p7-wide-dxf-cross-encoding-2026-11-27.json);
-   qualify escaped/non-ASCII text and other graph types separately. Targets are
+   to the [safe-text source profile](docs/research/p7-wide-dxf-cross-encoding-2026-11-27.json)
+   and [selected literal-backslash fields](docs/research/p7-wide-dxf-literal-backslash-2026-11-27.json): AC1027 XRECORD group 1 and AC1024/AC1027 default MATERIAL group 2. Qualify escapes, non-ASCII text, other fields and graph types separately. Targets are
    restricted to the verified root, selected dictionaries and selected XRECORDs;
    see the [root-reference control](docs/research/p7-wide-dxf-xrecord-root-target-2026-11-27.json).
    The LibreCAD [typed-object stand-in guard](docs/research/p8d-librecad-version-gates-5e05-2026-11-27.json) covers selected SCALE and MLINESTYLE raw handle collisions and selected NAVISWORKSMODEL, GEOPOSITIONMARKER and SECTIONOBJECT source-to-output identities; other typed entities, fixed-object profiles, graph roles and broader live-identity ambiguity remain open. The public semantic API remains 32-bit; bind original-stream observation

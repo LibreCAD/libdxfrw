@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-27",
+  "scope": "Generated same-version ASCII/Binary DXF cross-encoding: AC1027 selected wide dictionary/XRECORD graph group 1, and AC1024/AC1027 default MATERIAL group 2. Literal printable ASCII backslashes are admitted only in these fields.",
+  "implementationDigestSha256": "40ec6265f985d04c16121ea32191409c46f28771bc54c741a0f124e43fbf031a",
+  "sourceReference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+  "change": "Shared ASCII safety check allows backslashes only for explicitly identified fields, rejecting CIF/MIF prefixes in either case even if malformed. All control/non-ASCII/caret text and backslashes in other fields remain guarded. The original-source scan and MATERIAL reconciliation use the same rule.",
+  "validation": [
+    "The prior AC1027 graph preflight refused the generated literal path; the new test checks both encoding directions and three path spellings including UNC and a trailing slash. It checks all three MATERIAL descriptions and XRECORD payload on fresh import/readback.",
+    "Generated AC1024 and AC1027 default MATERIAL controls cover both encodings. Source caret/CIF/MIF cases refuse cross-encoding atomically and allow the tested same-encoding retry; unsafe live edit and mid-write mutation controls preserve the destination and pass corrected retries.",
+    "macOS ARM64: focused libdxfrw_dxf_compact_material_graph and libdxfrw_whole_source_capture CTests pass. The qualification digest was computed from a clean isolated worktree with the four selected changed files staged.",
+    "ezdxf 1.4.5 independently compared the full selected source/output graphs in both directions: 22 mapped objects and 21 dictionary entries each; source and output audits report no errors or fixes. It independently verified the exact C:\\textures\\tile.png value in the XRECORD and all three MATERIAL descriptions."
+  ],
+  "hashes": {
+    "asciiSource": "f3ba50a4c3f017b9d1f99c742f8c2121ec3b081f26ac3ed3329002494d14da6d",
+    "binaryOutput": "295713c47550ccff949b3cddb678d657031b88d77afc7f73bed8d2cd99c91b1c",
+    "binarySource": "faa8196ac3114ef76dd0fe52f50ebdc04ab554ffa343d03dbfb492bcf3893558",
+    "asciiOutput": "9d047193d3a46cbc0d83fc36e3dec5eebf3564e52633c2c19bb6d3b30a1cd060"
+  },
+  "limits": [
+    "Generated files and narrow fields only; no general DXF, producer, native application, or DWG parity claim.",
+    "CIF/MIF, caret, controls, non-ASCII and other backslash-bearing fields remain outside this cross-encoding profile.",
+    "Platform and package checks at earlier production heads need affected revalidation. No drawing fixture was committed."
+  ]
+}
