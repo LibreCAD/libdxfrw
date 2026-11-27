@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-elevated-ellipse-bounds-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPR": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "e1b0dc03",
+  "problem": "Horizontal ellipse bounds and axis-aligned extrema lost center elevation. A test of full and partial ellipses at positive and negative elevations failed before the repair.",
+  "change": "Keep center elevation in ellipse bounds and construct axis-aligned extrema as offsets from the center.",
+  "verification": [
+    "PASS 58 focused macOS headless builder, geometry and canvas tests.",
+    "PASS full and partial ellipses with axis-aligned and 45-degree major axes at elevations -70, 0 and 70; bounding extrema and their returned coordinates retain elevation.",
+    "PASS planar selection and snapping of an elevated full horizontal ellipse, including snap elevation.",
+    "Hosted PR checks pending."
+  ],
+  "limits": [
+    "Tests cover horizontal ellipses only; tilted planes, native GUI, independent producers and mixed-elevation intersections remain unqualified.",
+    "No DWG/DXF codec or general 3D interoperability claim follows from these local controls."
+  ]
+}
