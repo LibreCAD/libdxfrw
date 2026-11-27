@@ -246,27 +246,31 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
             }
             if(selections.empty())return false;
         } else selections.emplace_back(dictionaryKey,recordKey);
-        std::unordered_set<std::uint64_t> selectedValues{candidate.root};
+        std::unordered_map<std::uint64_t,std::string> selectedDictionaries;
+        std::unordered_set<std::uint64_t> selectedRecords;
         std::vector<std::pair<const Object*,std::uint64_t>> selectedObjects{{&root,candidate.root}};
         for(const auto& selection:selections) {
             Chain chain;chain.dictionaryKey=selection.first;chain.recordKey=selection.second;
             if(!dictionaryEntry(rootEntries,chain.dictionaryKey,chain.rootEntry)
                 ||!hex(chain.rootEntry.text,chain.dictionary)||!chain.dictionary
-                ||!selectedValues.insert(chain.dictionary).second)return false;
+                ||chain.dictionary==candidate.root||selectedRecords.count(chain.dictionary))return false;
             const auto* dict=findObject(chain.dictionary);if(!dict||dict==&root)return false;
+            const auto dictionary=selectedDictionaries.emplace(chain.dictionary,chain.dictionaryKey);
+            if(!dictionary.second && dictionary.first->second!=chain.dictionaryKey)return false;
             std::vector<Entry> dictionaryEntriesFound;
             if(!common(*dict,chain.dictionarySelf,chain.dictionaryOwner,body)
                 ||!hex(chain.dictionaryOwner.text,owner)||owner!=candidate.root
                 ||!dictionaryEntries(*dict,body,256u,dictionaryEntriesFound)
                 ||!dictionaryEntry(dictionaryEntriesFound,chain.recordKey,chain.dictionaryEntry)
                 ||!hex(chain.dictionaryEntry.text,chain.record)||!chain.record
-                ||!selectedValues.insert(chain.record).second)return false;
+                ||chain.record==candidate.root||selectedDictionaries.count(chain.record)
+                ||!selectedRecords.insert(chain.record).second)return false;
             const auto* record=findObject(chain.record);if(!record||record==dict||record==&root)return false;
             if(!common(*record,chain.recordSelf,chain.recordOwner,body)
                 ||!hex(chain.recordOwner.text,owner)||owner!=chain.dictionary
                 ||!recordReference(*record,body,chain.recordReference)
                 ||!hex(chain.recordReference.text,owner)||owner!=chain.dictionary)return false;
-            selectedObjects.emplace_back(dict,chain.dictionary);
+            if(dictionary.second)selectedObjects.emplace_back(dict,chain.dictionary);
             selectedObjects.emplace_back(record,chain.record);
             candidate.chains.push_back(std::move(chain));
         }
@@ -319,9 +323,11 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
         std::uint64_t sourceSeed=0u;
         if(!hex(source.handSeed.text,sourceSeed)||sourceSeed<=source.root)return false;
         std::vector<std::uint64_t> graphHandles{source.root};
+        std::unordered_set<std::uint64_t> graphIdentities{source.root};
         for(const auto& chain:source.chains) {
             if(sourceSeed<=chain.dictionary||sourceSeed<=chain.record)return false;
-            graphHandles.push_back(chain.dictionary);graphHandles.push_back(chain.record);
+            if(graphIdentities.insert(chain.dictionary).second)graphHandles.push_back(chain.dictionary);
+            if(graphIdentities.insert(chain.record).second)graphHandles.push_back(chain.record);
         }
         struct Binding {std::uint64_t source;std::uint32_t target;};
         std::unordered_set<std::uint32_t> occupied;
@@ -351,13 +357,14 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
         candidate.root=mapped(source.root);candidate.handSeed=maxUsed+1u;
         if(!candidate.root||!candidate.handSeed)return false;
         std::vector<const Field*> selected{&source.rootSelf};
+        std::unordered_set<std::size_t> selectedOrdinals{source.rootSelf.ordinal};
         for(const auto& chain:source.chains) {
             const ChainAlias alias{mapped(chain.dictionary),mapped(chain.record)};
             if(!alias.dictionary||!alias.record)return false;
             candidate.chains.push_back(alias);
             for(const auto* field:{&chain.rootEntry,&chain.dictionarySelf,&chain.dictionaryOwner,
                     &chain.dictionaryEntry,&chain.recordSelf,&chain.recordOwner,&chain.recordReference})
-                selected.push_back(field);
+                if(selectedOrdinals.insert(field->ordinal).second)selected.push_back(field);
         }
         candidate.dictionary=candidate.chains.front().dictionary;
         candidate.record=candidate.chains.front().record;

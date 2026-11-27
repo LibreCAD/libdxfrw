@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-27",
+  "scope": "Locally generated AC1027 ASCII and binary DXF: one root dictionary points to a child dictionary with two XRECORD entries and to a second child dictionary with one XRECORD.",
+  "implementationDigestSha256": "71a74534afd3d47a55ee6ac81a979b8f26dce5d8e40bcb4c32ea017fb7e47a42",
+  "converterSha256": "e40d8a891b1315683dcbdc8c975f4980e4797f5101ae43a89f0513dd320e334c",
+  "change": "Allow selected XRECORD chains to share a dictionary when dictionary source identity, root entry and name agree, while preserving unique record identities. Deduplicate dictionary aliasing and physical edits by source identity and field ordinal.",
+  "hashes": {
+    "ascii": {
+      "source": "03620a54de80bef94ed70d4213f616f879e1731c24081290dd32570042eded8d",
+      "output": "e050cd66f1e8e53819dae1e5485190601557e35311282fef45aaafda215a9ca9"
+    },
+    "binary": {
+      "source": "edae2260ae5a1ec0818c08f24890b4d48a4c1d0f162c84892dd12c83044d34c6",
+      "output": "29b3328c24184e29152f5c5b8fcbc427a9c6c6a0dfa358698178c7d1b0214b7d"
+    }
+  },
+  "peerReadback": {
+    "ezdxf": "1.4.5: each encoding matched 28 mapped objects, 27 dictionary entries, 14 root entries, two layers, all graph owners/reactors, three XRECORD references, material and dictionary values; source and output audit each zero errors and fixes.",
+    "libredwg": "0.14 dxf2dwg r2004 and dwgread JSON resolves the shared dictionary owner, both XRECORD owners and group 340 references. MATERIAL support warnings mean this is selected graph evidence only."
+  },
+  "checks": [
+    "ASCII and binary with alias collisions; shared and independent chains together",
+    "Second-record wrong owner, wrong 340 reference, unknown handle role, cross-version and cross-encoding refusal preserve destination",
+    "In-memory wrong owner and late payload mutations preserve destination and permit corrected same-adapter retry",
+    "Three focused CTests pass including eight/nine chain boundary",
+    "GCC 16 -Wall -Wextra -pedantic -Werror syntax checks pass"
+  ],
+  "limits": [
+    "At most eight selected XRECORD chains; selected AC1027 same-encoding plot/material profile only",
+    "Other graph shapes, native producer and consumers, source-observer opt-ins and broad format support remain unqualified",
+    "Direct public semantic handle API remains 32-bit",
+    "No external DWG/DXF fixtures committed"
+  ]
+}
