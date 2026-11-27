@@ -567,7 +567,7 @@ public:
     std::size_t dxfReadRetainedByteBudget() const noexcept {
         return m_dxfReadRetainedByteBudget;
     }
-    /// Whole-document read/readAscii/write operations are not reentrant on one
+    /// Whole-document read/readAscii/readBuffer/write operations are not reentrant on one
     /// instance. A nested call returns false without changing the active
     /// operation, including its error/diagnostic snapshot or destination. Use
     /// another instance for nested whole-document work. Getters and ordinary
@@ -583,6 +583,12 @@ public:
      */
     [[nodiscard]] bool read(DRW_Interface *interface_, bool ext);
     [[nodiscard]] bool readAscii(DRW_Interface *interface_, bool ext, std::string& content);
+    /** Read a caller-owned complete DXF byte snapshot. ASCII and binary are
+     * detected using the same sentinel and R12 rules as file-backed read().
+     * The library bounds and owns its stream copy for the duration of the
+     * operation; callback, budget and reentrancy rules match readAscii(). */
+    [[nodiscard]] bool readBuffer(DRW_Interface *interface_, bool ext,
+                                  const std::string& content);
     void setBinary(bool b) {binFile = b;}
 
     /// Publish a complete DXF, preserving the destination on failure. Successful
@@ -1549,6 +1555,8 @@ public:
     }
 
 private:
+    bool readBufferImpl(DRW_Interface *interface_, bool ext,
+                        const std::string& content, bool detectBinary);
     static constexpr std::size_t kMaxDxfClassEntries = 65536u;
     static constexpr std::size_t kMaxDxfHandleRemapEntries = 100000u;
     static constexpr std::size_t kMaxResolvedWriteReferences = 100000u;

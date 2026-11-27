@@ -219,6 +219,55 @@ static bool multiPlotReactorRefusal(const std::filesystem::path& in,const std::f
  }
  return true;
 }
+
+static bool bufferReadTest(const std::filesystem::path& path) {
+ dxfRW codec(path.string().c_str());
+ for(bool binary:{false,true}) {
+  if(!source(path,binary))return false;
+  std::string content=bytes(path);if(content.empty())return false;
+  Facet capture;
+  if(!codec.readBuffer(&capture,false,content)||capture.typed!=3||capture.raw!=3
+     ||codec.getSourceVersion()!=DRW::AC1027)return false;
+  const auto originalRetained=codec.dxfReadRetainedByteBudget();
+  codec.setDxfReadRetainedByteBudget(content.size()-1u);
+  Facet limited;
+  if(codec.readBuffer(&limited,false,content)||limited.typed||limited.raw)return false;
+  codec.setDxfReadRetainedByteBudget(originalRetained);
+  const auto originalInput=codec.dxfReadInputByteBudget();
+  codec.setDxfReadInputByteBudget(content.size()-1u);
+  Facet truncated;
+  if(codec.readBuffer(&truncated,false,content))return false;
+  codec.setDxfReadInputByteBudget(originalInput);
+  struct Nested : Facet {
+   dxfRW* codec{nullptr};const std::string* data{nullptr};bool attempted{false},accepted{false};
+   void addMaterial(const DRW_Material& value) override {
+    if(!attempted){attempted=true;Facet nested;accepted=codec->readBuffer(&nested,false,*data);}
+    Facet::addMaterial(value);
+   }
+  } nested;
+  nested.codec=&codec;nested.data=&content;
+  if(!codec.readBuffer(&nested,false,content)||!nested.attempted||nested.accepted
+     ||nested.typed!=3||nested.raw!=3)return false;
+  if(!binary){Facet ascii;if(!codec.readAscii(&ascii,false,content)||ascii.typed!=3||ascii.raw!=3)return false;}
+ }
+ std::ostringstream r12(std::ios::binary);
+ r12.write("AutoCAD Binary DXF\r\n\x1a\0",22);
+ dxfWriterBinaryR12 writer(&r12);writer.setVersion("AC1009",true);
+ if(!writer.writeString(0,"SECTION")||!writer.writeString(2,"HEADER")
+    ||!writer.writeString(9,"$ACADVER")||!writer.writeString(1,"AC1009")
+    ||!writer.writeString(0,"ENDSEC")||!writer.writeString(0,"SECTION")
+    ||!writer.writeString(2,"ENTITIES")||!writer.writeString(0,"LINE")
+    ||!writer.writeString(8,"0")||!writer.writeDouble(10,1)||!writer.writeDouble(20,2)
+    ||!writer.writeDouble(11,3)||!writer.writeDouble(21,4)
+    ||!writer.writeString(0,"ENDSEC")||!writer.writeString(0,"EOF")||writer.hasWriteError())return false;
+ struct LineCapture : LC3CompatCheck {unsigned lines{0};void addLine(const DRW_Line&)override{++lines;}} line;
+ const auto r12bytes=r12.str();
+ if(!codec.readBuffer(&line,false,r12bytes)||line.lines!=1u||codec.getSourceVersion()!=DRW::AC1009)return false;
+ const std::string incomplete=r12bytes.substr(0u,22u);LineCapture failed;
+ if(codec.readBuffer(&failed,false,incomplete)||failed.lines)return false;
+ LineCapture retry;if(!codec.readBuffer(&retry,false,r12bytes)||retry.lines!=1u)return false;
+ return true;
+}
 enum class WideSourceVariant { Wide, Narrow, WrongDictionaryOwner, WrongRecordOwner,
     WrongReference, UnknownReference, DuplicateSelf, DuplicateEntry, DuplicateNameCase, DuplicateTarget,
     MissingEnd, InvalidHandle, AlternateRole, AliasCollision, ExternalWideReference, BadSeed, MissingSeed };
@@ -374,4 +423,5 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
  if(argc==1)for(bool binary:{false,true})
   if(!multiPlotReactorRefusal(in,out,binary))return 35;
  if(argc==1&&!wideSourceTest())return 36;
+ if(argc==1&&!bufferReadTest(in))return 37;
  return 0;}

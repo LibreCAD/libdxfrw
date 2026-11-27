@@ -6127,6 +6127,15 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
 
 
 bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content) {
+    return readBufferImpl(interface_, ext, content, false);
+}
+
+bool dxfRW::readBuffer(DRW_Interface *interface_, bool ext, const std::string& content) {
+    return readBufferImpl(interface_, ext, content, true);
+}
+
+bool dxfRW::readBufferImpl(DRW_Interface *interface_, bool ext,
+                           const std::string& content, bool detectBinary) {
     WholeOperationScope operation(*this);
     if (!operation.admitted())
         return false;
@@ -6140,10 +6149,11 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     m_textReadObservations = {};
     m_textReadObservations.codePagePolicy = m_dxfCodePagePolicy;
     beginDxfReadRetainedBudget();
-    // readAscii is an explicit ASCII entry point.  A caller may reuse one
-    // dxfRW instance after a binary write/read operation; leaving binFile set
-    // would incorrectly suppress ASCII raw-value/source-spelling capture.
-    binFile = false;
+    // readAscii remains explicitly ASCII; readBuffer detects the same binary
+    // sentinel as file-backed reads without borrowing a mutable input stream.
+    static constexpr char binarySentinel[] = "AutoCAD Binary DXF\r\n\x1a\0";
+    binFile = detectBinary && content.size() >= 22u
+        && std::memcmp(content.data(), binarySentinel, 22u) == 0;
     // Keep the in-memory entry point consistent with file-backed reads: each
     // document gets a fresh header rather than inheriting prior variables or
     // comments from the dxfRW object's previous operation.
@@ -6167,13 +6177,22 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
                                                    content.size());
     if (!snapshotReservation.reserved())
         return failDxfReadRetainedBudget();
-    std::istringstream strstream(content);
-    reader = std::make_unique<dxfReaderAscii>(&strstream);
+    std::istringstream strstream(content, std::ios::in | std::ios::binary);
+    if (binFile) {
+        strstream.seekg(22, std::ios::beg);
+        if (!strstream.good()) return setError(DRW::BAD_OPEN);
+        if (content.size() > 23u && static_cast<unsigned char>(content[23]) != 0u)
+            reader = std::make_unique<dxfReaderBinaryR12>(&strstream);
+        else
+            reader = std::make_unique<dxfReaderBinary>(&strstream);
+    } else {
+        reader = std::make_unique<dxfReaderAscii>(&strstream);
+    }
     m_readTextObservationsActive = true;
     reader->setRetainedByteBudget(m_activeDxfReadRetainedBudget);
     reader->setRecordBudget(m_dxfReadRecordBudget);
     reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
-    reader->setInputByteBudget(m_dxfReadInputByteBudget);
+    reader->setInputByteBudget(m_dxfReadInputByteBudget, binFile ? 22u : 0u);
     reader->setDecodeWorkBudget(m_dxfReadDecodeWorkBudget);
     reader->setTypedVariantNodeBudget(m_dxfReadTypedVariantNodeBudget);
     reader->setDxfTextEncoding(m_dxfTextEncoding);

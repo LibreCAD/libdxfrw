@@ -95,7 +95,8 @@ public:
     }
     void wholeSourceFinished(const void* id,const FinishToken& proof)noexcept override {
         if(id==active&&!invalid&&calls==1u&&proof.validFor(id)&&pending&&pending->state()==State::ThroughEof)finished=pending;
-        else finished.reset();active=nullptr;
+        else finished.reset();
+        active=nullptr;
     }
     bool hasAuthority()const noexcept{return static_cast<bool>(finished);}
     void addHeader(const DRW_Header *) override {}
@@ -402,6 +403,16 @@ int main() {
           direct.setDxfReadRetainedByteBudget(4u*1024u*1024u);
           if(!direct.read(&bare,false)||!bare.hasAuthority())return 18;
           if(!direct.read(&bare,true)||!bare.hasAuthority())return 41;
+        }
+        {
+            std::ifstream file(clean,std::ios::binary);std::string content((std::istreambuf_iterator<char>(file)),{});
+            Bare bare;dxfRW direct("");
+            if(!direct.readBuffer(&bare,false,content)||!bare.hasAuthority())return 43;
+            auto truncated=content;if(truncated.size()<4u)return 44;truncated.resize(truncated.size()-4u);
+            if(direct.readBuffer(&bare,false,truncated)||bare.hasAuthority())return 45;
+            if(!direct.readBuffer(&bare,false,content)||!bare.hasAuthority())return 46;
+            auto trailing=content;trailing+="TRAILING";
+            if(!direct.readBuffer(&bare,false,trailing)||bare.hasAuthority())return 47;
         }
         if(std::string(kind)=="ascii") {
             std::ifstream file(clean,std::ios::binary);std::string content((std::istreambuf_iterator<char>(file)),{});

@@ -147,9 +147,12 @@ evidence are recorded in `docs/research/` and Git history.
   checked handle fields and HANDSEED, refuses other wide references, and passes
   a selected full-graph independent readback in both encodings. It is not yet
   connected to actual import or output and does not establish whole-drawing closure.
-  Next make the importer consume that exact normalized snapshot, preserve the
-  original source/alias binding through export and the existing 32-bit consumer
-  API, and check staged DICTIONARY/XRECORD roles and references. Require rooted
+  The [memory reader](docs/research/p7-dxf-memory-snapshot-reader-2026-11-27.json)
+  now consumes an immutable ASCII or binary snapshot using the existing callbacks,
+  budgets and whole-source checks, including R12 binary. Next connect the normalized
+  snapshot to the converter, preserve the original source/alias binding through
+  export and the existing 32-bit consumer API, and check staged DICTIONARY/XRECORD
+  roles and references. Require rooted
   closure, atomic refusal, corrected retry and independent ASCII/Binary readback
   through the actual public route. The [AC1027 default MATERIAL raw replay](docs/research/p7-ac1027-ezdxf-default-material-2026-11-26.json)
   and [multi-layer plot graph](docs/research/p8-ac1027-audited-multilayer-plot-2026-11-26.json)
@@ -282,7 +285,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 8a440bcac123b59b155a83fdc8bad7268a337871b08632fff701d30a134d7451
+  digest: 0b42a6d927c8d203ccabc3557b48ff56d901a5f2bb36482b770dd59fe119d35a
   (782 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,
