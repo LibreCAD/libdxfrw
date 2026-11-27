@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "ba72c474",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+    "https://help.autodesk.com/view/ACD/2026/ENU/?caas=caas%2Fdocumentation%2FACDLT%2F2014%2FENU%2Ffiles%2FGUID-415798D2-818A-42CE-A052-B1C80B650575-htm.html"
+  ],
+  "problem": "The layer UI represented locking by toggling the frozen bit; imported lock bit 4 was lost and frozen layers remained visible and snappable.",
+  "change": [
+    "Represent freeze, lock and off separately in the layer model, builders, Lua and Python bindings, and layer controls. Preserve group-70 freeze and lock bits and signed group 62.",
+    "Hide frozen entities from rendering, fitting, selection and snapping. Keep locked entities visible and snappable while excluding them from normal canvas selection. Apply layer-0 inheritance inside nested inserts."
+  ],
+  "validation": [
+    "macOS ARM64 app and layout test build, nine canvas, three layer-operation, four offscreen Qt layer UI, 74 DXF round-trip, 17 DWG import and 17 layout tests pass. Older codec and Python bridge syntax checks pass.",
+    "ezdxf 1.4.5 independently reads generated R2004 ASCII and binary outputs with layer flags 1, 4 and 5, including negative group 62, and zero audit errors and fixes.",
+    "Full, worktree, base-ref and 31 plan checker tests pass."
+  ],
+  "sha256": {
+    "source": "5b91379bdd62b095e149ff79e98a7adc867654d2f18b0015e9ff4fe2365be7b1",
+    "ascii": "7dc261fe11ca79643ce30a9eca4e18fa08bb84376c864e1b158329a001ebe744",
+    "binary": "5ec38b8b4f5663057164777804a407e9a2daf494b6cdf974dce2b61bb80aaa3c"
+  },
+  "limits": [
+    "Direct scripted or nonselection edits are not yet uniformly prevented on locked layers; no locked-layer fading is implemented.",
+    "New-viewport freeze, viewport-specific freeze, external-reference flags and other group-70 bits remain open.",
+    "Generated controls only; native GUI and other-platform qualification remain open. No generated fixture was committed."
+  ],
+  "supportClaimEffect": "none"
+}
