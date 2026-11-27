@@ -1,0 +1,160 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1021-metric-field-all-raw-profiles-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "Bind selected candidate value sequences for all 66 existing raw-only FIELD records in the exact AutoCAD 2007 metric source, using its ODA DXF, ACadSharp output and decompressed frame bit walker.",
+  "sourceSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+  "odaDxfSha256": "69ac93f16d7895e44e48448a25de60378be8af8d1fc7a36764da8feb33cbe989",
+  "acadsharp": {
+    "assemblySha256": "99f24d71403ecdbda2272473ebd995d5d2e773b4a6e887bcdb404293cbf18b77",
+    "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "probeSha256": "19266476298831281a64c08fec89df2ac5b16425567032bd01c7c14ad5d28274",
+    "logSha256": "8cad03797c54d447d9b3709205bc298a65774d287dc0695b9096e4a4f6f0da6c",
+    "runtime": ".NET 11, DOTNET_ROLL_FORWARD=Major; scratch probe adapted to include AcObjProp, AcObjProp.16.2 and AcSm."
+  },
+  "proof": {
+    "acadsharpSha256": "8cad03797c54d447d9b3709205bc298a65774d287dc0695b9096e4a4f6f0da6c",
+    "bodySpan": {
+      "bodyEndBit": 567,
+      "childStartBit": 287,
+      "count": 42,
+      "payloadBytes": 32,
+      "payloadStartBit": 309
+    },
+    "evaluators": {
+      "AcObjProp": 19,
+      "AcObjProp.16.2": 23
+    },
+    "odaSha256": "69ac93f16d7895e44e48448a25de60378be8af8d1fc7a36764da8feb33cbe989",
+    "rawFrames": 162,
+    "remaining": {
+      "fields": 24,
+      "profiles": [
+        {
+          "count": 1,
+          "evaluator": "AcObjProp.16.2",
+          "example": {
+            "bodyEndBit": 897,
+            "handle": "0x3AABD",
+            "spans": [
+              [
+                "root",
+                125,
+                147,
+                26,
+                357
+              ],
+              [
+                "ObjectPropertyUnresolvedId",
+                401,
+                423,
+                24,
+                617
+              ],
+              [
+                "ObjectPropertyName",
+                617,
+                639,
+                32,
+                897
+              ]
+            ]
+          },
+          "rootFlags": 0,
+          "rootType": 4,
+          "stringsPerField": 3
+        },
+        {
+          "count": 14,
+          "evaluator": "AcObjProp.16.2",
+          "example": {
+            "bodyEndBit": 711,
+            "handle": "0x3AAF0",
+            "spans": [
+              [
+                "ObjectPropertyUnresolvedId",
+                215,
+                237,
+                24,
+                431
+              ],
+              [
+                "ObjectPropertyName",
+                431,
+                453,
+                32,
+                711
+              ]
+            ]
+          },
+          "rootFlags": 1,
+          "rootType": 0,
+          "stringsPerField": 2
+        },
+        {
+          "count": 9,
+          "evaluator": "AcSm",
+          "example": {
+            "bodyEndBit": 601,
+            "handle": "0x151D0",
+            "spans": [
+              [
+                "root",
+                125,
+                147,
+                22,
+                325
+              ],
+              [
+                "SheetSetCompName",
+                345,
+                367,
+                12,
+                465
+              ],
+              [
+                "SheetSetPropertyName",
+                465,
+                487,
+                14,
+                601
+              ]
+            ]
+          },
+          "rootFlags": 0,
+          "rootType": 4,
+          "stringsPerField": 3
+        }
+      ],
+      "valueSpans": 58
+    },
+    "scope": "decompressed object-local bits and peer output, not native behavior",
+    "sourceSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "verifiedFields": 42
+  },
+  "findings": [
+    "The previously checked 42 records remain matched; the remaining 24 produce 58 peer-matched candidate type-4 value sequences: 14 AcObjProp.16.2 unknown-root fields with two strings each, one AcObjProp.16.2 string-root field with three, and nine AcSm string-root fields with three.",
+    "Each candidate contains the peer-matched flags/type, BL byte count, NUL-terminated UTF-16LE bytes and following BL zero within the bounded body. Candidate sequences are selected only when their source order and final body boundary yield a unique solution; duplicated strings are disambiguated by the complete ordered sequence.",
+    "For the 24 records, the selected peer owner equals the previous handle and matches the physical relative-owner token; the bounded handle tail has no additional token. ODA and ACadSharp agree on each selected string.",
+    "In 0x3AAF0, ?BlockRefId occupies bits 237..429 and UpdatedDistance occupies 453..709; the matched units end at bits 431 and 711. This explains why the earlier current/libredwg cursor at bit 237 encounters text bytes instead of the next child flags.",
+    "In 0x3AABD, the peer-matched root Window Width starts at bit 147 and the two child strings at bits 423 and 639; the last unit ends at the body boundary bit 897.",
+    "The remaining 24 are all observed in one identified producer profile; the findings bind these selected sequences and owner tails, not every body field or complete native evaluator behavior."
+  ],
+  "validation": [
+    "The checker refuses flags, length, payload and owner-role mutations and a changed ACadSharp value; the earlier 42-record invocation remains valid.",
+    "No DWG or DXF fixture was committed."
+  ],
+  "hashesSha256": {
+    "checker": "fbdb284605a14c0b73a45415a915280ada15a0c6601150b73ce0ee305ca2143f",
+    "proof": "cbed93820d26a86eaa57bc0e8931ec5e9c8cd9f570694a69ad8afc61f9eda988",
+    "negative": "8bf825313cd3223f1da408525de1ff0ff3f6e11d4ccd009401e5dd34240d5c41"
+  },
+  "authorityConflict": "ODA v5.4.1 sections 2, 20.1, 20.4.76 and 20.4.99 require R2007+ TV/TU strings in the object string stream; the observed byte sequences occur in the body. Under repository instructions the authoritative rule wins. These peer comparisons do not permit adding an inline-string parser or promoting a support claim.",
+  "nextStep": "Seek an authoritative versioned clarification or a verified lossless opaque representation; independently bind all intervening body fields, strings, handles and following-object boundaries before any FIELD parser/output admission. Preserve strict refusal and atomic retry.",
+  "limitations": [
+    "Two peer implementations interpret the same original sample; they do not establish native AutoCAD evaluation or lossless round-trip.",
+    "Ordering and end-boundary matching do not prove the meaning of the intervening bits, all field values, every reference, or a general FIELD layout.",
+    "The source is one AutoCAD 2007 metric drawing, and no additional producer/platform profile is claimed."
+  ]
+}
