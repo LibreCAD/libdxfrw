@@ -235,6 +235,13 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Check GUI diagnostic and renderer guards
+        if: ${{ inputs.candidate_gui }}
+        shell: pwsh
+        run: |
+          python -m unittest discover -s tools/research -p test_freecad_candidate_gui_diagnostics.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'GUI qualification guard tests failed' }
+
       - name: Check out pinned FreeCAD and submodules
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -318,6 +325,24 @@ jobs:
             if (-not (Get-Command xvfb-run -ErrorAction SilentlyContinue)) { throw 'xvfb-run is required for the Linux GUI smoke test' }
             xvfb-run -a pixi run python @probeArgs
           } else {
+            # Hosted Windows lacks a usable hardware OpenGL context. Install the
+            # pinned Mesa software renderer beside the candidate executable.
+            $mesaArchive = Join-Path $env:RUNNER_TEMP 'mesa3d-23.3.5-release-msvc.7z'
+            Invoke-WebRequest -Uri 'https://github.com/pal1000/mesa-dist-win/releases/download/23.3.5/mesa3d-23.3.5-release-msvc.7z' -OutFile $mesaArchive
+            $mesaHash = (Get-FileHash -Algorithm SHA256 $mesaArchive).Hash.ToLowerInvariant()
+            if ($mesaHash -ne 'ce42bee2034f3dbd272f1d658040dfa678c0d8e653f260be8808f4e80f34c06a') { throw "Mesa archive SHA-256 mismatch: $mesaHash" }
+            $mesaDir = Join-Path $env:RUNNER_TEMP 'freecad-mesa'
+            $sevenZip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
+            & $sevenZip x $mesaArchive "-o$mesaDir" -y 'x64/opengl32.dll' 'x64/libglapi.dll' 'x64/libgallium_wgl.dll'
+            if ($LASTEXITCODE -ne 0) { throw 'Mesa extraction failed' }
+            $bin = Join-Path $build 'bin'
+            foreach ($file in @('opengl32.dll', 'libglapi.dll', 'libgallium_wgl.dll')) {
+              $sourceFile = Join-Path $mesaDir "x64/$file"
+              if (-not (Test-Path -Path $sourceFile -PathType Leaf)) { throw "Mesa component missing: $file" }
+              Copy-Item -Path $sourceFile -Destination $bin -Force
+            }
+            $env:GALLIUM_DRIVER = 'llvmpipe'
+            $probeArgs += @('--require-windows-opengl', (Join-Path $bin 'opengl32.dll'))
             pixi run python @probeArgs
           }
           if ($LASTEXITCODE -ne 0) { throw 'Candidate GUI smoke probe failed' }

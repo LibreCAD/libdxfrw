@@ -23,6 +23,28 @@ CASES = ("polyface", "polygon", "mixed", "nested_nolayers", "layer_on_2",
          "layer_off_2", "layer_frozen_2", "color", "color_mixed", "color_mixed_nocolor")
 
 
+def gui_diagnostic_failures(stdout, stderr):
+    """Detect observed fatal GUI/context failures even when FreeCAD exits zero."""
+    output = (stdout + "\n" + stderr).casefold()
+    signatures = {
+        "unhandled_gui_exception": "unhandled base::exception caught in guiapplication::notify",
+        "access_violation": "the error message is: access violation",
+        "unsupported_opengl": "freecad requires opengl 2.0 or above",
+        "texture_allocation_failure": "qopenglwidget: failed to create wrapper texture",
+        "opengl_context_failure": "error when setting up the gl context",
+    }
+    return {name: output.count(text) for name, text in signatures.items() if text in output}
+
+
+def require_windows_opengl(expected_path, observed_path, build_root, platform_name):
+    expected = expected_path.resolve(strict=True)
+    if platform_name != "win32" or not expected.is_file() or not common.within(expected, build_root):
+        raise RuntimeError("required OpenGL module is not a Windows build-local file")
+    if not observed_path or Path(observed_path).resolve(strict=True) != expected:
+        raise RuntimeError("FreeCAD did not load the required OpenGL module")
+    return common.digest(expected)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-archive", required=True, type=Path)
@@ -36,6 +58,8 @@ def main():
     parser.add_argument("--draft-resource-dir", type=Path,
                         help="explicit resource directory; defaults to the selected build's Mod/Draft")
     parser.add_argument("--qt-platform", help="optional Qt platform plugin, e.g. offscreen")
+    parser.add_argument("--require-windows-opengl", type=Path,
+                        help="require this build-local OpenGL module on Windows")
     parser.add_argument("--timeout", type=int, default=600)
     args = parser.parse_args()
     if not 1 <= args.timeout <= 3600:
@@ -94,6 +118,9 @@ def main():
             raise RuntimeError("FreeCAD GUI timed out; partial output was preserved") from exc
         (run_dir / "stdout.log").write_text(proc.stdout, encoding="utf-8")
         (run_dir / "stderr.log").write_text(proc.stderr, encoding="utf-8")
+        failures = gui_diagnostic_failures(proc.stdout, proc.stderr)
+        if failures:
+            raise RuntimeError("FreeCAD GUI emitted fatal diagnostics: " + json.dumps(failures, sort_keys=True))
         markers = [line.split(MARKER, 1)[1] for line in proc.stdout.splitlines() if MARKER in line]
         if proc.returncode or len(markers) != 1:
             raise RuntimeError("FreeCAD GUI failed or did not emit exactly one result")
@@ -116,13 +143,18 @@ def main():
             raise RuntimeError("FreeCAD GUI platform or architecture differs from the host")
         if not report.get("qtPlatform") or (args.qt_platform and report["qtPlatform"] != args.qt_platform):
             raise RuntimeError("FreeCAD GUI did not report the expected Qt platform")
+        opengl_digest = None
+        if args.require_windows_opengl:
+            opengl_digest = require_windows_opengl(args.require_windows_opengl,
+                                                   report.get("windowsOpenGLModule"), build, sys.platform)
         receipt = {"ok": True, "scope": "focused GUI view-property checks; no pixel-rendering claim",
                    "sourceReplay": source_receipt, "gitBaseVerified": git_base_verified,
                    "cmakeSourceRoot": homes[0], "cmakeCacheSha256": common.digest(cache),
                    "freecadSha256": common.digest(command), "importGuiSha256": common.digest(importer),
                    "draftSha256": common.digest(draft), "draftResourceSha256": common.digest(draft_resource),
                    "draftResourceWithinBuild": common.within(draft_resource, build), "macroSha256": common.digest(MACRO),
-                   "qtPlatformRequested": args.qt_platform, "report": report}
+                   "qtPlatformRequested": args.qt_platform, "requiredOpenGLSha256": opengl_digest,
+                   "report": report}
     except Exception as exc:
         receipt = {"ok": False, "error": str(exc)}
     (run_dir / "receipt.json").write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")

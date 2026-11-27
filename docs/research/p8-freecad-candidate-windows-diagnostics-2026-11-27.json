@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-candidate-windows-diagnostics-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "workflow": "https://github.com/dxli/libdxfrw/actions/runs/46039888727",
+  "job": "https://github.com/dxli/libdxfrw/actions/runs/46039888727/job/140644634763",
+  "workflowHead": "333d4ddfab488968dc212a1e0f6b0afbe3205582",
+  "sourceCommit": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "patchCount": 21,
+  "sourceArchiveSha256": "efd717b80f82d6c4ba10debc3c4fca5408cf57cb63fc9cccd8c594fb4fb040e7",
+  "headless": {
+    "receiptSha256": "dd9b7be9230b7350e2ce0004baf5a958e0efda721686e73b2cdece2383a7e687",
+    "freecadcmdSha256": "cf386a77f6bc9f9b4b15566fb0b7b5d014aba37e5da2f35061b966cca95dece2",
+    "importModuleSha256": "6c1d5649eac9b8ede9d8ba62ad10401218676404def55231c0eec1f3801832f4",
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "platform": "GitHub Actions windows-2022 x86_64"
+  },
+  "gui": {
+    "receiptSha256": "42f4a749f83c39e9818d192ca0bb38eb96736589c82f5abf439f041ebe044985",
+    "stderrSha256": "49826a516a17097a074ff80e12230b81ef2862ad1385aed8ea5c7a8083e6dc0e",
+    "reportedCases": 10,
+    "qtPlatform": "windows",
+    "jobConclusion": "success",
+    "qualification": "INVALID_FATAL_GUI_DIAGNOSTICS",
+    "diagnosticCounts": {
+      "unhandled_gui_exception": 16,
+      "access_violation": 16,
+      "unsupported_opengl": 1,
+      "texture_allocation_failure": 10,
+      "opengl_context_failure": 5
+    },
+    "details": "FreeCAD reported OpenGL 1.1 and requires OpenGL 2.0 or later. The GUI reported all view-property cases but emitted unhandled access violations and context failures; those GUI results are not qualified."
+  },
+  "repair": {
+    "description": "Reject observed fatal diagnostics in both output streams, preserve logs, require the expected build-local Windows OpenGL module to be loaded and hash it, and configure a Windows retry with pinned Mesa 23.3.5 llvmpipe.",
+    "qtReference": "https://doc.qt.io/qt-6.12/windows-graphics.html",
+    "mesaRelease": "https://github.com/pal1000/mesa-dist-win/releases/tag/23.3.5",
+    "mesaArchiveSha256": "ce42bee2034f3dbd272f1d658040dfa678c0d8e653f260be8808f4e80f34c06a",
+    "mesaOpenGLSha256": "b49b87248f6bb496318a7cbde469dd60c9ff6938b2a11bdb01fd9777c1d884a3",
+    "guiGuardTests": 4,
+    "guiGuardTestLogSha256": "30766769677edc5732c05e06be35089d53ff888a868e022d9b56817b9040bf2a",
+    "retry": "PENDING"
+  },
+  "limitations": [
+    "A green job conclusion is not GUI qualification when its captured process reports unhandled exceptions.",
+    "The 16 headless tests qualify the pinned importer candidate and listed generated inputs only; they do not establish DWG handoff or native rendering.",
+    "The software-renderer change is prepared and locally validated for syntax, archive identity and diagnostic classification; it is not verified on Windows until the new job runs."
+  ]
+}

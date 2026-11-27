@@ -30,6 +30,24 @@ import FreeCAD as App
 from PySide import QtCore, QtGui
 
 
+def windows_opengl_module():
+    if sys.platform != "win32":
+        return None
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.GetModuleHandleW.argtypes = [ctypes.c_wchar_p]
+    kernel.GetModuleHandleW.restype = ctypes.c_void_p
+    kernel.GetModuleFileNameW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_uint32]
+    kernel.GetModuleFileNameW.restype = ctypes.c_uint32
+    handle = kernel.GetModuleHandleW("opengl32.dll")
+    if not handle:
+        return None
+    buffer = ctypes.create_unicode_buffer(32768)
+    length = kernel.GetModuleFileNameW(handle, buffer, len(buffer))
+    if not length or length >= len(buffer):
+        raise OSError("could not resolve loaded OpenGL module")
+    return buffer.value
+
+
 def color_drawing(mixed):
     tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
             (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
@@ -281,6 +299,7 @@ def run():
                   "qtPlatform": QtGui.QGuiApplication.platformName(),
                   "draftResourceModule": getattr(sys.modules.get("Draft_rc"), "__file__", None),
                   "draftModule": Draft.__file__, "qtFrameworkImages": qt_frameworks,
+                  "windowsOpenGLModule": windows_opengl_module(),
                   "results": results}
     except Exception:
         result["error"] = traceback.format_exc()
