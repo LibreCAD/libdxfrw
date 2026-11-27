@@ -81,10 +81,12 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    does not qualify that peer. Keep unsupported graphs atomic and retryable.
 5. **LibreCAD_3 entity and layer behavior.** Extend true-color metadata,
    off/frozen/locked layer behavior and edit/undo semantics to other entities,
-   renamed layers, entities created by operation stacks within a group, other
-   lock-changing operations, custom operations and repeated compound stacks.
+   renamed layers, generated copy identities and unqualified operation stacks
+   within a group, other lock-changing operations, custom operations and repeated compound stacks.
    The [directly staged group preflight](docs/research/p8d-librecad3-staged-locked-group-preflight-2026-11-27.json)
-   covers selected flat and nested create/lock/edit cases and repeated new IDs.
+   covers selected flat and nested create/lock/edit cases and repeated new IDs;
+   the [shared shadow probe](docs/research/p8d-librecad3-new-stack-group-preflight-2026-11-27.json)
+   also projects five tested source entity types from selected built-in stacks.
    Cover viewport
    freeze and remaining layer flags; preserve warning/report behavior when older
    formats approximate or omit color. Reuse the [lock-transition preflight](docs/research/p8d-librecad3-layer-lock-transition-preflight-2026-11-26.json)
@@ -110,7 +112,8 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    passed its hosted link step; the subsequent [MPOLYGON cleanup repair](docs/research/p8d-librecad3-windows-mpolygon-cleanup-2026-11-27.json)
    passed the affected Windows tests. Two later stream-sharing failures were fixed
    in the [unit and spline cleanup](docs/research/p8d-librecad3-windows-unit-spline-cleanup-2026-11-27.json);
-   the new hosted Windows run must still complete. Preserve the FreeCAD
+   the hosted Windows run at bdeb2046 subsequently passed build and packaging
+   and continues with feature checks; updated-head qualification remains open. Preserve the FreeCAD
    3DFACE, SOLID and polyface limitations until their independent gates close.
    Freeze the candidate before broad suites and release claims.
 

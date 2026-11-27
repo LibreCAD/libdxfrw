@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-new-stack-group-preflight-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "107381fc",
+  "finding": "The direct-staging preflight did not inventory source identities emitted by an earlier operation stack; a later locked edit could therefore leave a compound operation partially applied.",
+  "change": "Reuse the existing cloned-operation and shadow-entity probe to project source identities from supported stacks without mutating the document, caller operations or global entity IDs. Projection admits exact Line, Circle, Arc, Ellipse and Spline types and the built-in Push, Move, Copy, Rotate, Scale, Begin and SelectByLayer operations. Derived copy identities are not projected. The existing locked-input refusal uses the same extracted probe.",
+  "validation": "The regression failed before the change. The focused suite passes 51 BuilderTest and EntityBuilderTest cases on macOS ARM64; the new test covers five entity types, six stack profiles and flat/nested groups, with ID preservation during refused preflight, atomic refusal, explicit retry, copy counts and undo/redo. Another control verifies a dropped stack input is not projected. Python plan structural, worktree, actual GitHub base and 31 checker tests plus git diff --check pass.",
+  "limits": "Generated copy identities, loop and remove stacks, unknown operations and unqualified entity types remain outside this projection. Copy/edit behavior for a new entity already on a locked layer may be conservatively refused. Native GUI, final consumer heads and other platforms remain unqualified."
+}
