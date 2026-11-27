@@ -8,7 +8,8 @@ and FREECAD_PYSIDE_DIR when these modules are not installed in the build.
 The build also needs its MaterialLib, MaterialModelLib and AppearanceLib
 resources. A successful run prints FREECAD_GUI_MESH_PROBE with ok=true.
 Set FREECAD_GUI_MESH_PROFILE=smoke for a focused subset; the default is full.
-This checks view-provider properties, not visual rendering or platform parity.
+This checks view-provider properties. FREECAD_GUI_CAPTURE_DIR additionally
+captures visibility frames for independent pixel analysis by the runner.
 """
 import ctypes
 import json
@@ -142,6 +143,7 @@ def run():
             elif profile != "full":
                 raise RuntimeError("Unknown GUI mesh profile: " + profile)
             for case in cases:
+                pixel_files = None
                 is_color = case.startswith("color")
                 is_vertex = case.startswith("vertex_")
                 is_byblock = case.startswith("byblock_")
@@ -282,6 +284,13 @@ def run():
                             assert not meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
                             layer.ViewObject.Visibility = True
                             assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
+                            if case == "polyface" and os.environ.get("FREECAD_GUI_CAPTURE_DIR"):
+                                import FreeCADGui as Gui
+                                framebuffer = runpy.run_path(str(Path(tools_dir) / "freecad_framebuffer_capture.py"))
+                                pixel_files = framebuffer["capture"](
+                                    Gui.activeDocument().activeView(), meshes[0].ViewObject,
+                                    lines[0].ViewObject, os.environ["FREECAD_GUI_CAPTURE_DIR"],
+                                    QtCore.QCoreApplication.processEvents)
                         else:
                             reason = ("POLYGON MESH unsupported or invalid profile" if (is_vertex or is_byblock) and "polygon" in case
                                       else "POLYFACE nondefault layer in block" if case == "nested"
@@ -289,6 +298,8 @@ def run():
                                       else "POLYFACE unsupported or invalid profile")
                             assert reason in stats["unsupportedFeatures"] and not groups["MESH"]
                         detail = {"groups": groups}
+                    if pixel_files is not None:
+                        detail["pixelFiles"] = pixel_files
                     results.append({"case": case, "detail": detail,
                                     "unsupported": stats["unsupportedFeatures"]})
                 finally:

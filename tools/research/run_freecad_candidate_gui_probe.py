@@ -15,12 +15,54 @@ import sys
 import tempfile
 
 import run_freecad_candidate_probe as common
+from freecad_framebuffer_capture import NAMES as PIXEL_FILES
 
 HERE = Path(__file__).resolve().parent
 MACRO = HERE / "freecad_gui_mesh_probe.FCMacro"
 MARKER = "FREECAD_GUI_MESH_PROBE="
 CASES = ("polyface", "polygon", "mixed", "nested_nolayers", "layer_on_2",
          "layer_off_2", "layer_frozen_2", "color", "color_mixed", "color_mixed_nocolor")
+
+
+def analyze_rgb_frames(width, height, frames):
+    """Check mesh removal, independent line removal and restoration in RGB frames."""
+    size = width * height
+    if width < 16 or height < 16 or len(frames) != 4 or any(len(frame) != size * 3 for frame in frames):
+        raise ValueError("invalid framebuffer dimensions or data")
+
+    def changed(first, second):
+        return [index // 3 for index in range(0, size * 3, 3)
+                if max(abs(first[index + channel] - second[index + channel])
+                       for channel in range(3)) >= 24]
+
+    mesh = changed(frames[0], frames[1])
+    line = changed(frames[1], frames[2])
+    restored = changed(frames[0], frames[3])
+    if len(mesh) < max(64, size // 1000) or len(mesh) > size * 0.7 or len(line) < 4:
+        raise ValueError("mesh or independent line visibility did not change enough pixels")
+    xs, ys = [p % width for p in mesh], [p // width for p in mesh]
+    bounds = [min(xs), min(ys), max(xs), max(ys)]
+    if bounds[2] - bounds[0] < 8 or bounds[3] - bounds[1] < 8:
+        raise ValueError("mesh pixel difference is too small in either dimension")
+    if len(restored) > max(16, len(mesh) // 100):
+        raise ValueError("restored framebuffer differs from the original")
+    return {"width": width, "height": height, "meshChangedPixels": len(mesh),
+            "lineChangedPixels": len(line), "restorationChangedPixels": len(restored),
+            "meshDifferenceBounds": bounds, "channelThreshold": 24}
+
+
+def analyze_pixel_files(run_dir):
+    from PIL import Image
+
+    frames, hashes = [], {}
+    for name in PIXEL_FILES:
+        path = run_dir / name
+        with Image.open(path) as image:
+            if image.format != "PNG" or image.size != (320, 240):
+                raise ValueError("unexpected framebuffer image format or dimensions")
+            frames.append(image.convert("RGB").tobytes())
+        hashes[name] = common.digest(path)
+    return {**analyze_rgb_frames(320, 240, frames), "imageSha256": hashes}
 
 
 def gui_diagnostic_failures(stdout, stderr):
@@ -60,12 +102,14 @@ def main():
     parser.add_argument("--qt-platform", help="optional Qt platform plugin, e.g. offscreen")
     parser.add_argument("--require-windows-opengl", type=Path,
                         help="require this build-local OpenGL module on Windows")
+    parser.add_argument("--require-pixels", action="store_true",
+                        help="also verify framebuffer visibility and restoration")
     parser.add_argument("--timeout", type=int, default=600)
     args = parser.parse_args()
     if not 1 <= args.timeout <= 3600:
         parser.error("--timeout must be between 1 and 3600 seconds")
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    run_dir = Path(tempfile.mkdtemp(prefix="freecad-gui-probe-", dir=args.output_dir))
+    run_dir = Path(tempfile.mkdtemp(prefix="freecad-gui-probe-", dir=args.output_dir)).resolve()
     receipt = {"ok": False}
     try:
         source = args.source_root.resolve(strict=True)
@@ -107,6 +151,8 @@ def main():
             env["FREECAD_PYSIDE_DIR"] = str(args.pyside_dir.resolve(strict=True))
         if args.qt_platform:
             env["QT_QPA_PLATFORM"] = args.qt_platform
+        if args.require_pixels:
+            env["FREECAD_GUI_CAPTURE_DIR"] = str(run_dir)
         try:
             proc = subprocess.run([str(command), "--safe-mode", "--user-cfg", str(run_dir / "user.cfg"),
                                    "--system-cfg", str(run_dir / "system.cfg"), str(MACRO)],
@@ -147,14 +193,18 @@ def main():
         if args.require_windows_opengl:
             opengl_digest = require_windows_opengl(args.require_windows_opengl,
                                                    report.get("windowsOpenGLModule"), build, sys.platform)
-        receipt = {"ok": True, "scope": "focused GUI view-property checks; no pixel-rendering claim",
+        if args.require_pixels and report["results"][0].get("detail", {}).get("pixelFiles") != list(PIXEL_FILES):
+            raise RuntimeError("GUI did not report the requested framebuffer sequence")
+        pixels = analyze_pixel_files(run_dir) if args.require_pixels else None
+        receipt = {"ok": True, "scope": ("focused GUI view-property and framebuffer checks" if pixels
+                                         else "focused GUI view-property checks; no pixel-rendering claim"),
                    "sourceReplay": source_receipt, "gitBaseVerified": git_base_verified,
                    "cmakeSourceRoot": homes[0], "cmakeCacheSha256": common.digest(cache),
                    "freecadSha256": common.digest(command), "importGuiSha256": common.digest(importer),
                    "draftSha256": common.digest(draft), "draftResourceSha256": common.digest(draft_resource),
                    "draftResourceWithinBuild": common.within(draft_resource, build), "macroSha256": common.digest(MACRO),
                    "qtPlatformRequested": args.qt_platform, "requiredOpenGLSha256": opengl_digest,
-                   "report": report}
+                   "pixelEvidence": pixels, "report": report}
     except Exception as exc:
         receipt = {"ok": False, "error": str(exc)}
     (run_dir / "receipt.json").write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")

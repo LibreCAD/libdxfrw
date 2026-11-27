@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-framebuffer-feasibility-2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "Framebuffer-test method control using an installed FreeCAD, not the patched candidate.",
+  "application": {
+    "version": "1.1.4",
+    "commit": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "executableSha256": "a535464ece9a6175a3b15f385b35818402007eb3a8853384dacd65f128b50b1e",
+    "platform": "macOS ARM64 Cocoa"
+  },
+  "generatedScene": "Locally constructed red triangular Part face and separate black line; no imported DWG/DXF.",
+  "observedPixels": {
+    "width": 320,
+    "height": 240,
+    "meshChangedPixels": 2440,
+    "lineChangedPixels": 80,
+    "restorationChangedPixels": 0,
+    "meshDifferenceBounds": [
+      43,
+      90,
+      121,
+      149
+    ],
+    "channelThreshold": 24,
+    "imageSha256": {
+      "pixel-visible.png": "4bfd3fbdfd51a03c7057b576efa7588effe8e295815b9aeb16574c6328bb5ce0",
+      "pixel-mesh-hidden.png": "1402f6a8332ff476a49774aa83c51191847d2ade746a14300f4f47e2831b87e1",
+      "pixel-all-hidden.png": "5ff3958bf2ed07665d83a97dd8cc0c2f9bb505a7aebf9915ed2dd2f6725b85da",
+      "pixel-restored.png": "71cad2dd6f51ac911059d8e19cee2105c444d7be95beab21a783eaa3e3943602"
+    }
+  },
+  "checks": [
+    "PASS visible, mesh-hidden, all-hidden and restored captures with fixed camera and 320x240 white background.",
+    "PASS independent Pillow analysis of 2440 mesh-changed pixels, 80 line-changed pixels and zero restoration differences above threshold.",
+    "PASS real-image no-mesh and incorrect-restoration negative controls; seven GUI guard/capture unit tests pass.",
+    "Qt offscreen plugin could not create a GL context; the successful run used Cocoa.",
+    "No drawing or image fixture was committed."
+  ],
+  "limits": [
+    "This is a feasibility test on the installed app and a constructed shape, not the patched importer candidate or an imported DWG/DXF.",
+    "No Linux, Windows, hardware-driver, native-interaction, or general rendering claim follows.",
+    "The installed app reported an unavailable optional 3Dconnexion framework."
+  ]
+}

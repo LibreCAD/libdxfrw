@@ -13,6 +13,11 @@ on:
         required: false
         type: boolean
         default: false
+      candidate_pixels:
+        description: Verify generated mesh and line framebuffer visibility (requires candidate_gui)
+        required: false
+        type: boolean
+        default: false
       candidate_platform:
         description: Platforms to qualify
         required: false
@@ -31,7 +36,7 @@ permissions:
 
 jobs:
   linux-freecad:
-    if: ${{ (github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui)) && (github.event_name != 'workflow_dispatch' || inputs.candidate_platform != 'windows') }}
+    if: ${{ (github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui || inputs.candidate_pixels)) && (github.event_name != 'workflow_dispatch' || inputs.candidate_platform != 'windows') }}
     name: FreeCAD 1.1.4 / Linux x86_64
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -113,7 +118,7 @@ jobs:
           retention-days: 14
 
   windows-freecad:
-    if: ${{ (github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui)) && (github.event_name != 'workflow_dispatch' || inputs.candidate_platform != 'linux') }}
+    if: ${{ (github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui || inputs.candidate_pixels)) && (github.event_name != 'workflow_dispatch' || inputs.candidate_platform != 'linux') }}
     name: FreeCAD 1.1.4 / Windows x64
     runs-on: windows-2022
     timeout-minutes: 60
@@ -215,7 +220,7 @@ jobs:
           retention-days: 14
 
   candidate-headless:
-    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.candidate || inputs.candidate_gui) }}
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.candidate || inputs.candidate_gui || inputs.candidate_pixels) }}
     name: FreeCAD candidate headless / ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -224,6 +229,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     steps:
+      - name: Validate framebuffer profile
+        if: ${{ inputs.candidate_pixels && !inputs.candidate_gui }}
+        shell: pwsh
+        run: throw 'candidate_pixels requires candidate_gui'
+
       - name: Use repository line endings for both checkouts
         shell: pwsh
         run: |
@@ -321,6 +331,7 @@ jobs:
           $evidence = Join-Path $env:RUNNER_TEMP 'freecad-candidate-evidence'
           $probeArgs = @($runner, '--source-archive', $archive, '--expected-source-commit', '477a7041803823a1fcae528133cb07ee5533b1b2',
                          '--require-git-base', '--source-root', $source, '--build-root', $build, '--freecad', $command, '--output-dir', $evidence)
+          if ('${{ inputs.candidate_pixels }}' -eq 'true') { $probeArgs += '--require-pixels' }
           if ($env:RUNNER_OS -eq 'Linux') {
             if (-not (Get-Command xvfb-run -ErrorAction SilentlyContinue)) { throw 'xvfb-run is required for the Linux GUI smoke test' }
             xvfb-run -a pixi run python @probeArgs
