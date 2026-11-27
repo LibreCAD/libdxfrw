@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-elevated-point-planar-picking-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "34bce58aebe2a88e5334679d14680aa2024a0555",
+  "change": "Use explicit planar distance for 2D canvas selection and entity snap candidate search/order, retaining the actual candidate elevation in snap events. Existing storage queries retain 3D behavior by default; planar projection is opt-in.",
+  "validation": [
+    "The pre-change viewer regression failed to select and snap a point at (2,3,70) from the planar cursor (2,3).",
+    "The focused control selects that point, snaps to its actual elevation in preference to a nearby planar point, checks empty-space fallback, and confirms default 3D and explicit planar storage query behavior.",
+    "76 BuilderTest, EntityBuilderTest, SelectionTest and CanvasScaleTest cases pass on macOS ARM64, including locked and hidden layer checks, retry, undo/redo and planar snapping."
+  ],
+  "logsSha256": {
+    "red": "2ed73db2fc6a70f2cb7f87608deba87b86720ad1b3da67aaf580a300dc6d227d",
+    "build": "809dea5a4df804abd71b22a790a6eced9191f1a21680d9c7747fbac62d1a2f84",
+    "focused": "3872d6398ccbce42ed6d70bb84629234f4fb8d63f9ee18067edf19cc358df6ff",
+    "all": "395670e92999396036ccc7e69fe63ad8f0628f9aedc9acb37317bdbcff339d17"
+  },
+  "limitations": [
+    "The control is headless and covers elevated POINT picking; native GUI interaction and general nonplanar curves, intersections, other producers and platforms remain to be qualified.",
+    "The planar search uses the entity nearest-path elevation as the snap-query elevation; mixed-elevation snap candidates require separate evidence."
+  ]
+}
