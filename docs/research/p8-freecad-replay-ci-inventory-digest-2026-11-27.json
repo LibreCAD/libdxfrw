@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-replay-ci-inventory-digest-2026-11-27",
+  "supportClaimEffect": "none",
+  "sourceCommit": "a90a03397a05c7ee05ef7983498c4ea23ca9737f",
+  "repairCommit": "d26c48056",
+  "failures": [
+    "GitHub Actions run 46034879511 job 140627638498 stopped because the implementation digest in the status overlay was stale.",
+    "GitHub Actions run 46034879214 job 140627645585 stopped because the source-release inventory omitted the new replay test."
+  ],
+  "repair": {
+    "method": "Regenerate tracked source-release inventories, configure the hosted CTest profile in an isolated clean worktree, freeze its test inventory, and calculate the implementation digest from that staged index. Update only the digest-excluded status overlay.",
+    "releasedFileCount": 1421,
+    "broadTestCount": 1407,
+    "broadNameDigestSha256": "9f7be4c016820b36e3b7cf588f0fc5028c04ad7270ed8313753e408c2bc4d81f",
+    "addedTests": ["libdxfrw_freecad_patch_replay"],
+    "removedTests": [],
+    "implementationDigestSha256": "f01bd9f03cf8c455aa7fdb4c0e00f5057047216d404e191dcea11ad0fb62c054",
+    "implementationInputCount": 784,
+    "claims": "All 15 claims remain EXPERIMENTAL, with no promoted claims or native receipt references."
+  },
+  "checks": [
+    "The clean worktree passes source-release inventory, qualification digest, 1407-name test inventory and immutable workflow contract checks.",
+    "Qualification runner, digest, source-release inventory and qualified-format-support self-tests pass; the support join advertises zero claims.",
+    "The newly registered FreeCAD patch replay CTest passes in the clean configuration."
+  ],
+  "limits": [
+    "This is a local contract and focused-test repair, not an execution of the full suite or a native platform qualification.",
+    "Hosted checks for the resulting commit must finish, and prior platform evidence remains bound to its own implementation digest."
+  ]
+}

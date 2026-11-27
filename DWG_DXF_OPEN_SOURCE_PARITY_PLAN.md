@@ -129,6 +129,8 @@ The remote ObjectARX host's release, OS, SDK and access route are still unknown.
 Use the [profile intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once a
 usable host is available, and continue independent work in the meantime.
 
+The [replay CI repair](docs/research/p8-freecad-replay-ci-inventory-digest-2026-11-27.json) refreshes the source-release and 1,407-test inventories and the implementation digest after adding the FreeCAD replay regression. All 15 format claims remain EXPERIMENTAL; previous digest-bound platform qualification must be reassessed and the new hosted checks must finish.
+
 ## Execution and evidence rules
 
 1. Batch compatible producer captures in one host session, but keep a distinct
