@@ -437,5 +437,76 @@
     "ODA conversion may perform repairs and selected-field comparison is not whole-source fidelity or AutoCAD normal-open proof.",
     "Both inputs come from one locally generated producer profile; no native clone/WBLOCK operation or general support claim follows."
   ],
-  "rootAuditSha256": "6b9f68e4e50c27539614cd44424225966a46c45b4c550c5a47ffd4dadd65693b"
+  "rootAuditSha256": "6b9f68e4e50c27539614cd44424225966a46c45b4c550c5a47ffd4dadd65693b",
+  "independentCadkitCommonAndDictionaryReadback": {
+    "binarySha256": "0cb592694a50c7503391a23d302c67f2c3c754a5ccc40ea0f4abcef42cb31351",
+    "samples": {
+      "destination": {
+        "dwgSha256": "269e05d515446e240d5165803458fb5330d5f1b5711e9d747a23431e7b061ea0",
+        "objects": {
+          "C": {
+            "logSha256": "ad97dd682a0e8cce0e1b459d7265e5d74b10cfe700c812b439486c5c6d5bd0de",
+            "body": "dictionary"
+          },
+          "17": {
+            "logSha256": "1de94d1fb9c8b44eedac5719a1f178f63af780ea966d9f1b1ee51c4f137f2e06",
+            "body": "dictionary"
+          },
+          "18": {
+            "logSha256": "ddfbc99e58b66a9113a32051e01c64ca422be6dbafb094b15ac3e0b19e0f2da5",
+            "body": "unparsed"
+          },
+          "2E": {
+            "logSha256": "1e41b8128e6ccaa68da85999da30616c3b6dbfa4b7c78fd6fcc23a82e6cc33bc",
+            "body": "unparsed"
+          },
+          "2F": {
+            "logSha256": "2489dab9298965e50302d1ae07cf6e27d5c91af0ef3ad415093c5d789abf0023",
+            "body": "unparsed"
+          }
+        }
+      },
+      "source": {
+        "dwgSha256": "3a9dd2858b9d86d226fb4d704a5a396b4af04041bd034473ae7b022524f62173",
+        "objects": {
+          "C": {
+            "logSha256": "ad97dd682a0e8cce0e1b459d7265e5d74b10cfe700c812b439486c5c6d5bd0de",
+            "body": "dictionary"
+          },
+          "17": {
+            "logSha256": "aa06be7d29b3ec5ee253d91424850605afd99bba4d2c3987de5e6b1e1c7436fa",
+            "body": "dictionary"
+          },
+          "18": {
+            "logSha256": "186723e05b46b0b5c834bd672b1c2c60c82b082fc082194eee947a6e02159ef3",
+            "body": "unparsed"
+          },
+          "2E": {
+            "logSha256": "baa0991fabbee79746fe0072fda00fe2a54336e4b301956eab77bcced9e5b56c",
+            "body": "unparsed"
+          },
+          "2F": {
+            "logSha256": "c37bfd91c403c6e2451e4776236ff31ba957e095dd3b1b50ec5c570701b33217",
+            "body": "unparsed"
+          }
+        }
+      }
+    },
+    "name": "TNYCL/cadkit cadkit-dwg 0.5.4",
+    "commit": "965567ac854c37b04d2325fe130367b3dea09d03",
+    "command": "dwgdump <drawing> --handle <C|17|18|2E|2F>",
+    "findings": [
+      "Both R13 drawings contain 32 mapped frames; cadkit reports no CRC failures on either original.",
+      "Each root decodes exactly three named entries with the expected targets; the style dictionaries decode Standard, SAME_KEY and the side-specific unique entry with expected targets.",
+      "All six style frames report matching identity, valid CRC, style-dictionary owner and reactor, no EED or extension.",
+      "Cadkit marks each MLINESTYLE data body Unparsed: no independent element, angle or color decode is claimed.",
+      "A one-byte body mutation reports one MLINESTYLE CRC failure and crc_ok=false; a repeat on the original returns the identical successful output."
+    ],
+    "damagedLogSha256": "d986d1dcf91e5d80d7048ada092a722d44d9cf28c0f9a6f9c2d425184b8b1a6d",
+    "limits": [
+      "Cadkit lists MLINESTYLE as zero decode errors even when it leaves the body unparsed.",
+      "The peer is a specification-directed decoder, labels R13 untested, and is not AutoCAD. Numeric handle values do not prove wire roles or clone semantics.",
+      "No native open, native merging, target export, complete graph semantics or broad support is established."
+    ]
+  }
 }
