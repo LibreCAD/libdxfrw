@@ -1456,6 +1456,34 @@ try:
                 "line_endpoints": geometry["line_endpoints"],
             }
         )
+    if os.environ.get("LIBDXFRW_FREECAD_SAVE_REOPEN") == "1":
+        if expected_primitives is None or expected_modeler or expect_3dface == "unsupported":
+            raise RuntimeError("save/reopen requires a supported mixed primitive profile")
+        root = os.environ.get("LIBDXFRW_FREECAD_TEMP_ROOT")
+        if not root or not os.path.isdir(root):
+            raise RuntimeError("save/reopen requires the isolated test root")
+        native_path = os.path.join(root, "mixed primitives.FCStd")
+        if os.path.lexists(native_path):
+            raise RuntimeError("refusing to overwrite a native document")
+        doc.recompute()
+        doc.saveAs(native_path)
+        if not os.path.isfile(native_path):
+            raise AssertionError("FreeCAD did not save the native document")
+        native_hash = digest(native_path)
+        App.closeDocument(doc.Name)
+        doc = App.openDocument(native_path)
+        if doc is None:
+            raise AssertionError("FreeCAD did not reopen the native document")
+        doc.recompute()
+        reopened_polyface = (assert_polyface_geometry(doc, expected_polyface)
+                             if expected_polyface is not None else None)
+        reopened_geometry = assert_primitive_geometry(
+            doc, stats, expected_primitives["counts"], expected_primitives["shapes"],
+            expected_spline_samples, expected_polyline_points, expected_closed_2d_polyline_points,
+            () if reopened_polyface is None else (reopened_polyface["object_name"],))
+        result["native_save_reopen"] = {"file_sha256": native_hash,
+                                        "primitive_geometry": reopened_geometry,
+                                        "polyface_geometry": reopened_polyface}
     result_json = (line_pass_json(result) if not expected_modeler and expect_3dface != "unsupported"
                    else json.dumps(result, sort_keys=True, default=str))
     print(

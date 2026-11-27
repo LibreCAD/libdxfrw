@@ -1,0 +1,236 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-mixed-save-reopen-2026-11-27",
+  "supportClaimEffect": "none",
+  "sourceReceipt": "docs/research/p8-freecad-mixed-dwg-bylayer-display-2026-11-27.json",
+  "scope": "Current 21-patch FreeCAD candidate, headless macOS ARM64, generated mixed primitive DWGs, real installed dwg2dxf and C++ importer.",
+  "procedure": "Use the existing installed handoff CMake harness with FREECAD_PERSISTENCE_CONTROL=ON and the authored mixed primitive expectations. Save the document to an isolated FCStd file, close it, reopen it in FreeCAD, and rerun the original complete geometry, spline sample, polyline vertex and polyface boundary assertions.",
+  "runs": {
+    "AC1021": {
+      "open": {
+        "inputSha256": "995b7217d926f145428d81c1b63bd8d32ee16a4b4eb4ccfb9337faa311cde1a8",
+        "convertedDxfSha256": "f1e8050caa1971d7b14ac8581763a5f4d2c911595aade5f868eccd0c0eb4a395",
+        "nativeDocumentSha256": "1014cd0cd9be806d617068bf897e957320b0852dacca03a17a8e718dd9c2d3cd",
+        "logSha256": "865e5a8f640fab0273fd07d60991e521e8345580a05af9ed59b1c816f5317b0a",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "shapeCounts": {
+          "faces": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0
+          ],
+          "edges": [
+            1,
+            1,
+            1,
+            2,
+            0,
+            1,
+            3,
+            4,
+            4,
+            4,
+            1
+          ]
+        }
+      },
+      "insert": {
+        "inputSha256": "995b7217d926f145428d81c1b63bd8d32ee16a4b4eb4ccfb9337faa311cde1a8",
+        "convertedDxfSha256": "f1e8050caa1971d7b14ac8581763a5f4d2c911595aade5f868eccd0c0eb4a395",
+        "nativeDocumentSha256": "33c8ace2fd20e23b37445ad6691a900c90116c8d86f0c3121b71e999f1d3dad6",
+        "logSha256": "143da2395e887fc00abf24546c2ab962b3d4b31e7b9a83be4b392e05f6fe2300",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "shapeCounts": {
+          "faces": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0
+          ],
+          "edges": [
+            1,
+            1,
+            1,
+            2,
+            0,
+            1,
+            3,
+            4,
+            4,
+            4,
+            1
+          ]
+        }
+      }
+    },
+    "AC1024": {
+      "open": {
+        "inputSha256": "271dad6302b3d537dacad68bead31952cc4dff74b9c1c6010f647d2b1385eaa3",
+        "convertedDxfSha256": "2577632fda22c47b960957707d4dd78749b5245e1eedf2470f681604fc72fd05",
+        "nativeDocumentSha256": "4a3e28002cdf7aeeb8926690ad4089741eb49459cab3aa653def41d855629493",
+        "logSha256": "7190995586fcbfc3919d6be7bd377dfd36db8f8da4970238237c98fd70b72ee3",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "shapeCounts": {
+          "faces": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0
+          ],
+          "edges": [
+            1,
+            1,
+            1,
+            2,
+            0,
+            1,
+            3,
+            4,
+            4,
+            4,
+            1
+          ]
+        }
+      },
+      "insert": {
+        "inputSha256": "271dad6302b3d537dacad68bead31952cc4dff74b9c1c6010f647d2b1385eaa3",
+        "convertedDxfSha256": "2577632fda22c47b960957707d4dd78749b5245e1eedf2470f681604fc72fd05",
+        "nativeDocumentSha256": "e15289a0aa90cdfdf7fc6684e24b49ba4cabf9e357e8d73d1b64333113c8c4dd",
+        "logSha256": "2640acd3fd628339f203b3f51065b5976d7a8aeac40b86458244c8ce5fbacfe5",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "shapeCounts": {
+          "faces": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0
+          ],
+          "edges": [
+            1,
+            1,
+            1,
+            2,
+            0,
+            1,
+            3,
+            4,
+            4,
+            4,
+            1
+          ]
+        }
+      }
+    },
+    "AC1032": {
+      "open": {
+        "inputSha256": "7df817c97a68064cf2df6823ca5b4a1b0b6c47b427d66de8d8fb5bc77fcd69f8",
+        "convertedDxfSha256": "7925e2205cdb8de4ad66962ea2f2d844493796122917574a14fc10fb0abc039b",
+        "nativeDocumentSha256": "933aa65f2188ddc2774fb8490934ec87ec977f27af19fc0eff54910d00d21756",
+        "logSha256": "462bc811183cb144d04d50c506721bef13cac521295b3ec07c80ecdd3a2e5fcc",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "shapeCounts": {
+          "faces": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0
+          ],
+          "edges": [
+            1,
+            1,
+            1,
+            2,
+            0,
+            1,
+            3,
+            4,
+            4,
+            4,
+            1
+          ]
+        }
+      },
+      "insert": {
+        "inputSha256": "7df817c97a68064cf2df6823ca5b4a1b0b6c47b427d66de8d8fb5bc77fcd69f8",
+        "convertedDxfSha256": "7925e2205cdb8de4ad66962ea2f2d844493796122917574a14fc10fb0abc039b",
+        "nativeDocumentSha256": "197c4fb1dcf655a878cda58f13f265fe91326a3e0cb67fb82ffadb95bc47c4bf",
+        "logSha256": "1486e93333bf513e1cb594a54267d4424f0423ff629b11e4df9e6f8b0d09e85e",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "shapeCounts": {
+          "faces": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0
+          ],
+          "edges": [
+            1,
+            1,
+            1,
+            2,
+            0,
+            1,
+            3,
+            4,
+            4,
+            4,
+            1
+          ]
+        }
+      }
+    }
+  },
+  "checks": [
+    "All six generated AC1021/AC1024/AC1032 open/insert cases pass through native save, close, reopen, recompute and geometry checks.",
+    "Requesting persistence without an authored mixed primitive profile fails before launching FreeCAD. Legacy/unsupported profile combinations are rejected.",
+    "Harness explicitly disables the persistence environment flag unless requested."
+  ],
+  "limitations": [
+    "The input DWGs are generated by libdxfrw, not independent producers; documents and input drawings remain in scratch storage.",
+    "No GUI, interactive edit, Linux/Windows, general 3D parity or native AutoCAD claim is made.",
+    "The FreeCAD candidate is local and awaits contributor review under its project policy."
+  ]
+}

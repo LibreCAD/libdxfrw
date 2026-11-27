@@ -65,6 +65,18 @@ if(DEFINED INPUT_PATH_UNICODE AND NOT INPUT_PATH_UNICODE STREQUAL "ON"
         AND NOT INPUT_PATH_UNICODE STREQUAL "OFF")
     message(FATAL_ERROR "INPUT_PATH_UNICODE must be ON or OFF")
 endif()
+if(DEFINED FREECAD_PERSISTENCE_CONTROL AND FREECAD_PERSISTENCE_CONTROL)
+    if(NOT DEFINED EXPECTED_PRIMITIVE_COUNTS OR NOT DEFINED EXPECTED_PRIMITIVE_SHAPES)
+        message(FATAL_ERROR "FreeCAD save/reopen requires a mixed primitive profile")
+    endif()
+    if((DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
+            OR (DEFINED EXPECT_3DFACE AND EXPECT_3DFACE STREQUAL "unsupported"))
+        message(FATAL_ERROR "FreeCAD save/reopen requires the supported C++ importer profile")
+    endif()
+    set(_persistence_enabled 1)
+else()
+    set(_persistence_enabled 0)
+endif()
 if(NOT DEFINED DWG_CONVERSION_MODE)
     set(DWG_CONVERSION_MODE 1)
 endif()
@@ -286,6 +298,7 @@ set(_environment
     "LIBDXFRW_FREECAD_TEMP_ROOT=${_test_root}"
     "LIBDXFRW_FREECAD_EXPECT_DWG2DXF=${_installed_converter}"
     "LIBDXFRW_FREECAD_EXPECT_DWG2DXF_SHA256=${_converter_sha256}"
+    "LIBDXFRW_FREECAD_SAVE_REOPEN=${_persistence_enabled}"
     "LIBDXFRW_FREECAD_EXPECT_LINE_BOUNDS=[[1,2,3,4,6,9]]"
     "LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS=[[[1,2,3],[4,6,9]]]"
     "FREECAD_USER_HOME=${_user_home}"
@@ -407,6 +420,10 @@ set(_solid_assertion_key "")
 if(DEFINED EXPECT_SOLID AND EXPECT_SOLID STREQUAL "unsupported")
     set(_solid_assertion_key "\"freecad_solid_outcome\": \"unsupported_by_pinned_freecad_importer\"")
 endif()
+set(_persistence_assertion_key "")
+if(DEFINED FREECAD_PERSISTENCE_CONTROL AND FREECAD_PERSISTENCE_CONTROL)
+    set(_persistence_assertion_key "\"native_save_reopen\"")
+endif()
 foreach(_expected IN ITEMS
         "FREECAD_DWG_IMPORT_ASSERTIONS_PASS="
         "${_installed_converter}"
@@ -416,6 +433,7 @@ foreach(_expected IN ITEMS
         "\"dwg_conversion\": ${DWG_CONVERSION_MODE}"
         "${_polyface_assertion_key}"
         "${_solid_assertion_key}"
+        "${_persistence_assertion_key}"
         "${_geometry_assertion_key}")
     if(NOT _expected)
         continue()
