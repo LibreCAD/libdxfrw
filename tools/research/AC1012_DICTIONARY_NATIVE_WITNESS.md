@@ -133,7 +133,9 @@ files against the receipt before transfer. They have been reopened by ODA and
 read by LibreDWG, but require native normal-open and style validation. Their
 15/37-degree duplicate and 22/51-degree unique entries make the following
 merge observations distinguishable. The older LibreDWG-origin populated pair
-was rejected by ODA and is not an independently accepted input.
+was rejected by ODA. A [corrected LibreDWG-generated pair](../../docs/research/p6-ac1012-explicit-entity-links-2026-11-27.json)
+also passes selected ODA conversion and independent DXF graph checks; use it
+as an additional native control, not as proof of native validity.
 
 Prepare a scratch handoff, including the ODA reopen DXFs, native procedure and
 a manifest, by running the command below. It verifies the recorded hashes and
@@ -179,8 +181,9 @@ The source graph is canonical `NOD -> ACAD_MLINESTYLE -> SAME_KEY`. Both
 drawings bind SAME_KEY to a same-named MLINESTYLE owned by that dictionary;
 the destination and source use distinguishable 15- and 37-degree start
 angles. The generator points the current DIMSTYLE header hard pointer to the
-unique Standard DIMSTYLE using the ODA v5.4.1 §9 definition, then writes the
-result as AC1012. This is a LibreDWG-generated, specification-directed control,
+unique Standard DIMSTYLE using the ODA v5.4.1 §9 definition and normalizes the
+sole model LINE to explicit null previous/next soft pointers (§§20.4.1–20.4.2),
+then writes the result as AC1012. This is a LibreDWG-generated, specification-directed control,
 not an AutoCAD-authored source.
 
 With `--unique-entry-control`, the destination also contains `DEST_ONLY` at
@@ -194,7 +197,8 @@ NOD parent/reactor links, absent R13 cloning field and role-2 soft-owner item
 handles against ODA v5.4.1 §§9 and 20.4.44. The focused test passes each frame
 through `DRW_Dictionary` and the shared version-aware observer; wrong item
 roles and every truncation are rejected, parser state resets, and the complete
-frame succeeds on retry. With `--candidate`, strict conversion must preserve
+frame succeeds on retry. The generator separately checks the LINE frame CRC,
+link flag, typed-null handle roles, and two frame-level mutations. With `--candidate`, strict conversion must preserve
 its preexisting destination on refusal; explicit partial ASCII/Binary outputs
 are checked for the selected dictionary/style identity, owner, value and
 emitted cloning flag by a bounded local DXF wire audit. None of these controls
@@ -203,7 +207,8 @@ support claim. Keep all generated DWG/DXF files in scratch storage.
 
 Screen each file in a fresh AutoCAD process and reject any file that opens only
 after recovery. The 2026-11-22 local ODA File Converter attempt aborted before
-conversion with pasteboard/XPC errors, so it provides no acceptance evidence.
+conversion; the corrected pair passed the later Linux ODA conversion, which may
+repair content and does not establish native acceptance.
 Only after normal-open succeeds should the host perform the read-only
 observation and duplicate-key operation above; record the exact survivor,
 renamed key, object identity, and close/reopen result. The generated source

@@ -64,6 +64,58 @@ def read_object_frame(path: Path, dwgread: str, handle: int,
     return address, data[address:address + size]
 
 
+def observe_single_line_frame(frame: bytes, handle: int, layer: int) -> dict:
+    """Verify the generated R13 model-space LINE's physical link roles."""
+    bits = Bits(frame)
+    require(bits.bs() == 19 and bits.handle(0, own=True)["value"] == handle,
+            "wrong model-space LINE frame")
+    require(bits.bs() == 0 and bits.take(1) == 0,
+            "generated LINE has unsupported EED or proxy data")
+    data_end = bits.little(4)
+    require(bits.take(2) == 2 and bits.bl() == 0 and bits.take(1) == 1,
+            "generated LINE has unexpected common fields")
+    no_links_bit = bits.position
+    require(bits.take(1) == 0, "model-space LINE must use explicit links")
+    require(bits.position <= data_end <= len(frame) * 8,
+            "LINE handle stream is outside its frame")
+    bits.bit = data_end
+    extension = bits.handle(3, handle)
+    layer_ref = bits.handle(5, handle)
+    previous_bit = bits.position
+    previous = bits.handle(4, handle)
+    next_ref = bits.handle(4, handle)
+    require(extension["role"] == 3 and extension["value"] == 0 and layer_ref["role"] == 5
+            and layer_ref["value"] == layer, "LINE extension or layer mismatch")
+    require(previous["role"] == 4 and previous["value"] == 0
+            and next_ref["role"] == 4 and next_ref["value"] == 0,
+            "LINE boundary links must be typed null soft pointers")
+    require(len(frame) * 8 - bits.position < 8, "unexpected LINE handle tail")
+    return {"dataEndBit": data_end, "noLinksBit": no_links_bit,
+            "previousHandleBit": previous_bit, "extension": extension,
+            "layer": layer_ref, "previous": previous, "next": next_ref,
+            "frameSha256": sha(frame)}
+
+
+def check_single_line_graph(drawing: dict) -> tuple[dict, int, int]:
+    """Bind the sole model-space LINE to its block header and layer."""
+    objects = drawing["OBJECTS"]
+    lines = [obj for obj in objects if obj.get("entity") == "LINE"]
+    require(len(lines) == 1, "sample requires exactly one LINE")
+    line = lines[0]
+    handle = line.get("handle", [None])[-1]
+    layer = drawing.get("HEADER", {}).get("CLAYER", [None])[-1]
+    model = drawing.get("HEADER", {}).get("BLOCK_RECORD_MSPACE", [None])[-1]
+    blocks = [obj for obj in objects if obj.get("object") == "BLOCK_HEADER"
+              and obj.get("handle", [None])[-1] == model]
+    require(isinstance(handle, int) and handle > 0 and isinstance(layer, int)
+            and layer > 0 and len(blocks) == 1, "invalid LINE, layer or model handle")
+    require(blocks[0].get("first_entity", [None])[-1] == handle
+            and blocks[0].get("last_entity", [None])[-1] == handle
+            and line.get("layer", [None])[-1] == layer,
+            "model-space LINE graph is inconsistent")
+    return line, handle, layer
+
+
 def read_dictionary_frame(path: Path, dwgread: str, handle: int,
                           expected_entries: dict[str, int],
                           selected_key: str = ENTRY_KEY,
@@ -372,6 +424,11 @@ def materialize_r13_source(initial: Path, output: Path, dwgread: str,
     original_reference = header.get("DIMSTYLE")
     header["DIMSTYLE"] = [layer_reference[0], layer_reference[1],
                           dimstyle_handle, dimstyle_handle]
+    line, line_handle, layer_handle = check_single_line_graph(drawing)
+    original_no_links = line.get("nolinks")
+    line["nolinks"] = 0
+    line["prev_entity"] = [4, 0, 0, 0]
+    line["next_entity"] = [4, 0, 0, 0]
     patched = root / f"{label}-header-bound.json"
     patched.write_text(json.dumps(drawing, separators=(",", ":")) + "\n")
     run([dwgwrite, "-I", "JSON", "--as", "r13", "-o", str(output),
@@ -380,11 +437,28 @@ def materialize_r13_source(initial: Path, output: Path, dwgread: str,
             "versioned DWG writer did not produce AC1012")
     readback = root / f"{label}-header-readback.json"
     run([dwgread, "-O", "JSON", "-o", str(readback), str(output)])
-    normalized = json.loads(readback.read_text())["HEADER"].get("DIMSTYLE")
+    decoded_output = json.loads(readback.read_text())
+    normalized = decoded_output["HEADER"].get("DIMSTYLE")
     require(isinstance(normalized, list) and len(normalized) >= 4
             and normalized[0] == 5 and normalized[1] > 0
             and normalized[-1] == dimstyle_handle,
             "encoded current DIMSTYLE hard pointer does not read back")
+    decoded_line, decoded_handle, decoded_layer = check_single_line_graph(decoded_output)
+    require(decoded_handle == line_handle and decoded_layer == layer_handle
+            and decoded_line.get("nolinks") == 0
+            and decoded_line.get("prev_entity") == [4, 0, 0, 0]
+            and decoded_line.get("next_entity") == [4, 0, 0, 0],
+            "explicit model-space LINE links did not read back")
+    offset, frame = read_object_frame(output, dwgread, line_handle, 19)
+    line_wire = observe_single_line_frame(frame, line_handle, layer_handle)
+    for bit in (line_wire["noLinksBit"], line_wire["previousHandleBit"] + 3):
+        damaged = bytearray(frame)
+        damaged[bit // 8] ^= 1 << (7 - bit % 8)
+        try:
+            observe_single_line_frame(bytes(damaged), line_handle, layer_handle)
+        except ValueError:
+            continue
+        raise ValueError("LINE wire mutation unexpectedly accepted")
     return {
         "inputSha256": sha(initial.read_bytes()),
         "inputJsonSha256": sha(decoded.read_bytes()),
@@ -393,9 +467,13 @@ def materialize_r13_source(initial: Path, output: Path, dwgread: str,
         "headerDimstyleBefore": original_reference,
         "headerDimstyleAfter": normalized,
         "targetDimstyle": {"name": "Standard", "handle": dimstyle_handle},
+        "modelLine": {"handle": line_handle, "originalNoLinks": original_no_links,
+                      "frameOffset": offset, "wire": line_wire,
+                      "noLinksAndRoleMutationsRejected": True},
         "normalization": (
             "Set the AC1012 HEADER DIMSTYLE H field to the unique Standard "
-            "DIMSTYLE handle; ODA v5.4.1 specifies this field as a hard pointer."
+            "DIMSTYLE handle and write explicit typed-null previous/next links "
+            "for the sole model-space LINE, per ODA v5.4.1 sections 9 and 20.4."
         ),
     }
 
@@ -429,19 +507,21 @@ def main() -> None:
         "id": ("p6-ac1012-collision-and-unique-entry-control-2026-11-24"
                if args.unique_entry_control else
                "p6-ac1012-populated-dictionary-merge-samples-2026-11-22"),
-        "status": "PAIRED_SPEC_BOUND_SOURCE_AND_PARTIAL_ASCII_BINARY_PROOF_PASS_NATIVE_SEMANTICS_OPEN",
+        "status": ("PAIRED_SPEC_BOUND_SOURCE_AND_PARTIAL_ASCII_BINARY_PROOF_PASS_NATIVE_SEMANTICS_OPEN"
+                   if args.candidate else "PAIRED_SPEC_BOUND_SOURCE_NATIVE_SEMANTICS_OPEN"),
         "supportClaimEffect": "none",
         "authority": {
             "document": "ODA Open Design Specification v5.4.1",
             "sections": [
                 "9 HEADER VARIABLES: DIMSTYLE is an H hard pointer",
+                "20.4.1-20.4.2: entity link flag and common handle roles",
                 "20.4.44 DICTIONARY",
                 "20.4.73 MLINESTYLE",
             ],
             "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
-            "layoutApplied": "AC1012 DICTIONARY has counted entry-name streams and soft-owner entry handles; R2000+ cloning and hard-owner fields are absent. Each MLINESTYLE is owned by the canonical ACAD_MLINESTYLE dictionary, and the current DIMSTYLE header reference is a hard pointer.",
+            "layoutApplied": "AC1012 DICTIONARY has counted entry-name streams and soft-owner entry handles; R2000+ cloning and hard-owner fields are absent. Each MLINESTYLE is owned by the canonical ACAD_MLINESTYLE dictionary, the current DIMSTYLE header reference is a hard pointer, and the sole model LINE uses explicit null soft-pointer links.",
         },
-        "producer": "GNU LibreDWG dwgadd/dwgread/dwgwrite 0.14; generated header DIMSTYLE link bound to the unique Standard record by a specification-directed JSON rewrite",
+        "producer": "GNU LibreDWG dwgadd/dwgread/dwgwrite 0.14; generated header DIMSTYLE and model LINE links normalized by a specification-directed JSON rewrite",
         "generatorSha256": sha(Path(__file__).read_bytes()),
         "executables": {
             "dwgadd": executable_identity(args.dwgadd),
@@ -452,7 +532,7 @@ def main() -> None:
         "samples": {},
         "limits": [
             "The paired files are locally generated and specification-directed controls, not AutoCAD-authored samples; native normal-open and duplicate-merge semantics remain unqualified.",
-            "Strict conversion still refuses unqualified opaque callbacks. Explicit partial ASCII/Binary output is source-profile evidence only and is not a completeness/support claim.",
+            "When tested, strict conversion still refuses unqualified opaque callbacks. Explicit partial ASCII/Binary output is source-profile evidence only and is not a completeness/support claim.",
             "The matching key and distinct MLINESTYLE start angles are discriminating sample state only; this does not establish native duplicate-merge behavior.",
             "No DWG or DXF fixture is added to the repository.",
         ],

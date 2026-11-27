@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-explicit-entity-links-2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "Specification-directed locally generated AC1012 collision and unique-entry pair, with explicit model LINE chain boundaries.",
+  "authorities": [
+    {
+      "name": "ODA Open Design Specification v5.4.1 sections 20.4.1-20.4.2",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "observation": "For R13-R2000, Nolinks selects implicit adjacent handles; if clear, previous/next soft-pointer handles are present."
+    },
+    {
+      "name": "LibreDWG change log",
+      "url": "https://gitlab.com/LibreDWG/LibreDWG/-/blob/master/ChangeLog",
+      "observation": "Documents ODA failures when an implicit adjacent handle refers to a non-entity in an R2000 chain; this is corroborating implementation evidence, not the R13 wire authority."
+    }
+  ],
+  "priorFailure": "docs/research/p6-ac1012-fresh-generated-oda-screen-2026-11-27.json",
+  "diagnosis": "Prior LINE 0x2C used nolinks=1 while 0x2D was a DIMSTYLE; explicit typed-null previous/next links prevent that incorrect adjacent entity traversal in the selected model-space chain.",
+  "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+  "scratchDirectory": "/private/tmp/ac1012-final-explicit-links-20261127",
+  "generatorReceiptSha256": "8a857dc502acfa263df3a5ac361a0213618ca987d9e596b1efc9421567a4fe8b",
+  "samples": {
+    "destination": {
+      "dwgSha256": "591886bfe380de443bba2d2d025a78cda961ea28bbf34563a3b0c109d85dd635",
+      "odaDxfSha256": "321ff1c5ba7d72af86bf01125b3b35bd3a86babad8b1061424b0ded9f34d1cc1",
+      "line": {
+        "handle": 44,
+        "originalNoLinks": 1,
+        "frameOffset": 2294,
+        "wire": {
+          "dataEndBit": 93,
+          "noLinksBit": 66,
+          "previousHandleBit": 117,
+          "extension": {
+            "role": 3,
+            "length": 0,
+            "value": 0
+          },
+          "layer": {
+            "role": 5,
+            "length": 1,
+            "value": 16
+          },
+          "previous": {
+            "role": 4,
+            "length": 0,
+            "value": 0
+          },
+          "next": {
+            "role": 4,
+            "length": 0,
+            "value": 0
+          },
+          "frameSha256": "44096a17d66d965c042a8e509412d1de8aba88ceae1e780b63b88497e7850f6a"
+        },
+        "noLinksAndRoleMutationsRejected": true
+      },
+      "styles": {
+        "SAME_KEY": 15.0,
+        "DEST_ONLY": 22.0
+      },
+      "ezdxfAuditErrors": 0,
+      "ezdxfAuditFixes": 0
+    },
+    "source": {
+      "dwgSha256": "f64932935008a0c4ff84aae0ae29bba22f3c34c856693cb035190639384564d0",
+      "odaDxfSha256": "2f4cc0e88f0fe36938b0b5bda1488ab81b6d2b96ebb30fbeeda1fc2428d27ef0",
+      "line": {
+        "handle": 44,
+        "originalNoLinks": 1,
+        "frameOffset": 2296,
+        "wire": {
+          "dataEndBit": 93,
+          "noLinksBit": 66,
+          "previousHandleBit": 117,
+          "extension": {
+            "role": 3,
+            "length": 0,
+            "value": 0
+          },
+          "layer": {
+            "role": 5,
+            "length": 1,
+            "value": 16
+          },
+          "previous": {
+            "role": 4,
+            "length": 0,
+            "value": 0
+          },
+          "next": {
+            "role": 4,
+            "length": 0,
+            "value": 0
+          },
+          "frameSha256": "44096a17d66d965c042a8e509412d1de8aba88ceae1e780b63b88497e7850f6a"
+        },
+        "noLinksAndRoleMutationsRejected": true
+      },
+      "styles": {
+        "SAME_KEY": 37.0,
+        "SOURCE_ONLY": 51.0
+      },
+      "ezdxfAuditErrors": 0,
+      "ezdxfAuditFixes": 0
+    }
+  },
+  "verification": [
+    "PASS fresh generator with LibreDWG 0.14, independent frame CRC/bit-span and handle-role checks, altered no-links and role rejection, and targeted libdxfrw AC1012 dictionary frame tests.",
+    "PASS strict ASCII/binary refusal preserving destinations and selected explicit-partial ASCII/binary output checks on the recorded candidate binary.",
+    "PASS ODA File Converter 27.10 linux/amd64 audited conversion of both files to AC1024 DXF, with no per-file error reports; ezdxf 1.4.5 confirms the sole model LINE, selected dictionary ownership and expected collision/unique-style angles with zero audit errors or fixes.",
+    "PASS generator without an optional candidate accurately reports source-only status.",
+    "No drawing fixture was committed."
+  ],
+  "limits": [
+    "ODA conversion and graph checks cover selected fields, may perform repairs, and do not establish source-wide losslessness or native AutoCAD validity.",
+    "No native open, clone or WBLOCK operation was observed; duplicate merge behavior and unsupported graph semantics remain unqualified.",
+    "The converter candidate binary was the same recorded prior candidate, not necessarily the current final implementation digest."
+  ]
+}
