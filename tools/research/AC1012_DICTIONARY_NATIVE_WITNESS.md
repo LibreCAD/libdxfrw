@@ -147,6 +147,11 @@ acceptance or cloning semantics. The resulting drawings must not be committed.
 python3 -B tools/research/package_ac1012_populated_pair.py \
   /private/tmp/ac1012-linux-oda-20261125 \
   /private/tmp/ac1012-native-populated-handoff
+
+python3 -B tools/research/package_ac1012_populated_pair.py \
+  --profile explicit-links \
+  /private/tmp/ac1012-final-explicit-links-20261127 \
+  /private/tmp/ac1012-native-explicit-links-handoff
 ```
 
 Before transfer, the bounded source audit can recheck both frames and their

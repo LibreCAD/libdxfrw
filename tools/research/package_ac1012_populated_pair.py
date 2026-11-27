@@ -13,13 +13,16 @@ import tempfile
 
 from audit_ac1012_oda_merge_pair import PROFILES, audit
 from generate_ac1012_dictionary_witness import executable_identity, require, run, sha
+from generate_ac1012_dictionary_merge_samples import (check_single_line_graph,
+    observe_single_line_frame, read_dictionary_frame, read_model, read_object_frame)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("run", type=Path, help="root-case-aligned ODA scratch run")
+    parser.add_argument("run", type=Path, help="source-profile scratch run")
     parser.add_argument("output", type=Path, help="new scratch handoff directory")
     parser.add_argument("--dwgread", default="dwgread")
+    parser.add_argument("--profile", choices=("oda", "explicit-links"), default="oda")
     args = parser.parse_args()
     require(not os.path.lexists(args.output), "output already exists")
     require(args.output.parent.is_dir(), "output parent does not exist")
@@ -27,7 +30,9 @@ def main():
     require(dwgread is not None, "dwgread executable not found")
     require(b"0.14" in run([dwgread, "--version"]).stdout, "dwgread 0.14 required")
     root = Path(__file__).resolve().parents[2]
-    receipt_path = root / "docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json"
+    receipt_name = ("p6-ac1012-oda-root-case-pair-2026-11-25.json" if args.profile == "oda"
+                    else "p6-ac1012-explicit-entity-links-2026-11-27.json")
+    receipt_path = root / "docs/research" / receipt_name
     receipt_bytes = receipt_path.read_bytes()
     receipt = json.loads(receipt_bytes)
     guide = root / "tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md"
@@ -37,34 +42,59 @@ def main():
         records = {}
         for side in PROFILES:
             expected = receipt["samples"][side]
-            files = ((f"{side}.dwg", args.run / expected["path"], expected["sha256"]),
-                     (f"{side}-oda-reopen.dxf", args.run / "allcase-reopen" / f"{side}.dxf",
-                      expected["reopenedDxfSha256"]))
+            if args.profile == "oda":
+                files = ((f"{side}.dwg", args.run / expected["path"], expected["sha256"]),
+                         (f"{side}-oda-reopen.dxf", args.run / "allcase-reopen" / f"{side}.dxf",
+                          expected["reopenedDxfSha256"]))
+            else:
+                files = ((f"{side}.dwg", args.run / "oda-input" / f"{side}.dwg", expected["dwgSha256"]),
+                         (f"{side}-oda-reopen.dxf", args.run / "oda-output" / f"{side}.dxf",
+                          expected["odaDxfSha256"]))
             hashes = {}
             for name, source, digest in files:
                 data = source.read_bytes()
                 require(sha(data) == digest, f"receipt hash mismatch: {source}")
                 (packet / name).write_bytes(data)
                 hashes[name] = digest
-            observed = audit(packet / f"{side}.dwg", side, dwgread, Path(tmp), False, True)
-            require(observed["sha256"] == hashes[f"{side}.dwg"], "audited source changed")
-            records[side] = {"files": hashes, "stylesDegrees": PROFILES[side],
-                             "rootHandle": observed["rootHandle"],
-                             "dictionaryHandle": observed["dictionaryHandle"],
-                             "dictionaryFrameSha256": observed["frame"]["frameSha256"],
-                             "rootFrameSha256": observed["rootFrame"]["frameSha256"]}
+            if args.profile == "oda":
+                observed = audit(packet / f"{side}.dwg", side, dwgread, Path(tmp), False, True)
+                require(observed["sha256"] == hashes[f"{side}.dwg"], "audited source changed")
+                records[side] = {"files": hashes, "stylesDegrees": PROFILES[side],
+                                 "rootHandle": observed["rootHandle"],
+                                 "dictionaryHandle": observed["dictionaryHandle"],
+                                 "dictionaryFrameSha256": observed["frame"]["frameSha256"],
+                                 "rootFrameSha256": observed["rootFrame"]["frameSha256"]}
+            else:
+                scratch = Path(tmp) / f"audit-{side}.dwg"
+                shutil.copyfile(packet / f"{side}.dwg", scratch)
+                model = read_model(scratch, dwgread, "DEST_ONLY" if side == "destination" else "SOURCE_ONLY")
+                require(model["sha256"] == hashes[f"{side}.dwg"], "audited source changed")
+                frame, _ = read_dictionary_frame(scratch, dwgread, model["dictionaryHandle"],
+                                                  model["dictionaryEntries"])
+                drawing = json.loads(scratch.with_suffix(".json").read_text())
+                _, line_handle, layer_handle = check_single_line_graph(drawing)
+                _, line_frame = read_object_frame(scratch, dwgread, line_handle, 19)
+                line = observe_single_line_frame(line_frame, line_handle, layer_handle)
+                require(line["frameSha256"] == expected["line"]["wire"]["frameSha256"],
+                        "LINE frame differs from the receipt")
+                records[side] = {"files": hashes, "stylesDegrees": expected["styles"],
+                                 "rootHandle": model["rootHandle"],
+                                 "dictionaryHandle": model["dictionaryHandle"],
+                                 "dictionaryFrameSha256": frame["frameSha256"],
+                                 "lineFrameSha256": line["frameSha256"]}
         shutil.copyfile(guide, packet / "NATIVE_WITNESS.md")
         (packet / "source-receipt.json").write_bytes(receipt_bytes)
-        readme = ("Locally generated, ODA-reopened AC1012 controls; native behavior is unobserved.\n"
+        readme = ("Locally generated AC1012 controls screened by ODA; native behavior is unobserved.\n"
                   "Check manifest hashes before and after testing; work on copies only.\n"
                   "destination: SAME_KEY 15 degrees, DEST_ONLY 22 degrees.\n"
                   "source: SAME_KEY 37 degrees, SOURCE_ONLY 51 degrees.\n"
                   "The DXF files are ODA reopens, not AutoCAD output.\n"
                   "Screen normal-open and style validity before native merge testing.\n"
                   "See NATIVE_WITNESS.md; repository-relative links refer to libdxfrw.\n"
-                  "The root empty-name/null entry and ACAD EED remain unqualified.\n")
+                  "Root, EED, complete graph, and native semantics remain unqualified.\n")
         (packet / "README.txt").write_text(readme)
-        manifest = {"schema": 1, "scope": "selected physical controls; native semantics unobserved",
+        manifest = {"schema": 1, "profile": args.profile,
+                    "scope": "selected physical controls; native semantics unobserved",
                     "sourceReceiptSha256": sha(receipt_bytes),
                     "dwgread": executable_identity(dwgread),
                     "guideSha256": sha((packet / "NATIVE_WITNESS.md").read_bytes()),
