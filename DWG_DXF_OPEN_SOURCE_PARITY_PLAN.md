@@ -39,8 +39,10 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    when the emitted index matches the source; contextual index 7, palette
    aliases, true color and other profiles remain guarded.
    The [generic handle checks](docs/research/p8d-librecad-handle-tests-guarded-material-2026-11-27.json)
-   now separate remapping from refusal of incomplete MATERIAL graphs; complete
-   bundled-codec and hosted checks on the updated consumer head. Extend the 256 KiB capture only with
+   now separate remapping from refusal of incomplete MATERIAL graphs; the
+   [bundled Linux fast lane](docs/research/p8d-librecad-bundled-fast-ci-2026-11-27.json)
+   passed on the stated consumer merge. Complete the remaining hosted and native
+   checks on the final inputs. Extend the 256 KiB capture only with
    aggregate memory accounting. Reuse the [physical inventory join](docs/research/p8d-librecad-material-physical-inventory-2026-11-26.json),
    [entity reference guard](docs/research/p8d-librecad-physical-entity-material-source-2026-11-26.json),
    [LINE delivery guard](docs/research/p8d-librecad-sparse-material-line-delivery-2026-11-27.json),

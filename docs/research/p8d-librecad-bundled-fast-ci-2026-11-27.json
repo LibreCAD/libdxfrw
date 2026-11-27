@@ -1,0 +1,13 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-bundled-fast-ci-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerHead": "3d3826664f9efa5e3484da59dc05b1d338ba45f1",
+  "mergeCommit": "c28e669f1e0ea68d067c9a15dff4975188b417b6",
+  "baseCommit": "b91fbdcf1adeee764938a183018978416d0a8c90",
+  "hostedJob": "https://github.com/LibreCAD/LibreCAD/actions/runs/45989147135/job/140472380159",
+  "validation": "The ubuntu-24.04 VerifyDwgDxfFast job checked out the PR merge, configured and built the bundled-codec targets and passed all 17 registered CTests, including librecad_dxf_fast_tests. The DXF fast target includes the non-fixture-tagged generic handle-remapping cases and excludes slow, external and fixture-tagged cases.",
+  "limits": "This is a bundled-codec Linux headless fast lane on the stated PR merge, not a standalone-system-codec MATERIAL qualification, native GUI acceptance, Windows result or final release gate. Updated consumer or base inputs require the affected checks again."
+}
