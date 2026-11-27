@@ -39,7 +39,8 @@ def analyze_rgb_frames(width, height, frames):
     line = changed(frames[1], frames[2])
     restored = changed(frames[0], frames[3])
     if len(mesh) < max(64, size // 1000) or len(mesh) > size * 0.7 or len(line) < 4:
-        raise ValueError("mesh or independent line visibility did not change enough pixels")
+        raise ValueError("mesh or independent line visibility did not change enough pixels: "
+                         f"mesh={len(mesh)}, line={len(line)}, restored={len(restored)}")
     xs, ys = [p % width for p in mesh], [p // width for p in mesh]
     bounds = [min(xs), min(ys), max(xs), max(ys)]
     if bounds[2] - bounds[0] < 8 or bounds[3] - bounds[1] < 8:
