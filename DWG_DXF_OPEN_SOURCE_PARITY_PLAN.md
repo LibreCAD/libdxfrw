@@ -31,9 +31,11 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    raw replay only after validating the full ACAD_MATERIAL dictionary, exact
    carriers, identities, owners/reactors, layer and current-material references,
    handle uniqueness/remapping, and staged root and entity edges. Add missing
-   entity/producer profiles and semantic delivery one at a time. The normal
-   exporter remains guarded; four `[filter][handles]` cases still expect
-   unqualified sparse-MATERIAL saves. Extend the 256 KiB capture only with
+   entity/producer profiles and semantic delivery one at a time. Ordinary
+   same-version saves now admit the [bounded AC1021 simple-LINE profile](docs/research/p8d-librecad-ordinary-sparse-material-2026-11-27.json),
+   including selected edits and reopen/resave; other profiles remain guarded.
+   Four `[filter][handles]` cases still expect unqualified sparse-MATERIAL
+   saves. Extend the 256 KiB capture only with
    aggregate memory accounting. Reuse the [physical inventory join](docs/research/p8d-librecad-material-physical-inventory-2026-11-26.json),
    [entity reference guard](docs/research/p8d-librecad-physical-entity-material-source-2026-11-26.json),
    [LINE delivery guard](docs/research/p8d-librecad-sparse-material-line-delivery-2026-11-27.json),
