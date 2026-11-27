@@ -820,6 +820,7 @@ EXTRA_DIST = \
     tests/freecad_dwg2dxf_oblique_arc_circle_check.FCMacro \
     tests/freecad_dxf_minsert_import_check.FCMacro \
     tests/freecad_legacy_polyface_import_check.FCMacro \
+    tests/freecad_patch_replay_tests.py \
     tests/gbk_codepage_tests.cpp \
     tests/gcc_overloaded_virtual_probe.py \
     tests/generated_raw_dwg_object.h \
