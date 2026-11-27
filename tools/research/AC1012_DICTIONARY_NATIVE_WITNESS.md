@@ -170,6 +170,13 @@ soft-owner entry. Its validity and output semantics remain unqualified. The
 audit does not qualify lossless output or native semantics. Use the earlier
 pair without the options to audit its style-dictionary extension graph.
 
+The corrected LibreDWG pair is a different profile: its
+[selected root and child frames](../../docs/research/p6-ac1012-generated-simple-root-2026-11-27.json)
+contain three named root entries, no root/style EED or extensions, and two
+empty child dictionaries with checked owner/reactor links. A wrong root-entry
+role is rejected before a clean retry. This narrows the source investigation;
+it does not validate the rest of the graph or native cloning behavior.
+
 Generate the scratch pair with LibreDWG 0.14 on `PATH`; add the candidate and
 focused test options when those executables are available:
 

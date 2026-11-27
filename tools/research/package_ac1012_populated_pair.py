@@ -13,6 +13,7 @@ import shutil
 import tempfile
 
 from audit_ac1012_oda_merge_pair import PROFILES, audit
+from audit_ac1012_generated_root import audit as audit_generated_root
 from generate_ac1012_dictionary_witness import executable_identity, require, run, sha
 from generate_ac1012_dictionary_merge_samples import (check_single_line_graph,
     observe_single_line_frame, read_dictionary_frame, read_model, read_object_frame)
@@ -88,11 +89,16 @@ def main():
                 line = observe_single_line_frame(line_frame, line_handle, layer_handle)
                 require(line["frameSha256"] == expected["line"]["wire"]["frameSha256"],
                         "LINE frame differs from the receipt")
+                root_proof = audit_generated_root(packet / f"{side}.dwg", side, expected, dwgread)
                 records[side] = {"files": hashes, "stylesDegrees": expected["styles"],
                                  "rootHandle": model["rootHandle"],
                                  "dictionaryHandle": model["dictionaryHandle"],
                                  "dictionaryFrameSha256": frame["frameSha256"],
-                                 "lineFrameSha256": line["frameSha256"]}
+                                 "lineFrameSha256": line["frameSha256"],
+                                 "rootFrameSha256": root_proof["root"]["frameSha256"],
+                                 "emptyChildFrameSha256": {
+                                     name: value["wire"]["frameSha256"]
+                                     for name, value in root_proof["emptyChildren"].items()}}
         shutil.copyfile(guide, packet / "NATIVE_WITNESS.md")
         (packet / "source-receipt.json").write_bytes(receipt_bytes)
         readme = ("Locally generated AC1012 controls screened by ODA; native behavior is unobserved.\n"
