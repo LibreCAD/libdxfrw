@@ -97601,11 +97601,12 @@ bool dx_iface::hasUnchangedDxfWideProjection(bool inspectOutput) const noexcept 
             for(std::size_t i=0;i<frozen.chains.size();++i) {
                 const auto& a=rebuilt.source.chains[i];const auto& b=frozen.source.chains[i];
                 if(a.dictionaryKey!=b.dictionaryKey || a.recordKey!=b.recordKey
-                    ||a.dictionary!=b.dictionary || a.record!=b.record
+                    ||a.dictionary!=b.dictionary || a.record!=b.record || a.reference!=b.reference
                     ||a.rootEntry.code!=b.rootEntry.code || a.dictionaryEntry.code!=b.dictionaryEntry.code
                     ||a.recordReference.code!=b.recordReference.code
                     ||rebuilt.chains[i].dictionary!=frozen.chains[i].dictionary
-                    ||rebuilt.chains[i].record!=frozen.chains[i].record)return false;
+                    ||rebuilt.chains[i].record!=frozen.chains[i].record
+                    ||rebuilt.chains[i].reference!=frozen.chains[i].reference)return false;
             }
         }
         if(!cData->hasNamedObjectDictionary || cData->namedObjectDictionary.handle!=frozen.root)return false;
@@ -97641,7 +97642,7 @@ bool dx_iface::hasUnchangedDxfWideProjection(bool inspectOutput) const noexcept 
             for(const auto& item:record->m_dataEntries)if(item.code()==340) {
                 std::uint64_t value=0u;
                 if(++references!=1u || !dx_standard_output::handleValue(item,value)
-                    ||value!=alias.dictionary)return false;
+                    ||value!=alias.reference)return false;
             }
             if(references!=1u)return false;
             if(inspectOutput) {

@@ -31,7 +31,7 @@ struct Chain {
     std::string dictionaryKey,recordKey;
     Field rootEntry,dictionarySelf,dictionaryOwner,dictionaryEntry,
         recordSelf,recordOwner,recordReference;
-    std::uint64_t dictionary{0},record{0};
+    std::uint64_t dictionary{0},record{0},reference{0};
 };
 struct Graph {
     bool binary{false};
@@ -42,7 +42,7 @@ struct Graph {
     std::vector<Chain> chains;
     std::uint64_t root{0},dictionary{0},record{0};
 };
-struct ChainAlias {std::uint32_t dictionary{0},record{0};};
+struct ChainAlias {std::uint32_t dictionary{0},record{0},reference{0};};
 struct Normalized {
     std::string bytes;
     Graph source;
@@ -239,7 +239,7 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
                     if(!common(*possibleRecord,recordSelf,recordOwner,recordBody)
                         ||!hex(recordOwner.text,value)||value!=rootEntry.value
                         ||!recordReference(*possibleRecord,recordBody,reference)
-                        ||!hex(reference.text,value)||value!=rootEntry.value)continue;
+                        ||!hex(reference.text,value)||!value)continue;
                     if(rootEntry.name.size()>255u||item.name.size()>255u||selections.size()>=8u)return false;
                     selections.emplace_back(rootEntry.name,item.name);
                 }
@@ -269,11 +269,13 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
             if(!common(*record,chain.recordSelf,chain.recordOwner,body)
                 ||!hex(chain.recordOwner.text,owner)||owner!=chain.dictionary
                 ||!recordReference(*record,body,chain.recordReference)
-                ||!hex(chain.recordReference.text,owner)||owner!=chain.dictionary)return false;
+                ||!hex(chain.recordReference.text,chain.reference)||!chain.reference)return false;
             if(dictionary.second)selectedObjects.emplace_back(dict,chain.dictionary);
             selectedObjects.emplace_back(record,chain.record);
             candidate.chains.push_back(std::move(chain));
         }
+        for(const auto& chain:candidate.chains)
+            if(!selectedDictionaries.count(chain.reference))return false;
         // Each selected identity must correspond to exactly one physical object,
         // including collisions with records outside the OBJECTS section.
         struct IdentityCount {std::size_t index,global{0u},local{0u};};
@@ -359,8 +361,8 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
         std::vector<const Field*> selected{&source.rootSelf};
         std::unordered_set<std::size_t> selectedOrdinals{source.rootSelf.ordinal};
         for(const auto& chain:source.chains) {
-            const ChainAlias alias{mapped(chain.dictionary),mapped(chain.record)};
-            if(!alias.dictionary||!alias.record)return false;
+            const ChainAlias alias{mapped(chain.dictionary),mapped(chain.record),mapped(chain.reference)};
+            if(!alias.dictionary||!alias.record||!alias.reference)return false;
             candidate.chains.push_back(alias);
             for(const auto* field:{&chain.rootEntry,&chain.dictionarySelf,&chain.dictionaryOwner,
                     &chain.dictionaryEntry,&chain.recordSelf,&chain.recordOwner,&chain.recordReference})
@@ -423,7 +425,7 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
         for(std::size_t i=0;i<source.chains.size();++i) {
             const auto& chain=source.chains[i];const auto& actual=check.chains[i];const auto& alias=candidate.chains[i];
             if(actual.dictionaryKey!=chain.dictionaryKey||actual.recordKey!=chain.recordKey
-                ||actual.dictionary!=alias.dictionary||actual.record!=alias.record
+                ||actual.dictionary!=alias.dictionary||actual.record!=alias.record||actual.reference!=alias.reference
                 ||actual.rootEntry.code!=chain.rootEntry.code||actual.dictionaryEntry.code!=chain.dictionaryEntry.code
                 ||actual.recordReference.code!=chain.recordReference.code)return false;
         }

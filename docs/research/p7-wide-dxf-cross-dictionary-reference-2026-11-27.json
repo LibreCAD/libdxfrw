@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-27",
+  "scope": "Locally generated AC1027 ASCII and binary DXF with two root-owned child dictionaries, three XRECORDs, and a 340 reference from one child dictionary to the other.",
+  "implementationDigestSha256": "24a89a05ac8f95816fd30d51e25484b6f22d3657448ee92d2859970ea1d779f0",
+  "converterSha256": "a015cd123a469836a017279e5457f5b5018af4ddd8b3f1182444d3d8e020281e",
+  "change": "Permit an XRECORD 340 reference to another selected source dictionary. Bind the exact 64-bit reference to a selected unique dictionary identity, preserve it through aliasing, check its imported value and staged remap, and reject targets outside that proven set.",
+  "hashes": {
+    "ascii": {
+      "source": "cb115e547c4ea07ca192e2c29fd4d1751aff79696c7613309fd9f47f9c3eb9dc",
+      "output": "96026d8a898d738c6ffda5820b703a7eaf378b0eafb4c5b426da23dba1413a4e"
+    },
+    "binary": {
+      "source": "12736753e59ca0932eca764835a6614377087c9c066930b127fa93d9656d3d41",
+      "output": "f221424cba12104a75f795fd1386898bceba391f95c57196925092e83e97a454"
+    }
+  },
+  "peerReadback": {
+    "ezdxf": "1.4.5: each encoding matched 28 mapped objects, 27 dictionary entries, 14 root entries, two layers, owners, reactors, XRECORD references, materials and dictionary values; source and output each audited with zero errors and fixes.",
+    "libredwg": "0.14 dxf2dwg r2004 and dwgread JSON resolves the XRECORD owner to the first dictionary and its 340 target to the other dictionary. MATERIAL warnings limit the peer result to the selected graph."
+  },
+  "checks": [
+    "Both encodings and alias-collision controls, including shared and independent dictionaries",
+    "Wrong owner, unselected root target, wrong-kind XRECORD target, dangling target, unknown group 341, cross-version and cross-encoding inputs refused while preserving destination",
+    "In-memory mutations and late changes refused with corrected same-adapter retry",
+    "Focused whole-source, compact-material graph and AC1024 plot-style CTests pass",
+    "GCC 16 strict syntax checks pass"
+  ],
+  "limits": [
+    "Only targets that are selected dictionaries are admitted; other roles and external references remain refused",
+    "At most eight selected XRECORD chains and the bounded same-version, same-encoding AC1027 plot/material graph",
+    "No native producer or native consumer semantics and no broad support claim established",
+    "No external DWG/DXF fixtures committed"
+  ]
+}
