@@ -35,8 +35,9 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    same-version saves now admit bounded AC1021 [simple lines](docs/research/p8d-librecad-ordinary-sparse-material-2026-11-27.json)
    and [simple circles and arcs](docs/research/p8d-librecad-sparse-material-curves-2026-11-27.json),
    including selected edits and reopen/resave; other profiles remain guarded.
-   Four `[filter][handles]` cases still expect unqualified sparse-MATERIAL
-   saves. Extend the 256 KiB capture only with
+   The [generic handle checks](docs/research/p8d-librecad-handle-tests-guarded-material-2026-11-27.json)
+   now separate remapping from refusal of incomplete MATERIAL graphs; complete
+   bundled-codec and hosted checks on the updated consumer head. Extend the 256 KiB capture only with
    aggregate memory accounting. Reuse the [physical inventory join](docs/research/p8d-librecad-material-physical-inventory-2026-11-26.json),
    [entity reference guard](docs/research/p8d-librecad-physical-entity-material-source-2026-11-26.json),
    [LINE delivery guard](docs/research/p8d-librecad-sparse-material-line-delivery-2026-11-27.json),

@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-handle-tests-guarded-material-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "ca0d2259",
+  "finding": "Four generic handle tests expected export of incomplete MATERIAL graphs, which the current codec correctly refuses. Those expectations obscured whether handle reservation and remapping still worked.",
+  "change": "Use neutral raw objects for the generic handle checks, including a runtime derivative of the existing control-group fixture. Separately assert that the unchanged MATERIAL fixture is refused without altering an existing destination. The existing qualified MATERIAL tests and guards remain intact; no drawing fixture was committed.",
+  "validation": "The current-codec [filter][handles] selector passes 707 assertions in 28 cases on macOS ARM64. Bundled-codec rebuilding and updated-head hosted checks are pending.",
+  "limits": "This test isolation neither changes production code nor qualifies additional MATERIAL, producer or platform profiles."
+}
