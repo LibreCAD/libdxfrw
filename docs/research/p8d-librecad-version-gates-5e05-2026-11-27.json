@@ -25,11 +25,12 @@
     "observations": [
       "The locally authored AC1032 input rendered a dashed line. The line properties showed P8D_CUSTOM and endpoint (100,0); the endpoint was changed to (120,0), and the file saved as AC1021.",
       "The native command line reported: 2 raw record(s) from another DXF version were not replayed; some may have been regenerated.",
-      "ezdxf 1.4.5 independently read one LINE on P8D_LAYER with P8D_CUSTOM, endpoints (0,0,0) and (120,0,0), and pattern length 6 with elements 4 and -2. Audit had zero errors and fixes."
+      "ezdxf 1.4.5 independently read one LINE on P8D_LAYER with P8D_CUSTOM, endpoints (0,0,0) and (120,0,0), and pattern length 6 with elements 4 and -2. Audit had zero errors and fixes.",
+      "After closing and reopening the saved AC1021 file, the canvas rendered the dashed line and Line Properties showed P8D_CUSTOM on P8D_LAYER with endpoints (0,0) and (120,0)."
     ]
   },
   "limits": [
-    "Native reopen of the later candidate was attempted but desktop automation timed out; independent file readback is not a native reopen.",
+    "Native reopen qualifies this locally authored single-line profile only; it does not replace independent file readback or broader native tests.",
     "The scratch app is not byte-identical to an unmodified candidate executable. This local source and one edited line do not establish whole-drawing preservation or broad platform support.",
     "The earlier native receipt identifies the two skipped raw carriers in a separate diagnostic run and verifies matching output records; that does not prove general graph equivalence.",
     "No input or output drawing was committed."
