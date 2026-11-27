@@ -157,7 +157,13 @@ evidence are recorded in `docs/research/` and Git history.
   inspection. Exercise wrong or mixed targets, duplicates, changed source and
   late mutations, remapping, destination preservation and corrected retry in
   both encodings, then independently read back the full selected graph. Keep
-  unqualified nodes and cross-version behavior refused.
+  unqualified nodes and cross-version behavior refused. For this control the
+  [existing source audits](docs/research/p8-ac1027-plotstyle-source-audit-2026-11-26.json)
+  bind both LAYER rows and the two plot-style objects,
+  but do not qualify output; its NOD has 13 entries and its three MATERIALs are
+  raw-only, whereas the current single-layer proof requires exactly three NOD
+  entries and typed MATERIALs. Extend both source checks and emitted graph
+  checks together, rather than relaxing only the layer-count guard.
 - **LibreCAD_3 entity true color:** the [shared color and model-only binary fixes](docs/research/p8d-librecad3-truecolor-and-model-only-binary-2026-11-26.json)
   preserve selected imported RGB and color names through edits and R2004+ output,
   report indexed approximation for older versions, and avoid an orphaned synthetic
