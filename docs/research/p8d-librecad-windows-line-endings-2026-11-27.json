@@ -16,7 +16,7 @@
   "verification": [
     "Focused bundled-codec fast-test target rebuilt on macOS ARM64.",
     "Three affected cases passed with 111 assertions, including CRLF and isolated-carriage-return control, failure/retry and destination checks.",
-    "The affected hosted Windows ARM64 fast lane passed on consumer head 3c52f0ba; the x64 rerun is pending."
+    "The hosted Windows ARM64 and x64 fast lanes passed on consumer head 3c52f0ba."
   ],
   "limits": [
     "No format, hardware or native consumer support claim follows."
@@ -24,11 +24,16 @@
   "linuxFastRerun": {
     "consumerHead": "3c52f0ba74175d6783403c5fedc9c016f2b5c3ba",
     "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/46064052931/job/140725106368",
-    "result": "Bounded DWG/DXF fast lane passed; Windows ARM64 also passed and x64 is still running."
+    "result": "Bounded DWG/DXF fast lane passed; Windows ARM64 and x64 also passed."
   },
   "windowsArm64FastRerun": {
     "consumerHead": "3c52f0ba74175d6783403c5fedc9c016f2b5c3ba",
     "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/46064052931/job/140725106820",
+    "result": "success"
+  },
+  "windowsX64FastRerun": {
+    "consumerHead": "3c52f0ba74175d6783403c5fedc9c016f2b5c3ba",
+    "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/46064052931/job/140725106993",
     "result": "success"
   }
 }
