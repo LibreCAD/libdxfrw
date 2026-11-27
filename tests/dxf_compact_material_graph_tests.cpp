@@ -108,7 +108,7 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||(extraWideReference&&!s(341,extraWideReference))))return false;
  if(sharedRecord&&(!s(0,"XRECORD")||!s(5,"100000013")||!s(330,graphHandle)
     ||!s(100,"AcDbXrecord")||!h(280,1)||!s(1,"shared payload")
-    ||!s(sharedReferenceCode,crossReference==2u?"100000021":crossReference?"100000020":graphHandle)))return false;
+    ||!s(sharedReferenceCode,crossReference==3u?"C":crossReference==2u?"100000021":crossReference?"100000020":graphHandle)))return false;
  for(unsigned n=0;n<extraSelectedPointers;++n)
   if(!s(332+static_cast<int>(n%18u),n%2u?"100000021":"100000020"))return false;
  for(unsigned n=0;n<extraWide;++n) {
@@ -377,7 +377,8 @@ static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std:
    unsigned refs=0u;for(const auto& item:record->m_dataEntries)if(item.code()>=320&&item.code()<=369) {
     const auto expectedCode=shared&&refs?332+static_cast<int>((refs-1u)%18u):shared?sharedReferenceCode:340;
     const auto expected=shared&&refs?((refs-1u)%2u?otherRecord:otherDictionary)
-        :shared&&crossReference?(crossReference==2u?otherRecord:otherDictionary):dictionary;
+        :shared&&crossReference?(crossReference==3u?decoded.namedObjectDictionary.handle
+            :crossReference==2u?otherRecord:otherDictionary):dictionary;
     if(item.code()!=expectedCode||item.type()!=DRW_Variant::INTEGER64
         ||item.i64_val()!=static_cast<std::int64_t>(expected))return false;
     ++refs;
@@ -566,7 +567,7 @@ static bool bufferReadTest(const std::filesystem::path& path) {
  return true;
 }
 enum class WideSourceVariant { Wide, Narrow, WrongDictionaryOwner, WrongRecordOwner,
-    WrongReference, UnknownReference, DuplicateSelf, DuplicateEntry, DuplicateNameCase, DuplicateTarget,
+    WrongReference, RootReference, UnknownReference, DuplicateSelf, DuplicateEntry, DuplicateNameCase, DuplicateTarget,
     MissingEnd, InvalidHandle, AlternateRole, AliasCollision, ExternalWideReference, BadSeed, MissingSeed, MultipleWideGraphs };
 static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
     std::ostringstream out(std::ios::binary);
@@ -596,7 +597,7 @@ static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
         ||!text(3,"CODEX_RECORD")||!text(350,record)
         ||!text(0,"XRECORD")||!text(5,record)||!text(330,variant==WideSourceVariant::WrongRecordOwner?"A":dict)
         ||!text(100,"AcDbXrecord")||!number(280,1)||!text(1,"literal 100000010 untouched")
-        ||!text(340,variant==WideSourceVariant::WrongReference?"A":dict))return {};
+        ||!text(340,variant==WideSourceVariant::WrongReference?"B":variant==WideSourceVariant::RootReference?"A":dict))return {};
     if(variant==WideSourceVariant::UnknownReference&&!text(351,"A"))return {};
     if(variant==WideSourceVariant::DuplicateSelf&&(!text(0,"XRECORD")||!text(5,record)
         ||!text(330,dict)||!text(100,"AcDbXrecord")||!number(280,1)))return {};
@@ -631,7 +632,7 @@ static bool runWideSourceCase(bool binary,WideSourceVariant variant,bool expecte
         &&graph.dictionarySelf.text==graph.rootEntry.text&&graph.dictionaryOwner.text=="A"
         &&graph.dictionaryEntry.text==(narrow?"30":"100000011")
         &&graph.recordSelf.text==graph.dictionaryEntry.text&&graph.recordOwner.text==graph.rootEntry.text
-        &&graph.recordReference.text==graph.rootEntry.text
+        &&graph.recordReference.text==(variant==WideSourceVariant::RootReference?"A":graph.rootEntry.text)
         &&graph.rootEntry.raw==graph.rootEntry.text&&graph.recordReference.raw==graph.recordReference.text
         &&graph.rootEntry.code==(variant==WideSourceVariant::AlternateRole?360:350)
         &&graph.dictionaryEntry.code==350&&graph.recordReference.code==340
@@ -658,7 +659,7 @@ struct WideBufferCapture : LC3CompatCheck {
 };
 static bool wideSourceTest() {
     for(bool binary:{false,true}) {
-        for(auto v:{WideSourceVariant::Wide,WideSourceVariant::Narrow,WideSourceVariant::AlternateRole})
+        for(auto v:{WideSourceVariant::Wide,WideSourceVariant::Narrow,WideSourceVariant::AlternateRole,WideSourceVariant::RootReference})
             if(!runWideSourceCase(binary,v,true))return false;
         for(auto v:{WideSourceVariant::WrongDictionaryOwner,WideSourceVariant::WrongRecordOwner,
                     WideSourceVariant::WrongReference,WideSourceVariant::UnknownReference,
@@ -772,6 +773,7 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
      ||!wideGraphSharedDictionary(in,out,binary,collision,1u,349)
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u,330,3u)
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u,331,15u)
+     ||!wideGraphSharedDictionary(in,out,binary,collision,3u,341,3u)
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u,332)
      ||!wideGraphSharedDictionary(in,out,binary,collision,1u,339)
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u,341,3u)

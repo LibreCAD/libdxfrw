@@ -15,10 +15,11 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current implementation digest is
-`31042294e6ebc544fdb2894e8fff382256052a47f0b3382c6bce7bba63193e71`
-(782 inputs). The [code-head focused, package and FreeCAD matrix](docs/research/p8-native-freecad-f6c0-2026-11-27.json)
+`2f93149bf4699cf7aeb9c59e03867c229a36c8443fdff1d6484be662b33be387`
+(782 inputs). Current-head hosted checks are pending. The previous
+[focused, package and FreeCAD matrix](docs/research/p8-native-freecad-f6c0-2026-11-27.json)
 and [fast lane](docs/research/p8-fast-lane-f6c0-2026-11-27.json) pass for the
-current implementation; recheck any profile affected by later code changes.
+preceding digest; recheck profiles affected by the root-reference change.
 All support claims remain experimental.
 
 ## Ready work and cross-cutting dependencies
@@ -54,8 +55,10 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    dictionary/XRECORD profile to additional graph shapes, roles, versions,
    encodings and producers only after source/target closure and output proof.
    The existing opt-in route is strict, same-version and same-encoding, with at
-   most eight selected chains and 16 proven pointers per XRECORD. The public
-   semantic API remains 32-bit; bind original-stream observation
+   most eight selected chains and 16 proven pointers per XRECORD. Targets are
+   restricted to the verified root, selected dictionaries and selected XRECORDs;
+   see the [root-reference control](docs/research/p7-wide-dxf-xrecord-root-target-2026-11-27.json).
+   The public semantic API remains 32-bit; bind original-stream observation
    before combining it with projection. LibreDWG 0.14 drops XRECORD body groups
    330/331; the [ODA-qualified profile](docs/research/p7-wide-dxf-xrecord-330-331-oda-witness-2026-11-27.json)
    does not qualify that peer. Keep unsupported graphs atomic and retryable.

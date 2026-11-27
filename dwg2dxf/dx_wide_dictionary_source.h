@@ -278,7 +278,8 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
             candidate.chains.push_back(std::move(chain));
         }
         for(const auto& chain:candidate.chains)for(const auto& reference:chain.references)
-            if(!selectedDictionaries.count(reference.value)&&!selectedRecords.count(reference.value))return false;
+            if(reference.value!=candidate.root && !selectedDictionaries.count(reference.value)
+                && !selectedRecords.count(reference.value))return false;
         // Each selected identity must correspond to exactly one physical object,
         // including collisions with records outside the OBJECTS section.
         struct IdentityCount {std::size_t index,global{0u},local{0u};};
