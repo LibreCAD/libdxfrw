@@ -156,8 +156,11 @@ evidence are recorded in `docs/research/` and Git history.
   rejects mixed EntityBuilder edits atomically, permits creation and explicit
   override, and tests Lua/Python, undo and block entities. The [rejected-operation undo fix](docs/research/p8d-librecad3-locked-refusal-undo-2026-11-26.json)
   preserves undo/redo history for direct refusals. A [reuse control](docs/research/p8d-librecad3-locked-reused-builder-undo-2026-11-26.json)
-  preserves a previously applied journal after a later refused edit; complex
-  repeated stacks and mixed compound transactions need separate qualification.
+  preserves a previously applied journal after a later refused edit. The
+  [direct compound preflight](docs/research/p8d-librecad3-locked-direct-compound-2026-11-26.json)
+  prevents partial grouped direct replacements, preserves undo/redo and permits
+  an in-place explicit retry. Queued transform stacks, nested and lock-changing
+  compounds, and complex repeated successful stacks remain open.
   The [script document guard](docs/research/p8d-librecad3-locked-script-document-2026-11-26.json)
   also protects direct Document bindings, offers checked and force methods, and
   fixes a null-storage constructor crash. Low-level StorageManager and entity
