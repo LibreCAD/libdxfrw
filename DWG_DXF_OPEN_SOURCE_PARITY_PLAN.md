@@ -137,32 +137,18 @@ evidence are recorded in `docs/research/` and Git history.
   expose unique emitted self and owner identities without truncation; they do not
   admit wide-owner or reference output. The [owner ambiguity guard](docs/research/p7-wide-dxf-owner-ambiguity-2026-11-26.json)
   refuses to certify multiple common-header owners and retains rollback and
-  wide-owner detection. A [peer-generated paired graph](docs/research/p7-wide-dxf-peer-dictionary-boundary-2026-11-26.json)
-  exposes an earlier input boundary: root DICTIONARY group 350 rejects its
-  64-bit target before replay. A [bounded source observer](docs/research/p7-wide-dxf-dictionary-source-observer-2026-11-27.json)
-  now captures selected self, owner and entry lexemes, roles and physical spans
-  in both encodings, with a 64-bit physical identity census and malformed-source
-  refusal. The [byte-preserving normalization component](docs/research/p7-wide-dxf-immutable-normalization-2026-11-27.json)
-  derives collision-free 32-bit aliases from an immutable snapshot, changes only
-  checked handle fields and HANDSEED, refuses other wide references, and passes
-  a selected full-graph independent readback in both encodings. It is not yet
-  connected to actual import or output and does not establish whole-drawing closure.
-  The [memory reader](docs/research/p7-dxf-memory-snapshot-reader-2026-11-27.json)
-  now consumes an immutable ASCII or binary snapshot using the existing callbacks,
-  budgets and whole-source checks, including R12 binary. The [automatic graph
-  discovery](docs/research/p7-wide-dxf-automatic-graph-discovery-2026-11-27.json)
-  selects a unique bounded chain without sample-specific names and verifies the
-  normalized graph through the memory reader; ambiguous chains refuse. Next connect
-  the normalized snapshot to the converter, preserve the original source/alias
-  binding through export and the existing 32-bit consumer API, and check staged
-  DICTIONARY/XRECORD roles and references. Require rooted
-  closure, atomic refusal, corrected retry and independent ASCII/Binary readback
-  through the actual public route. The [AC1027 default MATERIAL raw replay](docs/research/p7-ac1027-ezdxf-default-material-2026-11-26.json)
-  and [multi-layer plot graph](docs/research/p8-ac1027-audited-multilayer-plot-2026-11-26.json)
-  now allow the complete narrow control to round-trip and pass independent
-  readback in both encodings. The wide control still refuses atomically at the
-  root dictionary reference. Preserve this distinction and qualify consumers
-  independently. The [reactor-link follow-up](docs/research/p8-ac1027-plot-graph-reactor-closure-2026-11-26.json)
+  wide-owner detection. The [selected wide-graph route](docs/research/p7-wide-dxf-converter-graph-roundtrip-2026-11-27.json)
+  now converts the generated AC1027 dictionary/XRECORD graph directly in ASCII
+  and binary, assigning collision-free 32-bit aliases while retaining the original
+  snapshot and validating staged output. Independent ezdxf readback and a
+  LibreDWG dictionary/XRECORD comparison pass for that graph. Existing adapters
+  remain opt-in; direct 32-bit-only reader callbacks are unchanged. The route
+  requires strict same-version, same-encoding output, one qualified chain and the
+  bounded plot/material graph; whole-source or legacy identity observation keeps
+  the original-stream path and refuses this wide input. Extend to multiple chains,
+  other qualified 64-bit roles and producers, and bind original-stream observation
+  before relaxing those limits. Qualify native consumers independently.
+  The [reactor-link follow-up](docs/research/p8-ac1027-plot-graph-reactor-closure-2026-11-26.json)
   also checks selected emitted reactor links and rejects unknown application groups.
   The [bad-source controls](docs/research/p8-ac1027-plot-graph-reactor-bad-source-2026-11-26.json)
   test wrong but existing and dangling reactors, rollback and corrected retry.
@@ -288,7 +274,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 257ad26563bcaff98a61b94fc7e95d2d2efa3330cae91fbbd38c665e98a523f3
+  digest: 90bbd26d34fdb5e35d1b80f4bb89a2e6903a4d44b0e1cfeca4fcdbc40980190f
   (782 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,

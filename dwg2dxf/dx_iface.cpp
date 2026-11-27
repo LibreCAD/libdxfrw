@@ -18,6 +18,8 @@
 #include <cmath>
 #include <cstring>
 #include <cstdio>
+#include <filesystem>
+#include <fstream>
 #include <iterator>
 #include <limits>
 #include <map>
@@ -55,6 +57,7 @@
 #include "dx_ac1027_plotstyle_wire.h"
 #include "dx_ac1027_material_wire.h"
 #include "dx_ac1027_layer_wire.h"
+#include "dx_wide_dictionary_source.h"
 #include "dx_raster_dwg_wire.h"
 #include "dx_layerstates_dwg_wire.h"
 #include "dx_mline_dictionary_source_live.h"
@@ -95,6 +98,13 @@
 #include "intern/dxfrenderingsource.h"
 #include "intern/dxfrendersettings.h"
 #include "intern/dxfmleadercolor.h"
+
+struct dx_data::DxfWideProjection {
+    const dx_data* owner{nullptr};
+    std::uint64_t generation{0};
+    std::string original;
+    dx_wide_dictionary_source::Normalized normalized;
+};
 
 namespace {
 struct StrictDxfExportLease {
@@ -46909,9 +46919,9 @@ bool dx_iface::inspectDxfLayerMaterials(const dxfRW::DxfTablesWriteView& view) n
 
 bool dx_iface::finalizeDxfLayerMaterials() const noexcept {
     const auto& state=m_dxfLayerMaterialState;
-    if(!state.owner)return true; // Direct codec users have no facade transaction.
+    if(!state.owner)return !cData || !cData->m_dxfWideProjectionRequired;
     if(!hasUnchangedDxfLayerMaterials()||!hasUnchangedDxfLayerPlot()||!dxfW)return false;
-    if(!state.active)return true;
+    if(!state.active)return !cData->m_dxfWideProjectionRequired;
     if(!state.inspected)return false;
     if(state.plotActive && (!state.plotObjectsInspected
         || !dxfW->dxfWriteRecordHasIdentity(dxfW->remapHandle(cData->namedObjectDictionary.handle),"DICTIONARY","OBJECTS")
@@ -46919,6 +46929,7 @@ bool dx_iface::finalizeDxfLayerMaterials() const noexcept {
         || !dxfW->dxfWriteRecordHasOwner(dxfW->remapHandle(state.plotOwner),dxfW->remapHandle(cData->namedObjectDictionary.handle))
         || !dxfW->dxfWriteRecordHasIdentity(dxfW->remapHandle(state.plotTarget),"ACDBPLACEHOLDER","OBJECTS")
         || !dxfW->dxfWriteRecordHasOwner(dxfW->remapHandle(state.plotTarget),dxfW->remapHandle(state.plotOwner))))return false;
+    if(!hasUnchangedDxfWideProjection(true))return false;
     try {
         for(const auto& row:state.rows) {
             if(!row.named||!row.inspected||!dxfW->dxfWriteRecordHasIdentity(row.emitted,"LAYER","TABLES")
@@ -81582,6 +81593,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->m_verifiedXRecordImportToken.reset();
     }
     if (fData && hasStrictDxfExportLease(fData)) return false;
+    if (fData) fData->m_dxfWideProjection.reset();
     // Every attempt invalidates a previous accepted whole-source owner before
     // any early failure; reentry also invalidates the still-active owner.
     const auto invalidateWhole=[](dx_data& data) noexcept {
@@ -81914,6 +81926,42 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->sourceFormat = dx_source_format::DXF;
         fData->associativeDxfImport.sourceFormat = fData->sourceFormat;
         fData->visualStyleImport.sourceFormat = fData->sourceFormat;
+        std::shared_ptr<dx_data::DxfWideProjection> wideProjection;
+        // Source-observation opt-ins promise the original physical stream.
+        // Until they can bind that stream to the projection, do not publish
+        // normalized bytes under those existing observation contracts.
+        if (m_dxfWideGraphProjectionEnabled && !m_wholeEnabled
+            && !m_legacyIdentityObservationEnabled) {
+            // Snapshot once before either source observation or typed import.
+            // The inexpensive lexical screen leaves ordinary drawings on the
+            // historical file-backed path; an unqualified wide file also keeps
+            // that path and its existing failure behavior.
+            try {
+                constexpr std::size_t maxBytes=8u*1024u*1024u;
+                std::ifstream input(std::filesystem::u8path(fileI),std::ios::binary|std::ios::ate);
+                const auto length=input.tellg();
+                if(input&&length>0&&static_cast<std::uint64_t>(length)<=maxBytes) {
+                    std::string original(static_cast<std::size_t>(length),'\0');
+                    input.seekg(0,std::ios::beg);
+                    input.read(original.data(),static_cast<std::streamsize>(original.size()));
+                    bool maybeWide=false;unsigned run=0u;
+                    if(input&&static_cast<std::size_t>(input.gcount())==original.size()) {
+                        for(const unsigned char ch:original) {
+                            const bool hex=(ch>='0'&&ch<='9')||(ch>='a'&&ch<='f')||(ch>='A'&&ch<='F');
+                            run=hex?run+1u:0u;
+                            if(run>=9u){maybeWide=true;break;}
+                        }
+                    }
+                    dx_wide_dictionary_source::Normalized normalized;
+                    if(maybeWide&&dx_wide_dictionary_source::normalize(original,"","",normalized)) {
+                        wideProjection=std::make_shared<dx_data::DxfWideProjection>();
+                        wideProjection->owner=fData;wideProjection->generation=fData->importGeneration;
+                        wideProjection->original=std::move(original);
+                        wideProjection->normalized=std::move(normalized);
+                    }
+                }
+            } catch (...) {wideProjection.reset();}
+        }
         //loads dxf
         fData->dxfReadOutcome.attempted = true;
         fData->dxfReadOutcome.requestedCodePagePolicy = codePagePolicy;
@@ -81931,7 +81979,10 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         }
         bool success = false;
         try {
-            success = dxf.read(this, false);
+            if (wideProjection) fData->m_dxfWideProjectionRequired=true;
+            success = wideProjection
+                ? dxf.readBuffer(this, false, wideProjection->normalized.bytes)
+                : dxf.read(this, false);
         } catch (...) {
             const auto& acds = dxf.dxfAcdsSourceLedger();
             if (acds.failed || !acds.sections.empty())
@@ -81955,6 +82006,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
             throw;
         }
         fData->dxfReadOutcome.readReturned = true;
+        if (success && wideProjection) fData->m_dxfWideProjection=std::move(wideProjection);
         fData->dxfReadOutcome.operationSucceeded = success;
         snapshotDxfReadOutcome(*fData, dxf);
         if(m_legacyIdentityObservationEnabled&&success&&dxf.getSourceVersion()==DRW::AC1018) {
@@ -89894,6 +89946,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         reportPreflightFailure("HATCH graph source drawing is null");
         return false;
     }
+    if (cData->m_dxfWideProjectionRequired
+        && (!cData->m_dxfWideProjection || !requireResolvedOwners || v!=DRW::AC1027
+            || binary!=cData->m_dxfWideProjection->normalized.source.binary)) {
+        reportPreflightFailure("wide DXF graph requires strict, same-version and same-encoding output");
+        return false;
+    }
     if (cData->sourceFormat == dx_source_format::DWG
         && cData->sourceVersion == DRW::AC1021
         && (cData->m_dwgBlockControlCaptureFailed
@@ -92371,6 +92429,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareDxfLayerPlot(v, requireResolvedOwners)) {
         reportPreflightFailure("LAYER plot-style carrier capture incomplete, unsupported, or over budget");
+        return false;
+    }
+    if (cData->m_dxfWideProjection
+        && (!m_dxfLayerMaterialState.auditedDefaultPlotSource
+            || !hasUnchangedDxfWideProjection(false))) {
+        reportPreflightFailure("wide DXF graph source/alias binding is incomplete or changed");
         return false;
     }
     if (!prepareDxfFullStyles(v)) {
@@ -97515,6 +97579,78 @@ bool dx_iface::finalizeLegacyPlot() const noexcept {
             &&dxfW->dxfWriteRecordHandleCount(place)==1u
             &&dxfW->dxfWriteRecordHasIdentity(0x10u,"LAYER","TABLES")&&dxfW->dxfWriteRecordHasOwner(0x10u,2u);
     } catch (...) {return false;}
+}
+
+bool dx_iface::hasUnchangedDxfWideProjection(bool inspectOutput) const noexcept {
+    if (!cData) return false;
+    if (!cData->m_dxfWideProjection) return !cData->m_dxfWideProjectionRequired;
+    try {
+        const auto& proof=*cData->m_dxfWideProjection;
+        const auto& frozen=proof.normalized;
+        if(proof.owner!=cData || proof.generation!=cData->importGeneration
+            ||cData->sourceFormat!=dx_source_format::DXF || cData->sourceVersion!=DRW::AC1027
+            ||!m_dxfLayerMaterialState.auditedDefaultPlotSource) return false;
+        if(!inspectOutput) {
+            dx_wide_dictionary_source::Normalized rebuilt;
+            if(!dx_wide_dictionary_source::normalize(proof.original,"","",rebuilt)
+                ||rebuilt.bytes!=frozen.bytes || rebuilt.root!=frozen.root
+                ||rebuilt.dictionary!=frozen.dictionary || rebuilt.record!=frozen.record
+                ||rebuilt.handSeed!=frozen.handSeed || rebuilt.source.binary!=frozen.source.binary
+                ||rebuilt.source.dictionaryKey!=frozen.source.dictionaryKey
+                ||rebuilt.source.recordKey!=frozen.source.recordKey
+                ||rebuilt.source.root!=frozen.source.root ||rebuilt.source.dictionary!=frozen.source.dictionary
+                ||rebuilt.source.record!=frozen.source.record) return false;
+        }
+        if(!cData->hasNamedObjectDictionary || cData->namedObjectDictionary.handle!=frozen.root)return false;
+        unsigned roots=0u;
+        for(const auto& entry:cData->namedObjectDictionary.m_entries)
+            if(entry.m_name==frozen.source.dictionaryKey) {
+                if(++roots!=1u || entry.m_handle!=frozen.dictionary
+                    ||static_cast<int>(entry.m_dxfHandleCode)!=frozen.source.rootEntry.code)return false;
+            }
+        if(roots!=1u)return false;
+        const DRW_Dictionary* dictionary=nullptr;
+        for(const auto& item:cData->dictionaries)if(item.handle==frozen.dictionary) {
+            if(dictionary)return false;
+            dictionary=&item;
+        }
+        if(!dictionary || dictionary->parentHandle!=frozen.root)return false;
+        unsigned entries=0u;
+        for(const auto& entry:dictionary->m_entries)if(entry.m_name==frozen.source.recordKey) {
+            if(++entries!=1u || entry.m_handle!=frozen.record
+                ||static_cast<int>(entry.m_dxfHandleCode)!=frozen.source.dictionaryEntry.code)return false;
+        }
+        if(entries!=1u)return false;
+        const DRW_XRecord* record=nullptr;
+        for(const auto& item:cData->xRecords)if(item.handle==frozen.record) {
+            if(record)return false;
+            record=&item;
+        }
+        if(!record || record->parentHandle!=frozen.dictionary)return false;
+        unsigned references=0u;
+        for(const auto& item:record->m_dataEntries)if(item.code()==340) {
+            std::uint64_t value=0u;
+            if(++references!=1u || !dx_standard_output::handleValue(item,value)
+                ||value!=frozen.dictionary)return false;
+        }
+        if(references!=1u)return false;
+        if(inspectOutput) {
+            if(!dxfW || !m_dxfLayerMaterialState.plotObjectsInspected)return false;
+            const auto root=dxfW->remapHandle(frozen.root);
+            const auto child=dxfW->remapHandle(frozen.dictionary);
+            const auto xrecord=dxfW->remapHandle(frozen.record);
+            if(!root||!child||!xrecord
+                ||dxfW->dxfWriteRecordHandleCount(root)!=1u
+                ||dxfW->dxfWriteRecordHandleCount(child)!=1u
+                ||dxfW->dxfWriteRecordHandleCount(xrecord)!=1u
+                ||!dxfW->dxfWriteRecordHasIdentity(root,"DICTIONARY","OBJECTS")
+                ||!dxfW->dxfWriteRecordHasIdentity(child,"DICTIONARY","OBJECTS")
+                ||!dxfW->dxfWriteRecordHasOwner(child,root)
+                ||!dxfW->dxfWriteRecordHasIdentity(xrecord,"XRECORD","OBJECTS")
+                ||!dxfW->dxfWriteRecordHasOwner(xrecord,child))return false;
+        }
+        return true;
+    }catch(...){return false;}
 }
 
 bool dx_iface::hasUnchangedDxfAuditedDefaultPlot() const noexcept {

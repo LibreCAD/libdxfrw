@@ -375,6 +375,7 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
     dx_data fData;
     //First read a dwg or dxf file
     dx_iface input;
+    if (!input.enableDxfWideGraphProjection()) return false;
     if (!input.setDwgEedLayerByteOrder(dwgEedLayerByteOrder)) return false;
     if (observeWholeDxfSource && !input.enableWholeDxfSourceObservation()) {
         std::cerr << "Error: cannot enable DXF source observation" << std::endl;

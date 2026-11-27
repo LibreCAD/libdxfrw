@@ -21,6 +21,12 @@ struct DirectWriter:LC3CompatCheck {dxfRW& writer;DRW_Material material;bool ok=
 struct DirectDwgWriter:LC3CompatCheck {dwgRW& writer;DRW_Material material;bool registered=false,ok=false;explicit DirectDwgWriter(dwgRW& w):writer(w){}void writeDwgClasses()override{registered=writer.registerMaterialObjectClass(&material);}void writeObjects()override{ok=writer.writeMaterial(&material);}bool finalizeDwgWrite()override{return true;}};
 struct Unaware : dx_iface {};
 struct Exporter : dx_iface {bool wantsDxfSparseMaterialRawCapture()const noexcept override{return true;}std::function<void()> late;void writeObjects()override{dx_iface::writeObjects();if(late)late();}};
+class DxWideProjectionTestAccess {
+public:
+ static bool incomplete(const dx_data& data) noexcept {
+  return data.m_dxfWideProjectionRequired&&!data.m_dxfWideProjection;
+ }
+};
 static std::string bytes(const std::filesystem::path& p){std::ifstream f(p,std::ios::binary);return {std::istreambuf_iterator<char>(f),{}};}
 static bool source(const std::filesystem::path& p,bool binary,int mode=0){
  std::ofstream f(p,std::ios::binary|std::ios::trunc);if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';std::unique_ptr<dxfWriter>w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));w->setVersion(mode==7?"AC1024":"AC1027",true);
@@ -33,7 +39,7 @@ static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.
 
 // Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr) {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false) {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -44,14 +50,17 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
  const auto i=[&](int c,int v){return w->writeInt32(c,v);};
  const auto d=[&](int c,double v){return w->writeDouble(c,v);};
  const char* blockHandle=collision?"1F":"69";
+ const char* graphHandle=wideGraph?"100000010":"72";
+ const char* recordHandle=wideGraph?"100000011":"73";
  if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,versionName)
+    ||(wideGraph&&(!s(9,"$HANDSEED")||!s(5,"100000012")))
     ||!s(9,"$CMATERIAL")||!s(347,blockHandle)||!s(0,"ENDSEC")
     ||!s(0,"SECTION")||!s(2,"TABLES")||!s(0,"TABLE")||!s(2,"LAYER")
     ||(multiPlot&&(!s(5,"2")||!s(330,"0")||!s(100,"AcDbSymbolTable")))||!h(70,multiPlot?2:1)
     ||!s(0,"LAYER")||!s(5,"90")||(multiPlot&&!s(330,"2"))||!s(100,"AcDbSymbolTableRecord")||!s(100,"AcDbLayerTableRecord")
     ||!s(2,"RAWTEST")||!h(70,0)||!h(62,7)||!s(6,"CONTINUOUS")||!s(347,blockHandle)
     ||(multiPlot&&!s(390,"71")))return false;
- if(multiPlot&&(!s(0,"LAYER")||!s(5,"91")||!s(330,"2")||!s(100,"AcDbSymbolTableRecord")
+ if(multiPlot&&(!s(0,"LAYER")||!s(5,duplicateLayerHandle?"90":"91")||!s(330,"2")||!s(100,"AcDbSymbolTableRecord")
     ||!s(100,"AcDbLayerTableRecord")||!s(2,"0")||!h(70,0)||!h(62,7)
     ||!s(6,"CONTINUOUS")||!s(347,blockHandle)||!s(390,"71")))return false;
  if(!s(0,"ENDTAB")||!s(0,"ENDSEC")||!s(0,"SECTION")||!s(2,"OBJECTS")
@@ -59,7 +68,7 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||!h(280,0)||!h(281,1)||(multiPlot&&(!s(3,"ACAD_GROUP")||!s(350,"D")))
     ||!s(3,"ACAD_MATERIAL")||!s(350,"67")
     ||(multiPlot&&(!s(3,"ACAD_PLOTSTYLENAME")||!s(350,"70")
-                    ||!s(3,"CODEX_GRAPH")||!s(350,"72"))))return false;
+                    ||!s(3,"CODEX_GRAPH")||!s(350,graphHandle))))return false;
  if(multiPlot&&(!s(0,"DICTIONARY")||!s(5,"D")||!s(330,"C")
     ||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)))return false;
  if(!s(0,"DICTIONARY")||!s(5,"67")
@@ -83,12 +92,13 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||!s(100,"AcDbDictionary")||!h(281,1)||!s(3,"Normal")||!s(350,"71")
     ||!s(100,"AcDbDictionaryWithDefault")||!s(340,"71")
     ||!s(0,"ACDBPLACEHOLDER")||!s(5,"71")||!s(330,"70")
-    ||!s(0,"DICTIONARY")||!s(5,"72")||!s(330,"C")||!s(100,"AcDbDictionary")
-    ||!h(280,0)||!h(281,1)||!s(3,"RECORD")||!s(350,"73")
-    ||!s(0,"XRECORD")||!s(5,"73")
+    ||!s(0,"DICTIONARY")||!s(5,graphHandle)||!s(330,"C")||!s(100,"AcDbDictionary")
+    ||!h(280,0)||!h(281,1)||!s(3,"RECORD")||!s(350,recordHandle)
+    ||!s(0,"XRECORD")||!s(5,recordHandle)
     ||(xrecordReactor&&(!s(102,"{ACAD_REACTORS")||!s(330,xrecordReactor)||!s(102,"}")))
-    ||!s(330,"72")||!s(100,"AcDbXrecord")
-    ||!h(280,1)||!s(1,"payload")||!s(340,"72")))return false;
+    ||!s(330,graphHandle)||!s(100,"AcDbXrecord")
+    ||!h(280,1)||!s(1,"payload")||!s(340,graphHandle)
+    ||(extraWideReference&&!s(341,extraWideReference))))return false;
  return s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();
 }
 
@@ -218,6 +228,117 @@ static bool multiPlotReactorRefusal(const std::filesystem::path& in,const std::f
      ||!io.fileExport(out.string(),DRW::AC1027,binary,&corrected,false,true))return false;
  }
  return true;
+}
+
+static bool wideGraphRoundTrip(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision) {
+ if(!defaultSource(in,binary,collision,DRW::AC1027,true,nullptr,true))return false;
+ dx_data legacy;Exporter legacyReader;
+ if(legacyReader.fileImport(in.string(),&legacy,false))return false;
+ for(bool whole:{false,true}) {
+  dx_data observed;Exporter observer;
+  if(!observer.enableDxfWideGraphProjection()
+      ||!(whole?observer.enableWholeDxfSourceObservation():observer.enableLegacyDxfIdentityObservation())
+      ||observer.fileImport(in.string(),&observed,false))return false;
+ }
+ dx_data data;Exporter io;
+ if(!io.enableDxfWideGraphProjection()||!io.fileImport(in.string(),&data,false)
+    ||data.layers.size()!=2u||data.xRecords.size()!=1u)return false;
+ // The later export must use the captured source, not reopen a changed file.
+ std::ofstream(in,std::ios::binary|std::ios::trunc)<<"changed after import";
+ const auto write=[&](){return io.fileExport(out.string(),DRW::AC1027,binary,&data,false,true);};
+ const auto verify=[&](){
+  dx_data decoded;dx_iface reader;
+  if(!reader.fileImport(out.string(),&decoded,false)||decoded.layers.size()!=2u||decoded.xRecords.size()!=1u)return false;
+  std::uint32_t dictionary=0u,record=0u;
+  for(const auto& entry:decoded.namedObjectDictionary.m_entries)if(entry.m_name=="CODEX_GRAPH")dictionary=entry.m_handle;
+  for(const auto& item:decoded.dictionaries)if(item.handle==dictionary&&item.parentHandle==decoded.namedObjectDictionary.handle)
+   for(const auto& entry:item.m_entries)if(entry.m_name=="RECORD")record=entry.m_handle;
+  if(!dictionary||!record||decoded.xRecords.front().handle!=record||decoded.xRecords.front().parentHandle!=dictionary)return false;
+  unsigned references=0u;
+  for(const auto& item:decoded.xRecords.front().m_dataEntries)if(item.code()==340) {
+   if(item.type()!=DRW_Variant::INTEGER64||item.i64_val()!=static_cast<std::int64_t>(dictionary))return false;
+   ++references;
+  }
+  return references==1u;
+ };
+ if(!write()||!verify())return false;
+ const auto reject=[&](const std::function<void()>& mutate,const std::function<void()>& restore){
+  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";mutate();
+  const bool refused=!write();restore();return refused&&bytes(out)=="sentinel"&&write()&&verify();
+ };
+ auto& root=data.namedObjectDictionary;const auto savedEntries=root.m_entries;
+ auto target=std::find_if(root.m_entries.begin(),root.m_entries.end(),[](const auto& e){return e.m_name=="CODEX_GRAPH";});
+ if(target==root.m_entries.end()||!reject([&](){target->m_handle=0x71u;},[&](){root.m_entries=savedEntries;}))return false;
+ auto& xrecord=data.xRecords.front();const auto savedRecord=xrecord;
+ io.late=[&](){xrecord.m_dataEntries[0]=DRW_Variant(1,std::string("changed"));};
+ std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+ const bool lateRefused=!write();io.late={};xrecord=savedRecord;
+ if(!lateRefused||bytes(out)!="sentinel"||!write()||!verify())return false;
+ for(const auto mode:{0,1,2}) {
+  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+  const auto version=mode==0?DRW::AC1024:DRW::AC1027;
+  const bool outputBinary=mode==1?!binary:binary;
+  const bool strict=mode!=2;
+  if(io.fileExport(out.string(),version,outputBinary,&data,false,strict)||bytes(out)!="sentinel"
+      ||!write()||!verify())return false;
+ }
+ return true;
+}
+
+static bool wideGraphImportRetry(const std::filesystem::path& in,const std::filesystem::path& out,bool binary) {
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,"100000020"))return false;
+ Exporter io;if(!io.enableDxfWideGraphProjection())return false;
+ std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+ dx_data bad;if(io.fileImport(in.string(),&bad,false)||bytes(out)!="sentinel")return false;
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true))return false;
+ dx_data corrected;
+ if(!io.fileImport(in.string(),&corrected,false)
+    ||!io.fileExport(out.string(),DRW::AC1027,binary,&corrected,false,true))return false;
+ dx_data reopened;dx_iface reader;
+ if(!reader.fileImport(out.string(),&reopened,false)||reopened.xRecords.size()!=1u)return false;
+ // A failed reimport invalidates the proof without making projected data safe
+ // for a legacy/non-strict export; a fresh corrected import remains usable.
+ std::ofstream(in,std::ios::binary|std::ios::trunc)<<"invalid";
+ if(io.fileImport(in.string(),&corrected,false))return false;
+ for(bool strict:{false,true}) {
+  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+  if(io.fileExport(out.string(),DRW::AC1027,binary,&corrected,false,strict)||bytes(out)!="sentinel")return false;
+ }
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true))return false;
+ dx_data fresh;
+ return io.fileImport(in.string(),&fresh,false)
+     &&io.fileExport(out.string(),DRW::AC1027,binary,&fresh,false,true);
+}
+
+static bool wideGraphSameFile(const std::filesystem::path& in,bool binary) {
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true))return false;
+ dx_data data;Exporter io;
+ if(!io.enableDxfWideGraphProjection()||!io.fileImport(in.string(),&data,false)
+    ||!io.fileExport(in.string(),DRW::AC1027,binary,&data,false,true))return false;
+ const auto saved=bytes(in);if(saved.empty())return false;
+ auto& root=data.namedObjectDictionary;const auto entries=root.m_entries;
+ auto selected=std::find_if(root.m_entries.begin(),root.m_entries.end(),[](const auto& e){return e.m_name=="CODEX_GRAPH";});
+ if(selected==root.m_entries.end())return false;
+ selected->m_handle=0x71u;
+ if(io.fileExport(in.string(),DRW::AC1027,binary,&data,false,true)||bytes(in)!=saved)return false;
+ root.m_entries=entries;
+ if(!io.fileExport(in.string(),DRW::AC1027,binary,&data,false,true))return false;
+ dx_data reopened;dx_iface reader;
+ return reader.fileImport(in.string(),&reopened,false)&&reopened.xRecords.size()==1u;
+}
+
+static bool wideGraphFailedProjection(const std::filesystem::path& in,const std::filesystem::path& out,bool binary) {
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,true))return false;
+ dx_data partial;Exporter io;if(!io.enableDxfWideGraphProjection())return false;
+ if(io.fileImport(in.string(),&partial,false)||!DxWideProjectionTestAccess::incomplete(partial))return false;
+ for(bool strict:{false,true}) {
+  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+  if(io.fileExport(out.string(),DRW::AC1027,binary,&partial,false,strict)||bytes(out)!="sentinel")return false;
+ }
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true))return false;
+ dx_data corrected;
+ return io.fileImport(in.string(),&corrected,false)
+     &&io.fileExport(out.string(),DRW::AC1027,binary,&corrected,false,true);
 }
 
 static bool bufferReadTest(const std::filesystem::path& path) {
@@ -457,6 +578,14 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
   if(!multiPlotRoundTrip(in,out,binary,collision))return 34;
  if(argc==1)for(bool binary:{false,true})
   if(!multiPlotReactorRefusal(in,out,binary))return 35;
+ if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true})
+  if(!wideGraphRoundTrip(in,out,binary,collision))return 38;
+ if(argc==1)for(bool binary:{false,true})
+  if(!wideGraphImportRetry(in,out,binary))return 39;
+ if(argc==1)for(bool binary:{false,true})
+  if(!wideGraphSameFile(in,binary))return 40;
+ if(argc==1)for(bool binary:{false,true})
+  if(!wideGraphFailedProjection(in,out,binary))return 41;
  if(argc==1&&!wideSourceTest())return 36;
  if(argc==1&&!bufferReadTest(in))return 37;
  return 0;}

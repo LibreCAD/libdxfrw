@@ -298,6 +298,17 @@ public:
         m_wholeEnabled = enabled;
         return true;
     }
+    // Opt in to the bounded wide-DXF graph projection. Callbacks and ordinary
+    // source metadata then describe the alias-normalized snapshot; the exact
+    // original remains privately bound for guarded export. Existing adapters
+    // keep their historical callback and handle behavior unless they opt in.
+    // Whole-source and legacy identity observation retain original-stream
+    // semantics and therefore disable this projection for that import.
+    bool enableDxfWideGraphProjection(bool enabled=true) noexcept {
+        if (m_tableSourceReadData) return false;
+        m_dxfWideGraphProjectionEnabled=enabled;
+        return true;
+    }
     bool wantsWholeSource() const noexcept override;
     WholeSourceV2::Limits wholeSourceLimits() const noexcept override;
     void wholeSourceBegin(const void*) noexcept override;
@@ -3869,6 +3880,7 @@ private:
     static bool legacyCompoundLayerSources(const dx_data&,std::uint32_t,std::uint32_t,
         std::size_t,std::size_t,std::array<std::uint32_t,3>&) noexcept;
     bool m_wholeEnabled{false};WholeSourceV2::Limits m_wholeLimits{};
+    bool m_dxfWideGraphProjectionEnabled{false};
     void captureTableInput(const DRW_Table&,const DRW_RawDxfObject*,bool typed) noexcept;
     using TableBody=dx_data::TableDxfSourceCapture::TableBody;
     void finishTableBodies(dx_data&) noexcept;
@@ -4850,6 +4862,7 @@ private:
     bool finalizeLegacyPlot() const noexcept;
     bool prepareDxfLayerPlot(DRW::Version, bool) noexcept;
     bool hasUnchangedDxfAuditedDefaultPlot() const noexcept;
+    bool hasUnchangedDxfWideProjection(bool inspectOutput) const noexcept;
     bool hasUnchangedDxfLayerPlot() const noexcept;
     bool inspectDxfLayerPlotObjects(const dxfRW::DxfObjectsWriteView&) noexcept;
     bool hasUnchangedDxfLayerMaterials() const noexcept;

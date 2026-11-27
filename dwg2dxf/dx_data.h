@@ -1824,6 +1824,11 @@ public:
     bool hasUnchangedRawSectionRecords() const noexcept;
 
 private:
+    // Private, immutable source/alias proof for the opt-in wide DXF route.
+    struct DxfWideProjection;
+    friend class DxWideProjectionTestAccess;
+    std::shared_ptr<const DxfWideProjection> m_dxfWideProjection;
+    bool m_dxfWideProjectionRequired{false};
     bool hasBoundDxfSunStudyGraph() const noexcept;
     std::list<DRW_RawDxfObject> m_sunStudyRawBaselines;
     std::list<DRW_SunStudy> m_sunStudyTypedBaselines;
