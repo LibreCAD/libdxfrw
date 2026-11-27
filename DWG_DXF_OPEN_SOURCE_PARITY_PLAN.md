@@ -30,7 +30,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    carriers, identities, owners/reactors, layer and current-material references,
    handle uniqueness/remapping, and staged root and entity edges. Add missing
    entity/producer profiles and semantic delivery one at a time. Ordinary
-   same-version saves now admit bounded AC1021 [simple lines](docs/research/p8d-librecad-ordinary-sparse-material-2026-11-27.json)
+   same-version saves now admit bounded AC1021 [simple lines](docs/research/p8d-librecad-ordinary-sparse-material-2026-11-27.json),
    [simple circles and arcs](docs/research/p8d-librecad-sparse-material-curves-2026-11-27.json),
    and [planar points](docs/research/p8d-librecad-sparse-material-points-2026-11-27.json), including selected edits, additions and reopen/resave. The bounded profile admits
    [canonical indexed colors](docs/research/p8d-librecad-sparse-material-canonical-aci-2026-11-27.json)
@@ -46,11 +46,8 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    [LINE delivery guard](docs/research/p8d-librecad-sparse-material-line-delivery-2026-11-27.json),
    and [binary replay profile](docs/research/p8d-sparse-binary-material-to-ascii-2026-11-26.json). The bounded [unchanged default MATERIAL cross-encoding control](docs/research/p8d-default-material-cross-encoding-2026-11-27.json) retains group 73 as opaque; the [numeric boundary control](docs/research/p8d-default-material-transcode-numeric-boundaries-2026-11-27.json) covers exact binary64 transport. Extend escaped/non-ASCII text and other producer bodies only with separate proof.
    Verify native FreeCAD and LibreCAD paths separately.
-2. **IMAGE and plot-style graphs.** Extend beyond the admitted 32-image bound,
-   additional layouts/versions, unknown fields, layers, clipping and references
-   only after aggregate-memory, source-span, graph/output closure and independent
-   readback proof. Qualify external producers and native rendering. Keep the
-   33-image, legacy IMAGE graphs carrying MATERIAL, cross-version, orphan and
+2. **IMAGE and plot-style graphs.** The [bounded 64-image profile](docs/research/p8d-librecad-64-image-graphs-2026-11-27.json) covers selected same-version graphs with shared or distinct definitions, modern MATERIAL, and model/block spaces. Its two raster-source maps share a 4 MiB logical retained-storage budget; IMAGEDEF source frames allow 128 groups to accommodate shared reactors. Extend beyond 64 images, additional layouts/versions, unknown fields, layers, clipping and references only after memory, source-span, graph/output closure and independent readback proof. Qualify external producers and native rendering. Keep the
+   65-image, legacy IMAGE graphs carrying MATERIAL, cross-version, orphan and
    unsupported-profile refusals until their respective evidence is complete; reuse the [mixed block profile](docs/research/p8d-librecad-block-multi-image-2026-11-26.json)
    and [cross-version boundary controls](docs/research/p8d-librecad-image-boundaries-all-versions-2026-11-26.json).
 3. **Legacy HEADER and version boundaries.** Resolve native R12/R14 behavior

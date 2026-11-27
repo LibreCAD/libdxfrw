@@ -1,0 +1,266 @@
+{
+  "date": "2026-11-27",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "57e44de6376790723832fd331095243ef27152a1",
+  "scope": "Extend the existing strict same-version, selected default-appearance IMAGE graph from 32 to 64 images, with at most 64 retained IMAGE and IMAGEDEF source frames per kind.",
+  "implementation": [
+    "Use a shared 4 MiB logical budget for retained IMAGE and IMAGEDEF source snapshots, charging map/object and vector elements, string and variant payloads. The counter is incremented only after successful insertion and reset by metadata clear; per-record logical payload remains bounded at 64 KiB.",
+    "Permit up to 128 groups only in IMAGEDEF source frames, to cover the reactor list of heavily shared definitions; IMAGE frames remain limited to 64 groups. The common source admission helper and graph count use the same metadata limits.",
+    "Keep source, typed/live, identity/owner/reactor and staged-output checks in force. 65 images, unresolved graph profiles and legacy IMAGE graphs with MATERIAL remain refused."
+  ],
+  "validation": {
+    "platform": "macOS ARM64, Qt offscreen; loaded libdxfrw dylib SHA-256 a18e2367e0bc5727c7e8021ef7694230446c52972e0a7ae1856700c58bb1a099, whose src matches current libdxfrw head.",
+    "controls": "Red-before 33-image save refusal reproduced. Shared-budget test passes 139 assertions, including combined-map exhaustion, per-kind 64/65 boundaries, 128/129 IMAGEDEF and 64/65 IMAGE groups, and reset. Six-version image-boundary test passes 1,110 assertions including 33, 64 and 65 images, owner/late-mutation failures, destination preservation and corrected same-filter retries.",
+    "adjacent": "The earlier exact production candidate passed 12,453 assertions in 24 MATERIAL/IMAGE cases; the subsequent change added only the 65-image retry test. Current bundled-codec filter translation unit compiled.",
+    "independent": "ezdxf 1.4.5 compared 30 generated source/output pairs: 24 model-space graphs (33 or 64 images with 1, 4 or 64 definitions across six versions), two 64-image model/block graphs, and four 64-image graphs containing MATERIAL and 3D image vectors. Every image, definition, owner, reactor and reciprocal link was checked; source/output geometry and paths matched, with clean audits. The heavily shared IMAGEDEF contained 75 source groups."
+  },
+  "peerModel": [
+    {
+      "images": 33,
+      "definitions": 4,
+      "version": "default",
+      "sourceSha256": "83437e7bd4b31c1b50b62278de8ebc44d310acb07d7441369424caf6eea81b59",
+      "outputSha256": "01e19f64ced9a62378a96ac2931560b365568a583ce835ce992468447edc1905",
+      "audit": "clean"
+    },
+    {
+      "images": 33,
+      "definitions": 4,
+      "version": ".v2",
+      "sourceSha256": "4c39f587386d6d04bf3d813d852d118c3aed28e3e65ba3f90d6817378a5777d8",
+      "outputSha256": "a7bca4cdcc44b74b6677755496e9801385fc54c95ef71a08a6ffd427ce774b1c",
+      "audit": "clean"
+    },
+    {
+      "images": 33,
+      "definitions": 4,
+      "version": ".v4",
+      "sourceSha256": "b54a0214716ce72d76632976363c8b545744ba3d3f12ead3adf186fea53b83e6",
+      "outputSha256": "10708a8bbda7a5b139ff9b922991cc9e0bc73a0217814c0b643cd1c3f7a07913",
+      "audit": "clean"
+    },
+    {
+      "images": 33,
+      "definitions": 4,
+      "version": ".v5",
+      "sourceSha256": "25e7d208dba7a1a28c9e7e933000360ca8b6091e71d8fdffa2718c4d7dd93983",
+      "outputSha256": "c6b2fa937f1a2db715d8817610fb0203609c4da4a4147f946bcf05969a208621",
+      "audit": "clean"
+    },
+    {
+      "images": 33,
+      "definitions": 4,
+      "version": ".v19",
+      "sourceSha256": "c4d662868c28f5f67c77aa93b1d886392edd026965e8c1c478e9981eda94890d",
+      "outputSha256": "7f4a24920c4b0f28a41d140ea57cd45c11f9569f2062e19946c6729ec538c25b",
+      "audit": "clean"
+    },
+    {
+      "images": 33,
+      "definitions": 4,
+      "version": ".v20",
+      "sourceSha256": "d38737f9ae2810087c31e632197f2f96cbf1b479ba480d12a5a9442c48c5a403",
+      "outputSha256": "3100c4317d7756aafc07830048e374edd15ac7726dd8f89a6c927bdfd8fbccbe",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 1,
+      "version": "default",
+      "sourceSha256": "7d3712294d19b43497cda34bb79fab27178aa38f12e22ab43ad95924b1adc24b",
+      "outputSha256": "e3daa65dd7edaed81a5dffb2378bf171698195c002258b36804f0991b3fc9b39",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 1,
+      "version": ".v2",
+      "sourceSha256": "722b5fa626527ef16152fd6783e8d64d4e1f205b5e3d58b922b2b43ec4b32eba",
+      "outputSha256": "f532f3e8c0e13f66a47a3b04c559981da88f1c56afc6da2914fe6a55eb5b176c",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 1,
+      "version": ".v4",
+      "sourceSha256": "a7976f9cb39a565cbe3b6dbb5a6777eddcf94558e571753442305b67e9d3362f",
+      "outputSha256": "1ab7da1bd8deb1e68438426f68b32b5690b4738c14f97d42d0193c36127e02c2",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 1,
+      "version": ".v5",
+      "sourceSha256": "9f83b869761fddb28f93b07f4f2b15f5e6082ea61bd185a39f699c6b7391edc1",
+      "outputSha256": "1550f1591ad993f2c06ca79dfc0d6d9fcb7355eb54190eab37dc88887e1a7e4b",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 1,
+      "version": ".v19",
+      "sourceSha256": "7e250a36d398f9173e166a6054d13163781299254bb562e559ca846d781c7095",
+      "outputSha256": "64a3fa6ad6a49815aab8c253fc64e695039d2a1822039ba2eb98362fa5e2660d",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 1,
+      "version": ".v20",
+      "sourceSha256": "8c8f3262d16a5b7e811473e68bb1ae1072729a831fa3a4037b34e6101e25aa9c",
+      "outputSha256": "ca0c6e653292079024086a2fdb04e84f4db099384db48370b360b81dd6fec513",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 4,
+      "version": "default",
+      "sourceSha256": "e25874293ccf65339ca203a5a380bdfca299ec31d03c997cde2f1afcca76455e",
+      "outputSha256": "22231bcb1f7610cbb88101f6f951876037fd1d9a6140f2a6a9b86bb39f2c0223",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 4,
+      "version": ".v2",
+      "sourceSha256": "8a1d60d6308344bc527b478c1305b7607d05e10181795ed7b5ae52c05595ac52",
+      "outputSha256": "2aa182f4da4ad075673d7d3ef5bccc3937b8caff36b04088b9fa7d0f5d523ec5",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 4,
+      "version": ".v4",
+      "sourceSha256": "d53c26c9bec22b05184ec0162e1f5d6227bf72496e717d42b6e610068507af6e",
+      "outputSha256": "9fae445d70c86e6d21e83a66d3070181a09f4ec100a5138a521dc12488b9421a",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 4,
+      "version": ".v5",
+      "sourceSha256": "2cce619eff3e4ef1c9a79ebf8286e9af5220284616ef6db223f4d9b80ef28a9c",
+      "outputSha256": "f0c5800c8685394bef43aa38ac75965db8ce5d81c6d6c19b6107d9c414d841de",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 4,
+      "version": ".v19",
+      "sourceSha256": "db8bb393db5f1503bae3aa99c246022f19014e985fe3f1795af8234f37380a76",
+      "outputSha256": "f6b371817e1209c9b0eae1f4169948c4e1d77771508bfc5792eddf31bfdb73b4",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 4,
+      "version": ".v20",
+      "sourceSha256": "260a9bc615af9745b1b075362dd7d17d6148f3b3b5370879ec4a1d984aba1c65",
+      "outputSha256": "e5ce4e2d02ae6f01845721dabc0766e3af04a93e69383945f4fbab55e151da7f",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 64,
+      "version": "default",
+      "sourceSha256": "b819343ef77e9784e45f18161511abd2ea6c7e6c532a2f123f11c0a69d380bdc",
+      "outputSha256": "5067fb90291115bff1297b31d09d8d63d4c3f570260d12edf94bbc2999fcc63b",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 64,
+      "version": ".v2",
+      "sourceSha256": "dcab5f98e4fb6f11f7f06c5aca200c3fd372550c5131b574ccfef7f6fc441aad",
+      "outputSha256": "658eae758968c78046329e5936201d0168ca312c96d904eed65a3033e934c27d",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 64,
+      "version": ".v4",
+      "sourceSha256": "dc27a958b71570f1330127bcc7e0123b94de29be37b00b4188990a722b8295e5",
+      "outputSha256": "060394c6e4a92a2e1cc901e4bd4677885c1e812a68e89d2d5ee8328111307ffd",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 64,
+      "version": ".v5",
+      "sourceSha256": "6df8a7c271aaa1a972615b7c8f50d13ee3cc5c7db2c87eb12c43867e048cd1fd",
+      "outputSha256": "4357066e9ad652041d74a6d1a0568a1c74efdfbb5840b4837d95bc8a836e079c",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 64,
+      "version": ".v19",
+      "sourceSha256": "7667b2921f6f4e85fcd24117cab88be062a7dde14c91aefe02591a1c0ec81754",
+      "outputSha256": "ed0e0855b906b71936e5879146a295d6852a528a3612d6aeb2037eef348cbe3b",
+      "audit": "clean"
+    },
+    {
+      "images": 64,
+      "definitions": 64,
+      "version": ".v20",
+      "sourceSha256": "fab61cf297165cfa1dbdd8dc50494522a25ad28768721eca49f52248999f0130",
+      "outputSha256": "b842a24fd596c150664872b089ccda02d0d3c64fa84abe7f3b05ab0a19beaf62",
+      "audit": "clean"
+    }
+  ],
+  "peerBlock": [
+    {
+      "version": "default",
+      "sourceSha256": "40723cf5d4f56bc3585b1f3656feeaddd2fdc150b968f96e0eeaa534f93cca3d",
+      "outputSha256": "d3834c99d7ae17384dfddb310961cc8e7b05e8c63a9037a4eb6b4707d01f5b62",
+      "images": 64,
+      "blockImages": 32,
+      "definitions": 2,
+      "audit": "clean"
+    },
+    {
+      "version": ".v2",
+      "sourceSha256": "94625ea4782732692ecf1f6d6460ffdac9d528b561f94175b52c2099159bb4e5",
+      "outputSha256": "93152524056518f72ab86da6ead14ce747a8e0911c36dda84eb22c5126f3c88f",
+      "images": 64,
+      "blockImages": 32,
+      "definitions": 2,
+      "audit": "clean"
+    }
+  ],
+  "peerMaterial": [
+    {
+      "version": "default",
+      "sourceSha256": "d27e78f50f5796fb99862bff73085497543f3662231f4f21c8887a8e4b11fd93",
+      "outputSha256": "99bf05ff3f92d7c68c10e19cfd0e44ef8c9d4ac67b481d0a08312d2fd4706c9e",
+      "largestDefinitionSourceGroups": 75,
+      "audit": "clean"
+    },
+    {
+      "version": ".v19",
+      "sourceSha256": "96065ae4a2aa0d87a86bc5fe3c224f35bf96c582e44cee2203a70c878c877b53",
+      "outputSha256": "f0190c9a47dc6732c80e07f3ebb01c895605dea0928829caad95c1dfd91d6154",
+      "largestDefinitionSourceGroups": 75,
+      "audit": "clean"
+    },
+    {
+      "version": ".v20",
+      "sourceSha256": "0bf1d0a5b3353c8996e0d0229ea250f48bd29f983e2213fca50096c2e8fb2ecc",
+      "outputSha256": "b4930b2bcccb1ca4cbc74ab6244b64f2c1654c7dc2bbeda23dc2eadcf7856581",
+      "largestDefinitionSourceGroups": 75,
+      "audit": "clean"
+    },
+    {
+      "version": ".v2",
+      "sourceSha256": "b4738aeef1268ad6f4bd300d1c3641b586cf4c970aa2b7e9148acdc2cc114607",
+      "outputSha256": "d0f149a44dec748f2b9e3b031f145ce39136c30cdfd197a904437b82d19b3d72",
+      "largestDefinitionSourceGroups": 75,
+      "audit": "clean"
+    }
+  ],
+  "limits": [
+    "The 4 MiB counter bounds logical storage of the two retained raster-source maps, not whole-process RSS, allocator capacity, raw-object storage or other document metadata.",
+    "Generated selected graph profiles only; other images, producers, native rendering, current-head hosted platforms and wider counts remain open.",
+    "No drawing fixture was committed; no package gate or broad support claim was promoted."
+  ]
+}
