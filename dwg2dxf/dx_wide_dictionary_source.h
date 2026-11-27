@@ -127,12 +127,14 @@ inline bool recordReference(const Object& object,std::size_t body,Field& referen
 }
 }
 inline bool capture(std::istream& input,std::string_view dictionaryKey,
-        std::string_view recordKey,Graph& output) noexcept {
+        std::string_view recordKey,Graph& output,
+        const std::vector<std::pair<std::string,std::string>>* selectedKeys=nullptr) noexcept {
     using namespace detail;
     output=Graph{};
     try {
         constexpr std::size_t maxBytes=8u*1024u*1024u,maxFields=200000u,maxObjects=10000u;
-        if(dictionaryKey.empty()!=recordKey.empty()||dictionaryKey.size()>255u||recordKey.size()>255u)return false;
+        if(dictionaryKey.empty()!=recordKey.empty()||dictionaryKey.size()>255u||recordKey.size()>255u
+            ||(selectedKeys&&(!dictionaryKey.empty()||selectedKeys->empty()||selectedKeys->size()>8u)))return false;
         char prefix[22]{};input.read(prefix,sizeof(prefix));
         if(input.gcount()!=sizeof(prefix))return false;
         const bool binary=std::string_view(prefix,sizeof(prefix))==std::string_view("AutoCAD Binary DXF\r\n\x1a\0",22);
@@ -215,7 +217,12 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
             return ambiguous.count(handle)||found==objectIndex.end()?nullptr:found->second;
         };
         std::vector<std::pair<std::string,std::string>> selections;
-        if(dictionaryKey.empty()) {
+        if(selectedKeys) {
+            for(const auto& keys:*selectedKeys) {
+                if(keys.first.empty()||keys.second.empty()||keys.first.size()>255u||keys.second.size()>255u)return false;
+                selections.push_back(keys);
+            }
+        } else if(dictionaryKey.empty()) {
             for(const auto& rootEntry:rootEntries) {
                 const auto* possibleDictionary=findObject(rootEntry.value);
                 if(!possibleDictionary||possibleDictionary==&root)continue;
@@ -265,15 +272,20 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
         }
         // Each selected identity must correspond to exactly one physical object,
         // including collisions with records outside the OBJECTS section.
+        struct IdentityCount {std::size_t index,global{0u},local{0u};};
+        std::unordered_map<std::uint64_t,IdentityCount> identityCounts;
         for(const auto& selected:selectedObjects) {
             const auto index=physical(*selected.first);if(index==DRW_DxfIdentitySource::NoIndex)return false;
-            std::size_t global=0u,local=0u;
-            for(const auto& c:census.candidates){std::uint64_t value=0u;
-                if(c.scope!=DRW_DxfIdentitySource::Scope::Outer||!hex(c.lexeme,value)||value!=selected.second)continue;
-                ++global;if(c.record==index&&c.code==5)++local;
-            }
-            if(global!=1u||local!=1u)return false;
+            if(!identityCounts.emplace(selected.second,IdentityCount{index}).second)return false;
         }
+        for(const auto& c:census.candidates) {
+            std::uint64_t value=0u;
+            if(c.scope!=DRW_DxfIdentitySource::Scope::Outer||!hex(c.lexeme,value))continue;
+            const auto found=identityCounts.find(value);if(found==identityCounts.end())continue;
+            ++found->second.global;if(c.record==found->second.index&&c.code==5)++found->second.local;
+        }
+        for(const auto& count:identityCounts)
+            if(count.second.global!=1u||count.second.local!=1u)return false;
         const auto& first=candidate.chains.front();
         candidate.dictionaryKey=first.dictionaryKey;candidate.recordKey=first.recordKey;
         candidate.rootEntry=first.rootEntry;candidate.dictionarySelf=first.dictionarySelf;
@@ -395,14 +407,18 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
             if(edit.end>prior||edit.begin>edit.end)return false;
             candidate.bytes.replace(edit.begin,edit.end-edit.begin,edit.text);prior=edit.begin;
         }
+        std::vector<std::pair<std::string,std::string>> keys;
+        for(const auto& chain:source.chains)keys.emplace_back(chain.dictionaryKey,chain.recordKey);
+        Graph check;std::istringstream transformed(candidate.bytes,std::ios::binary);
+        if(!capture(transformed,"","",check,&keys)||check.root!=candidate.root
+            ||check.chains.size()!=candidate.chains.size())return false;
+        std::uint64_t seed=0u;if(!hex(check.handSeed.text,seed)||seed!=candidate.handSeed)return false;
         for(std::size_t i=0;i<source.chains.size();++i) {
-            const auto& chain=source.chains[i];const auto& alias=candidate.chains[i];
-            Graph check;std::istringstream transformed(candidate.bytes,std::ios::binary);
-            if(!capture(transformed,chain.dictionaryKey,chain.recordKey,check)
-                ||check.root!=candidate.root||check.dictionary!=alias.dictionary||check.record!=alias.record
-                ||check.rootEntry.code!=chain.rootEntry.code||check.dictionaryEntry.code!=chain.dictionaryEntry.code
-                ||check.recordReference.code!=chain.recordReference.code)return false;
-            std::uint64_t seed=0u;if(!hex(check.handSeed.text,seed)||seed!=candidate.handSeed)return false;
+            const auto& chain=source.chains[i];const auto& actual=check.chains[i];const auto& alias=candidate.chains[i];
+            if(actual.dictionaryKey!=chain.dictionaryKey||actual.recordKey!=chain.recordKey
+                ||actual.dictionary!=alias.dictionary||actual.record!=alias.record
+                ||actual.rootEntry.code!=chain.rootEntry.code||actual.dictionaryEntry.code!=chain.dictionaryEntry.code
+                ||actual.recordReference.code!=chain.recordReference.code)return false;
         }
         output=std::move(candidate);return true;
     }catch(...){output=Normalized{};return false;}

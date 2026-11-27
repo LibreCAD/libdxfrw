@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-27",
+  "scope": "Bounded selected AC1027 wide-handle dictionary/XRECORD chains; optimize projected-source revalidation without broadening the admitted profile.",
+  "implementationDigestSha256": "2d7c2809d360eed737895c88114d2edda611783a0a7497aa2964cb01c4ea2ce9",
+  "converterSha256": "1cadeb81c80ad21c99a06d88a48600dc50dc748601ef6c9ea3d0421475143535",
+  "change": "Capture all explicitly selected projected chains in one scan and count selected identity collisions over the census in one pass; retain uniqueness, field roles, bounds, source snapshot and live/output closure checks.",
+  "benchmark": {
+    "input": "Locally generated eight-chain ASCII DXF padded with 60000 DXF comment groups, 3664425 bytes. Benchmark invokes normalization directly, five times per sample; comment-heavy file is a performance control, not a whole-file semantics witness.",
+    "sha256": "a85a17f3d06cefa5f40c244c59dba02ebaa554f5074b62d1a91c3138ae441e5d",
+    "host": "local macOS ARM64, clang++ -O2 benchmark harness, same linked library",
+    "beforeFivePassesMs": [
+      748,
+      742,
+      746,
+      747
+    ],
+    "afterFivePassesMs": [
+      185,
+      182,
+      183,
+      188
+    ],
+    "limit": "A local synthetic comparison, not a general performance guarantee. Both returned the same normalized byte length; the separate actual converter graph controls below verify output equality."
+  },
+  "validation": [
+    "Focused whole-source, compact-material graph and AC1024 plot-style CTests pass",
+    "Generated eight-chain ASCII and binary converter outputs and hashes unchanged from previous receipt; independent ezdxf graph/owner/reference readback passes",
+    "Generated nine-chain input refuses with destination preserved in both encodings",
+    "Second-chain wrong owner, wrong reference, unknown reference, cross-version and cross-encoding controls refuse with destination preserved",
+    "GCC 16 -Wall -Wextra -pedantic -Werror syntax checks pass"
+  ],
+  "limits": [
+    "Selected source graph shape and eight-chain bound unchanged",
+    "Direct semantic API remains 32-bit; original-source observer opt-ins and native producer/platform qualification remain separate",
+    "No broad support claim is promoted",
+    "No external drawing fixtures were committed"
+  ]
+}
