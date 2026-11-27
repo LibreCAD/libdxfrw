@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-256-mixed-space-images-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "5c31febcdc41a1774931181f7117b0e3f08e8dfd",
+  "change": "Extend the existing mixed model/block IMAGE graph control from 64 to 256 images with two definitions, using the prior bounded-source implementation.",
+  "validation": [
+    "The focused test passed 60 assertions for 64 and 256 images, half in model space and half in one named block, with two shared definitions in AC1021 and AC1032. It verifies counts, readback, late block-image mutation refusal, destination preservation and corrected same-filter retry.",
+    "ezdxf 1.4.5 independently compared four generated source/output pairs, asserting image block-record owners, definition owners, unique reactor owners and reciprocal definition/reactor links, selected geometry and paths; all audits were clean.",
+    "The focused test ran in 1.65 seconds with observed maximum RSS of 52,019,200 bytes on macOS ARM64; this measurement is not a memory limit."
+  ],
+  "logsSha256": {
+    "test": "55f08b00c403335fe0a3a20317bb9990c11eccd30eda34944e311fd74d44aca8",
+    "peer": "0fce25051017106e2a95a53727e95cc94a5ce1e59ee70b051f7e4cb043fa3642"
+  },
+  "peer": [
+    {
+      "version": "default",
+      "sourceSha256": "40723cf5d4f56bc3585b1f3656feeaddd2fdc150b968f96e0eeaa534f93cca3d",
+      "outputSha256": "d3834c99d7ae17384dfddb310961cc8e7b05e8c63a9037a4eb6b4707d01f5b62",
+      "images": 64,
+      "blockImages": 32,
+      "definitions": 2,
+      "audit": "clean"
+    },
+    {
+      "version": ".v2",
+      "sourceSha256": "94625ea4782732692ecf1f6d6460ffdac9d528b561f94175b52c2099159bb4e5",
+      "outputSha256": "93152524056518f72ab86da6ead14ce747a8e0911c36dda84eb22c5126f3c88f",
+      "images": 64,
+      "blockImages": 32,
+      "definitions": 2,
+      "audit": "clean"
+    },
+    {
+      "version": "default",
+      "sourceSha256": "20a6b9d74ea52cfc22eb0395c3500f274c362c4a4c70c982be3be094abe2f003",
+      "outputSha256": "d73bb84a8776c75e042c147e8ea393d00e3549b8a4e3cf050b44a5db0c72952b",
+      "images": 256,
+      "blockImages": 128,
+      "definitions": 2,
+      "audit": "clean"
+    },
+    {
+      "version": ".v2",
+      "sourceSha256": "954aa56b9347a13b65431be8b5154011aca662a7b6c2ddf4260c530133b593b8",
+      "outputSha256": "4e7b25469cba916d8efec2af02f96f4f173e2efc7535970da1df06fe566194e6",
+      "images": 256,
+      "blockImages": 128,
+      "definitions": 2,
+      "audit": "clean"
+    }
+  ],
+  "limitations": [
+    "This control uses one named block, two shared definitions and two DXF versions; it does not qualify arbitrary layouts, producer files, materials, other versions or cross-version output.",
+    "The existing 256-image, 256 KiB source-file and 4 MiB logical retained-source gates and other source/graph guards remain applicable. No fixture is committed."
+  ]
+}
