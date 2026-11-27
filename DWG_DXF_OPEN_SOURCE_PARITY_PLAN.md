@@ -31,8 +31,8 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    handle uniqueness/remapping, and staged root and entity edges. Add missing
    entity/producer profiles and semantic delivery one at a time. Ordinary
    same-version saves now admit bounded AC1021 [simple lines](docs/research/p8d-librecad-ordinary-sparse-material-2026-11-27.json)
-   and [simple circles and arcs](docs/research/p8d-librecad-sparse-material-curves-2026-11-27.json),
-   including selected edits and reopen/resave. The bounded profile admits
+   [simple circles and arcs](docs/research/p8d-librecad-sparse-material-curves-2026-11-27.json),
+   and [planar points](docs/research/p8d-librecad-sparse-material-points-2026-11-27.json), including selected edits, additions and reopen/resave. The bounded profile admits
    [canonical indexed colors](docs/research/p8d-librecad-sparse-material-canonical-aci-2026-11-27.json)
    when the emitted index matches the source; contextual index 7, palette
    aliases, true color and other profiles remain guarded.
