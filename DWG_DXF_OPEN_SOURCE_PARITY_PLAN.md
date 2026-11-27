@@ -61,7 +61,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    qualify escaped/non-ASCII text and other graph types separately. Targets are
    restricted to the verified root, selected dictionaries and selected XRECORDs;
    see the [root-reference control](docs/research/p7-wide-dxf-xrecord-root-target-2026-11-27.json).
-   The public semantic API remains 32-bit; bind original-stream observation
+   The LibreCAD [typed-object stand-in guard](docs/research/p8d-librecad-version-gates-5e05-2026-11-27.json) covers selected raw handle collisions; fixed objects, typed entities, other graph roles and live-identity ambiguity remain open. The public semantic API remains 32-bit; bind original-stream observation
    before combining it with projection. LibreDWG 0.14 drops XRECORD body groups
    330/331; the [ODA-qualified profile](docs/research/p7-wide-dxf-xrecord-330-331-oda-witness-2026-11-27.json)
    does not qualify that peer. Keep unsupported graphs atomic and retryable.

@@ -47,5 +47,12 @@
     "change": "Deduplicate an ineligible typed omission against a skipped raw carrier only when both handle and case-insensitive object type match.",
     "validation": "The version selector passed 158 assertions across nine bundled cases and 159 assertions across ten standalone cases, including same-type, case-variant and different-type collisions and existing version, output, destination and retry checks.",
     "limits": "This controls version-ineligible typed omission reporting. It does not qualify all collisions or the distinct same-handle typed stand-in and reference-planning paths."
+  },
+  "typedStandInFollowup": {
+    "consumerCommit": "9d51b824",
+    "finding": "In the eligible typed-object planning path, any skipped raw record with the same handle was treated as replaced, even when its type differed or multiple omitted carriers shared the handle. Red-before controls reproduced a hidden raw omission and retained an ambiguous LINE reactor.",
+    "change": "For this typed-object path, count skipped object and entity handles and require exactly one skipped carrier with the same case-insensitive object type before treating it as replaced. Different or ambiguous carriers remain reported and in the dropped-reference set.",
+    "validation": "The focused version selector passed 189 standalone assertions in eleven cases and 188 bundled assertions in ten cases. Controls cover matching and case-variant types, different types, duplicate raw objects, object/entity collisions, report counts, typed output and selected LINE reactor behavior; existing version and retry controls also pass.",
+    "limits": "This qualifies the selected typed-object stand-in path and LINE reactor. Fixed typed objects, typed entities, all graph roles, live identity collisions and semantic equivalence of same-type records remain separate work."
   }
 }
