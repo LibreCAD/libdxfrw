@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-last-image-binary-boundary-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "f9ca7a5de5aef9020021c6aea6227f86d26a1932",
+  "finding": "The selected ASCII source converted to binary after last-image deletion drops raw source records under the existing cross-encoding gate. The binary output still contains an orphan synthetic paper-space block.",
+  "validation": [
+    "Two focused tests pass, including an explicit unmodeled-record loss, binary reopen with no model entities, and restoring the image for a corrected ASCII retry.",
+    "ezdxf 1.4.5 reads the generated R2000 binary output with no model-space entities, IMAGEDEFs or IMAGEDEF_REACTORs; its audit reports zero errors and one repair removing orphan *Paper_Space0."
+  ],
+  "testLogSha256": "b17d3fd472f76558d0847642194b67d5f326f5a475b8289cdab3cd7e15f649c9",
+  "outputSha256": "9797ec8bb787da07720d9057d3c664cc6aa634fb792e3247dbd62f8f72a94355",
+  "nextStep": "Before relaxing the binary omission guard, prove that the particular emitted typed/header graph has no references to the omitted block, retain source paper and unsafe-content refusals, and check binary peer audit, raw-record losses, failure and retry. Do not infer graph closure from an empty model space.",
+  "limits": [
+    "The test uses one locally authored source and does not establish binary raw-graph replay or native producer/consumer behavior. No generated drawing was committed."
+  ]
+}
