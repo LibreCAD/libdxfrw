@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-filtered-dictionary-ancestor-ownership-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "a748f664b2107a356e294de15d71e4cf012f1845",
+  "problem": "A root could reach a filtered dictionary through an ancestor whose owner did not match the ownership edge or root.",
+  "implementation": "Propagate the filtered-dictionary marker through reverse graph edges, check each affected child owner, and validate the owner and source root at the root entry. Existing missing-target propagation handles shared paths and cycles.",
+  "validation": [
+    "The wrong nested-child owner control failed before the fix; 85 focused IMAGE and persistence tests pass afterward, including wrong child and wrong root-ancestor owners.",
+    "Independent ezdxf 1.4.5 reads the selected valid root-to-dictionary-to-XRECORD chain with matching owners; its audit reports zero errors and one unrelated orphan paper-space block repair.",
+    "Both wrong-owner controls remain detached. The deliberately invalid child-owner input still produces raw objects that the peer repairs, so detached does not mean whole-file graph validity."
+  ],
+  "redLogSha256": "c3464ec22e7035940960520fa0ef6c9803a5ae83e4b6b965c46e8955da761259",
+  "testLogSha256": "9f696399bcb5b3cc7eb2f9dede430233d65357056962232c12a78a75e906e422",
+  "peerResultSha256": "14ac593320b1b12f6681c7cebe610d77d2e9155cbe4d6bb8bebcbddc951081e5",
+  "limits": [
+    "Only ancestors of filtered dictionaries gain these checks. Other source graphs, source identity preservation, orphan raw objects and the synthetic paper-space block remain open. No generated drawing is committed."
+  ]
+}
