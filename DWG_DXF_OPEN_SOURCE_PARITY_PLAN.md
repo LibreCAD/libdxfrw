@@ -158,6 +158,8 @@ evidence are recorded in `docs/research/` and Git history.
   verifies the remapped target in staged output and independent readback.
   The [selected XRECORD target extension](docs/research/p7-wide-dxf-xrecord-target-2026-11-27.json)
   adds the same closure checks when that target is another selected XRECORD.
+  The [hard-pointer group range](docs/research/p7-wide-dxf-xrecord-hard-pointer-groups-2026-11-27.json)
+  reuses that closure for one group in 340–349 and preserves its exact code.
   Extend to other graph shapes, 64-bit roles and producers, and bind original-stream
   observation before relaxing those limits. Qualify native consumers independently.
   The [reactor-link follow-up](docs/research/p8-ac1027-plot-graph-reactor-closure-2026-11-26.json)
@@ -286,7 +288,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 0f1ebe93b2ef997efa20001aa2546eced88f7dbfbe4eeb0055ffe5f66ea7c758
+  digest: 8262bdf047afd0d3d0a5e988f5dcc4a9a223d98b18fcdb61a53cde110cd34108
   (782 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,

@@ -97639,7 +97639,7 @@ bool dx_iface::hasUnchangedDxfWideProjection(bool inspectOutput) const noexcept 
             }
             if(!record || record->parentHandle!=alias.dictionary)return false;
             unsigned references=0u;
-            for(const auto& item:record->m_dataEntries)if(item.code()==340) {
+            for(const auto& item:record->m_dataEntries)if(item.code()==source.recordReference.code) {
                 std::uint64_t value=0u;
                 if(++references!=1u || !dx_standard_output::handleValue(item,value)
                     ||value!=alias.reference)return false;

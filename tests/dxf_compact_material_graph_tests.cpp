@@ -39,7 +39,7 @@ static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.
 
 // Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u, bool sharedRecord=false, unsigned crossReference=0u) {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u, bool sharedRecord=false, unsigned crossReference=0u, int sharedReferenceCode=340) {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -108,7 +108,7 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||(extraWideReference&&!s(341,extraWideReference))))return false;
  if(sharedRecord&&(!s(0,"XRECORD")||!s(5,"100000013")||!s(330,graphHandle)
     ||!s(100,"AcDbXrecord")||!h(280,1)||!s(1,"shared payload")
-    ||!s(340,crossReference==2u?"100000021":crossReference?"100000020":graphHandle)))return false;
+    ||!s(sharedReferenceCode,crossReference==2u?"100000021":crossReference?"100000020":graphHandle)))return false;
  for(unsigned n=0;n<extraWide;++n) {
   const auto name="RECORD_"+std::to_string(n+2u), handle=hex(UINT64_C(0x100000020)+n*16u), record=hex(UINT64_C(0x100000021)+n*16u);
   if(!s(0,"DICTIONARY")||!s(5,handle.c_str())||!s(330,"C")||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)||!s(3,name.c_str())||!s(350,record.c_str())
@@ -342,8 +342,8 @@ static bool wideGraphTwoChains(const std::filesystem::path& in,const std::filesy
  return true;
 }
 
-static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision,unsigned crossReference) {
- if(!defaultSource(in,binary,collision,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,crossReference))return false;
+static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision,unsigned crossReference,int sharedReferenceCode=340) {
+ if(!defaultSource(in,binary,collision,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,crossReference,sharedReferenceCode))return false;
  dx_data data;Exporter io;
  if(!io.enableDxfWideGraphProjection()||!io.fileImport(in.string(),&data,false)||data.xRecords.size()!=3u)return false;
  const auto write=[&](){return io.fileExport(out.string(),DRW::AC1027,binary,&data,false,true);};
@@ -371,7 +371,8 @@ static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std:
    const DRW_XRecord* record=nullptr;
    for(const auto& item:decoded.xRecords)if(item.handle==id){if(record)return false;record=&item;}
    if(!record||record->parentHandle!=dictionary)return false;
-   unsigned refs=0u;for(const auto& item:record->m_dataEntries)if(item.code()==340) {
+   const auto code=std::string(name)=="SHARED_RECORD"?sharedReferenceCode:340;
+   unsigned refs=0u;for(const auto& item:record->m_dataEntries)if(item.code()==code) {
     const auto expected=std::string(name)=="SHARED_RECORD"&&crossReference
         ?(crossReference==2u?otherRecord:otherDictionary):dictionary;
     if(item.type()!=DRW_Variant::INTEGER64||item.i64_val()!=static_cast<std::int64_t>(expected))return false;
@@ -386,6 +387,14 @@ static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std:
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";record.parentHandle=0x71u;
  const bool refused=!write();record=saved;
  if(!refused||bytes(out)!="sentinel"||!write()||!verify())return false;
+ auto pointer=std::find_if(record.m_dataEntries.begin(),record.m_dataEntries.end(),
+     [&](const auto& value){return value.code()==sharedReferenceCode;});
+ if(pointer==record.m_dataEntries.end()||pointer->type()!=DRW_Variant::INTEGER64)return false;
+ const auto target=pointer->i64_val();
+ std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+ *pointer=DRW_Variant(sharedReferenceCode==340?341:340,target);
+ const bool roleRefused=!write();record=saved;
+ if(!roleRefused||bytes(out)!="sentinel"||!write()||!verify())return false;
  io.late=[&](){record.m_dataEntries[0]=DRW_Variant(1,std::string("changed"));};
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
  const bool lateRefused=!write();io.late={};record=saved;
@@ -741,7 +750,9 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
   if(!wideGraphTwoChains(in,out,binary,collision))return 39;
   if(!wideGraphSharedDictionary(in,out,binary,collision,false)
      ||!wideGraphSharedDictionary(in,out,binary,collision,1u)
-     ||!wideGraphSharedDictionary(in,out,binary,collision,2u))return 41;
+     ||!wideGraphSharedDictionary(in,out,binary,collision,2u)
+     ||!wideGraphSharedDictionary(in,out,binary,collision,2u,341)
+     ||!wideGraphSharedDictionary(in,out,binary,collision,1u,349))return 41;
  }
  if(argc==1)for(bool binary:{false,true}) {
   if(!wideGraphChainBoundary(in,out,binary))return 40;
