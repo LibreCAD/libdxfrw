@@ -31,6 +31,9 @@ evidence are recorded in `docs/research/` and Git history.
   refuses selected deleted, redirected or replaced material references before
   export and on late checks, with block-owner and retry controls. Complete
   physical entity-source coverage and zero-versus-absent group 347 remain open.
+  A [duplicate-source control](docs/research/p8d-librecad-sparse-material-duplicate-entity-2026-11-26.json)
+  verifies refusal, preserved destination and retry for one material/nonmaterial
+  LINE collision; qualify other duplicate layouts separately.
   The normal exporter remains guarded. The [ordinary import slice](docs/research/p8d-ordinary-sparse-material-import-2026-11-26.json)
   retains bounded ASCII/binary raw-only materials for viewing, warns about editing
   and save limits, and preserves the destination when ordinary save is refused.

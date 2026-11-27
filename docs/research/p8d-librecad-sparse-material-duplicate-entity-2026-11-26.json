@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumer_commit": "4c4523bd",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "control": "Add a new model-space LINE without a material reference and give it the imported material-bearing LINE source handle.",
+  "result": "In each of four locally authored AC1021 input variants, the filter reports the shared source handle; emission then fails during ENTITIES callbacks before OBJECTS, the existing output sentinel is preserved, and the same filter succeeds after marking the duplicate deleted. The focused replay test passes 454 assertions.",
+  "limits": [
+    "This is one deliberate in-memory collision, not proof of all duplicate-handle layouts or a preflight-only failure.",
+    "The ordinary save guard, physical group 347 source coverage, native qualification and support claims are unchanged."
+  ],
+  "supportClaimEffect": "none"
+}
