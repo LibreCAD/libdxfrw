@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-fresh-generated-oda-screen-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.44 specifies R13 DICTIONARY entries as text and soft-owner handles; cloning and hard-owner fields are R2000+.",
+  "sourceReceipt": "docs/research/p6-ac1012-user-generated-pair-2026-11-27.json",
+  "producer": "GNU LibreDWG 0.14 from locally authored recipes",
+  "peer": "ODA File Converter 27.10 linux/amd64 container, Xvfb on macOS ARM64",
+  "inputs": {
+    "destination": {
+      "sha256": "d0e230dd4f3982e9f7286755244638d858febbc4d0c93e4b9cb2b5380f61660b",
+      "errorSha256": "31bbcf3f638551a338672e6bf24342ba8e070047d9614532dc196997aef92d89"
+    },
+    "source": {
+      "sha256": "9a3d0e41eb5d8a3f8c41721a5b28d9ff090bf7fa3084e6ca627ae112978e3e4e",
+      "errorSha256": "fd4a3aefcc5b33ec80226ded3aa188b692c412213ff932b046bfb535f2c559d7"
+    }
+  },
+  "observation": "Both conversions yielded per-file errors and no DXFs: AcDbDimStyleTableRecord cannot be cast to AcDbEntity. Process exit status alone was zero and is not acceptance.",
+  "preferredPair": "docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json",
+  "handoff": "/private/tmp/ac1012-user-request-handoff-20261127",
+  "handoffManifestSha256": "49f1cacb462edeb29ededc93cff835048adf1f2fc02a3fab6faa5eafb17030de",
+  "checks": [
+    "Reverified hashes and physical dictionary/handle-role graph of the separate ODA-generated pair with the bounded audit.",
+    "Created fresh scratch handoff using the hash-checking packager; no drawing fixtures committed."
+  ],
+  "limits": [
+    "The rejected LibreDWG-generated pair does not establish native semantics or general LibreDWG validity.",
+    "The ODA-generated pair was reopened by ODA and read by LibreDWG, but still requires AutoCAD normal-open and discriminating duplicate merge operations."
+  ]
+}

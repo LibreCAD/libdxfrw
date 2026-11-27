@@ -101,8 +101,10 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
 7. **AC1012 and legacy source semantics.** Reuse the specification-directed pair
    and shared version-aware frame, dictionary and handle-role checks; they do
    not establish native clone semantics. The [fresh requested pair](docs/research/p6-ac1012-user-generated-pair-2026-11-27.json)
-   passes current frame, refusal and partial-output controls, but does not
-   replace a native witness. Qualify EED, the root empty-name/null
+   passes current frame, refusal and partial-output controls, but the
+   [independent ODA screen](docs/research/p6-ac1012-fresh-generated-oda-screen-2026-11-27.json)
+   rejected both LibreDWG-generated files. Use the separate ODA-generated pair
+   for the native witness. Qualify EED, the root empty-name/null
    entry, extension/XRECORD graph and ModelDocViewStyle bridge before guarded
    output. The [cadkit native readback](docs/research/p6-ac1012-cadkit-root-dictionary-peer-2026-11-27.json) independently confirms the observed empty/null entry and EED but does not establish native validity. Use the [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)
    and P6-F; a [hash-checked populated-pair handoff](docs/research/p6-ac1012-populated-handoff-2026-11-27.json) is prepared for native testing. Do not regenerate unchanged pairs without a discriminating question.
@@ -303,7 +305,7 @@ Additional P8 dependencies:
   nondefault fields, EED/reactors, remapping, edits, native semantics and
   platform behavior. Keep unqualified multi-image/orphan, clipping, source-size
   and cross-version profiles fail-closed.
-- The [FreeCAD patch replay](docs/research/p8-freecad-main-477a704-patch-replay-2026-11-27.json) prepares all 20 existing importer patches on source commit `477a7041803823a1fcae528133cb07ee5533b1b2`, preserving the upstream CRLF header. A [current-source headless macOS build](docs/research/p8-freecad-main-477a704-headless-2026-11-27.json) passes 15 focused generated-DXF importer tests with no skips. Split and review the large local candidate, qualify native GUI, Linux/Windows and the DWG handoff separately, and follow FreeCAD's contributor-authored submission policy.
+- The [FreeCAD patch replay](docs/research/p8-freecad-main-477a704-patch-replay-2026-11-27.json) prepares all 20 existing importer patches on source commit `477a7041803823a1fcae528133cb07ee5533b1b2`, preserving the upstream CRLF header. A [current-source headless macOS build](docs/research/p8-freecad-main-477a704-headless-2026-11-27.json) passes 15 focused generated-DXF importer tests with no skips. Its [DWG handoff check](docs/research/p8-freecad-main-477a704-dwg-handoff-2026-11-27.json) passes open and insert for locally generated AC1021, AC1024 and AC1032 3D lines with exact endpoints and installed-converter discovery; real Draft mesh layer grouping is separately exercised. Split and review the large local candidate, qualify native GUI, Linux/Windows, independent DWG producers and other handoff profiles, and follow FreeCAD's contributor-authored submission policy.
 - Keep LibreCAD's R13 raw-carrier refusal until owner/remap namespace and all 65
   omitted records close. For FreeCAD, independently qualify nonplanar 3DFACE,
   hidden-edge, smoothing, mixed color/layer, nested blocks, persistence and
