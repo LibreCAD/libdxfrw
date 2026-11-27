@@ -6,6 +6,7 @@ normal-open behavior or the dictionary's native duplicate-merge semantics.
 """
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -71,6 +72,16 @@ def main():
                 require(model["sha256"] == hashes[f"{side}.dwg"], "audited source changed")
                 frame, _ = read_dictionary_frame(scratch, dwgread, model["dictionaryHandle"],
                                                   model["dictionaryEntries"])
+                require(model["dictionaryOwner"] == model["rootHandle"]
+                        and frame["parent"]["value"] == model["rootHandle"]
+                        and len(frame["reactors"]) == 1
+                        and frame["reactors"][0]["value"] == model["rootHandle"]
+                        and frame["xdictionary"]["value"] == 0,
+                        "style dictionary ownership or reactors differ")
+                for name, angle in expected["styles"].items():
+                    require(name in model["namedStyles"] and math.isclose(
+                        model["namedStyles"][name]["startAngle"], math.radians(angle),
+                        abs_tol=1e-10), f"style {name} differs from the receipt")
                 drawing = json.loads(scratch.with_suffix(".json").read_text())
                 _, line_handle, layer_handle = check_single_line_graph(drawing)
                 _, line_frame = read_object_frame(scratch, dwgread, line_handle, 19)
