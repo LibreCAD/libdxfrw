@@ -82,5 +82,12 @@
     },
     "limits": "These controls cover source/output identities and selected LINE reactors, not all graph roles or native meanings. Peer inputs/outputs are locally generated scratch files; no drawing fixture was committed. Other metadata entities, producer semantics and platforms remain open."
   },
-  "hostedStatusNote": "LibreCAD_3 head b4be27ee passed hosted Linux ARM64, AppImage, Windows persistence, DWG sanitizer and plan sync checks; other jobs remain pending."
+  "hostedStatusNote": "LibreCAD_3 head b4be27ee passed hosted Linux ARM64, AppImage, Windows persistence, DWG sanitizer and plan sync checks; other jobs remain pending.",
+  "invalidPointCloudKindFollowup": {
+    "consumerCommit": "a0bb9764",
+    "finding": "An unknown point-cloud definition kind produced a null DXF record-name pointer; the bundled-codec regression crashed with a segmentation fault before writing.",
+    "change": "Switch on the stored integer and reject an unnamed typed record in export preflight, before the writer runs. Report the invalid kind and retain the destination.",
+    "validation": "The version selector passes 410 assertions in 17 standalone cases and 407 in 16 bundled cases. The control verifies reported refusal, destination preservation, corrected same-filter retry, output record and reference closure. The separately requested pointcloud tag did not match an additional case.",
+    "limits": "This covers the selected malformed kind and corrected definition; it does not qualify complete point-cloud graphs or DWG behavior."
+  }
 }
