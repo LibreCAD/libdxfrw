@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumer_commit": "24e8d13fd33a440f3819dec6d6f6a10a3e3d06eb",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "codec_library_sha256": "715e638095a7994d091e3bf330a3710c993a703993df5cad709bababbb23f517",
+  "finding": "The opt-in sparse MATERIAL preflight checked the current material references and output but did not bind those references to the imported source: clearing the material or deleting its LINE before save could silently drop a source edge.",
+  "change": [
+    "Capture material-bearing entity callback handle, target, block name and LibreCAD lineage at DXF import; fail closed for missing or duplicate source identities, invalid targets, unsupported owner, incomplete capture or configured bounds.",
+    "Use one current-reference collector for source and staged checks; compare the captured references before export and on the late stability check. Retain the ordinary-save refusal and all other graph guards."
+  ],
+  "validation": [
+    "Before the fix, the existing opt-in test with pre-save material clearing or LINE deletion failed 16 assertions across four source-handle and dictionary-size variants, including destination preservation checks.",
+    "After the fix, 12 focused system-codec MATERIAL cases pass 1700 assertions. Controls cover material clearing, redirection to a sibling, deletion, block rename and changed lineage, destination preservation and corrected retries. The block sample is a locally authored AC1021 DXF control.",
+    "Seven IMAGE compatibility cases pass 7512 assertions. The bundled-codec filter object compiles; this is a compile check, not a full bundled runtime test.",
+    "ezdxf reads the successful model-space AC1021 retry, finds both named materials and the intended LINE and layer references, and reports no audit errors or repairs. ezdxf also adds its own standard materials."
+  ],
+  "retry_output_sha256": "04030f35e90a84ed8b2da91f66bf4c3e33d9af0dd675dbfd2ca56f09ac1bf97e",
+  "limits": [
+    "Capture uses supported entity callbacks; it is not an independent physical scan of every entity or of absent versus explicit zero group 347.",
+    "The checks do not establish complete identity uniqueness across entities without material, all source entity types, all producer profiles, block-move semantics, native behavior or platform qualification.",
+    "Ordinary sparse MATERIAL save remains refused; this bounded opt-in test is not complete source-graph or lossless conversion proof. No generated fixture was committed."
+  ],
+  "supportClaimEffect": "none"
+}

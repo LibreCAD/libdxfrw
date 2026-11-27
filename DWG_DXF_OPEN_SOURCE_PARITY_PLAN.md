@@ -27,7 +27,11 @@ evidence are recorded in `docs/research/` and Git history.
   admits selected unchanged same-version ASCII graphs and verifies refusal and retry;
   the [full-string preflight](docs/research/p8d-librecad-sparse-carrier-nul-preflight-2026-11-26.json)
   rejects embedded-NUL carrier handles and dictionary strings before writing,
-  with ASCII/binary mutation controls and retry. The normal exporter remains guarded. The [ordinary import slice](docs/research/p8d-ordinary-sparse-material-import-2026-11-26.json)
+  with ASCII/binary mutation controls and retry. The [entity-source binding](docs/research/p8d-librecad-sparse-material-source-entity-edges-2026-11-26.json)
+  refuses selected deleted, redirected or replaced material references before
+  export and on late checks, with block-owner and retry controls. Complete
+  physical entity-source coverage and zero-versus-absent group 347 remain open.
+  The normal exporter remains guarded. The [ordinary import slice](docs/research/p8d-ordinary-sparse-material-import-2026-11-26.json)
   retains bounded ASCII/binary raw-only materials for viewing, warns about editing
   and save limits, and preserves the destination when ordinary save is refused.
   Extend this beyond the 256 KiB source bound only after aggregate capture and
