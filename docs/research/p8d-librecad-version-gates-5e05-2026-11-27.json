@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-version-gates-5e05-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "5e056757bd6062ff005c8c9b770368b0414b7b63",
+  "codecCommit": "219b5164a41650dc834ab96d499cba8cf6030764",
+  "codecScope": "The public codec is unchanged by subsequent dwg2dxf-only and test/evidence commits through 8f377410.",
+  "regression": "The preceding consumer candidate fails an R14 export when planning excludes a newer MLEADERSTYLE but emission still attempts to write it. FIELD/FIELDLIST require R2004 in the standalone codec and R2000 in the bundled codec. Planning must match the selected codec and target; supported EVALUATION_GRAPH also needs its parent dictionary planned.",
+  "change": "Share the selected codec's version boundary for planning and emission, gate the three typed profiles consistently, retain graph parent dictionaries, count omitted typed records without double-counting raw carriers, and describe skipped raw replay without claiming every corresponding object is absent.",
+  "focusedValidation": {
+    "systemVersionAndRetry": "147 assertions in 9 cases passed, including old-version omission, graph-only ownership, state reset, failed write and corrected retry.",
+    "systemImageAndMaterial": "9435 assertions in 19 cases passed.",
+    "bundled": "Affected filter and test translation units compiled; no complete bundled test suite was run.",
+    "hosted": "Headless ON and OFF checks passed; other PR checks were pending when recorded."
+  },
+  "nativeSave": {
+    "platform": "macOS 27.2.1 build 26B131, arm64",
+    "harness": "Clean consumer source, with a scratch-only QSettings organization change for isolated startup. Scratch bundle has a unique identifier, codec rpath and ad-hoc signature; startup source restored after build. Runtime lsof confirmed the shared codec mapping.",
+    "applicationSha256": "0489e0115708f3bcec6733c4ac1a251644db9bfe10f6fccf6998437b925de216",
+    "sharedLibrarySha256": "a18e2367e0bc5727c7e8021ef7694230446c52972e0a7ae1856700c58bb1a099",
+    "inputSha256": "f9223467ad3e791f71643c4e5fff0272ee3a6de8682e68b707073b2483a4084e",
+    "outputSha256": "bbcdabd48a2a0814891de09394ebae6a036917de609574d31349b830317d779c",
+    "observations": [
+      "The locally authored AC1032 input rendered a dashed line. The line properties showed P8D_CUSTOM and endpoint (100,0); the endpoint was changed to (120,0), and the file saved as AC1021.",
+      "The native command line reported: 2 raw record(s) from another DXF version were not replayed; some may have been regenerated.",
+      "ezdxf 1.4.5 independently read one LINE on P8D_LAYER with P8D_CUSTOM, endpoints (0,0,0) and (120,0,0), and pattern length 6 with elements 4 and -2. Audit had zero errors and fixes."
+    ]
+  },
+  "limits": [
+    "Native reopen of the later candidate was attempted but desktop automation timed out; independent file readback is not a native reopen.",
+    "The scratch app is not byte-identical to an unmodified candidate executable. This local source and one edited line do not establish whole-drawing preservation or broad platform support.",
+    "The earlier native receipt identifies the two skipped raw carriers in a separate diagnostic run and verifies matching output records; that does not prove general graph equivalence.",
+    "No input or output drawing was committed."
+  ]
+}
