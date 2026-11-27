@@ -12,7 +12,7 @@
   "validation": [
     "The red-before control covers both entity types after layer locking. The corrected control checks center including elevation, radius, arc angles and direction, metadata, current layer, intentional moves to a differently named layer, undo and redo.",
     "188 focused builder, layer, canvas, DXF/DWG, Python and Lua tests passed. Plan structure, complete candidate mapping, actual PR base mapping, 31 plan-checker tests and whitespace checks passed.",
-    "The later hosted plan-sync run exposed an outdated Windows workflow contract: PR #461 had added a guarded layout graph test but the test expected six guards. The contract now requires its executable, suite, filter and immediately following failure guard; the local 314-script suite passes with one platform-specific skip. Hosted rerun remains pending."
+    "The later hosted plan-sync run exposed an outdated Windows workflow contract: PR #461 had added a guarded layout graph test but the test expected six guards. The contract now requires its executable, suite, filter and immediately following failure guard; the local 314-script suite passes with one platform-specific skip. Hosted plan sync passed at 9330b04e; the later head requires its own rerun."
   ],
   "limits": [
     "This covers same-named layers for the exact built-in Line, Circle and Arc types; renamed layers, other entity types and unqualified custom operations remain open.",
