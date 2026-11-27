@@ -53,6 +53,7 @@
     "finding": "In the eligible typed-object planning path, any skipped raw record with the same handle was treated as replaced, even when its type differed or multiple omitted carriers shared the handle. Red-before controls reproduced a hidden raw omission and retained an ambiguous LINE reactor.",
     "change": "For this typed-object path, count skipped object and entity handles and require exactly one skipped carrier with the same case-insensitive object type before treating it as replaced. Different or ambiguous carriers remain reported and in the dropped-reference set.",
     "validation": "The focused version selector passed 189 standalone assertions in eleven cases and 188 bundled assertions in ten cases. Controls cover matching and case-variant types, different types, duplicate raw objects, object/entity collisions, report counts, typed output and selected LINE reactor behavior; existing version and retry controls also pass.",
-    "limits": "This qualifies the selected typed-object stand-in path and LINE reactor. Fixed typed objects, typed entities, all graph roles, live identity collisions and semantic equivalence of same-type records remain separate work."
+    "limits": "This qualifies the selected typed-object stand-in path and LINE reactor. Fixed typed objects, typed entities, all graph roles, live identity collisions and semantic equivalence of same-type records remain separate work.",
+    "adjacentHandleSelector": "Bundled codec: 463 assertions in 21 cases passed. Standalone codec: 17 of 21 cases passed, with the same four raw sparse-MATERIAL export failures and 212/216 assertions as the pre-change 219b handle-selector baseline; these remain guarded and unresolved."
   }
 }
