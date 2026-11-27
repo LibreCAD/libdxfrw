@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-wide-dxf-immutable-normalization-2026-11-27",
+  "date": "2026-11-27",
+  "baseCommit": "b4fa56237",
+  "implementationDigestSha256": "8a440bcac123b59b155a83fdc8bad7268a337871b08632fff701d30a134d7451",
+  "inputCount": 782,
+  "supportClaimEffect": "none",
+  "change": "Extend the bounded source observer with an immutable byte-snapshot normalizer. It reserves all syntactically valid known 32-bit handle candidates, assigns distinct non-sentinel aliases to the selected wide identities, refuses unselected wide handle candidates, adjusts the qualified HANDSEED, and replaces only validated physical value spans. It re-observes the result and retains the original source lexemes and identity mapping. It does not modify existing import, consumer or writer routes.",
+  "validation": {
+    "focused": "PASS compact graph CTest and GCC warning-clean syntax check. Generated ASCII/Binary cases cover wide input, collisions with handles 1 and 2, alternate dictionary role, literal text containing a handle spelling, unexpected external wide references, incorrect or missing HANDSEED, malformed reference, 17-digit overflow, narrow-only refusal, oversized input, cleared failure state, a source view aliasing prior output, and corrected retry. CRLF ASCII succeeds.",
+    "peer": "For the full locally authored ezdxf 1.4.5 graph, the component prepared ASCII and Binary inputs with alias mapping 100000010->2F and 100000011->30, HANDSEED->34. Independent tag comparison found exactly seven expected handle-value changes; all other tags were unchanged. The existing converter then accepted both prepared files. Independent ezdxf readback compared the original wide source against output: 25 mapped objects, 24 dictionary entries, 13 root entries, two layers, ownership, reactors, XRECORD reference, MATERIAL body and DICTIONARYVAR values; zero audit errors/fixes.",
+    "sourceHeaderSha256": "6774ff1d7c54dea998a606af4f127c7d7f00fcdd3c475bd190f3b2a13d31483d",
+    "independentPeerScriptSha256": "8d76bfad861f230e6c0afd282b51a5bd27fc90e725b57fcd87ce4fffef71e266",
+    "asciiInputSha256": "91d7775a4eb27b3b79d550bce1abaa19df9169bd866e759d151ec67a3b968a00",
+    "asciiNormalizedSha256": "f106d26ce3b114c5aef0d1284f3be062a61ead530c09c0f17763cc4091ab33b2",
+    "asciiOutputSha256": "8c5698a0bc06530665df2e1a502a68bc3ac917775a23483c69280f65c33cae56",
+    "binaryInputSha256": "06cdded38a8b69869dd52cd621a2854f1d211fddae4610d7573a652059102d1a",
+    "binaryNormalizedSha256": "290fea0785b8f8a011ae90773a412f5dcdca6cee8e68dfb732f6ad1d435209d8",
+    "binaryOutputSha256": "bf8cd9b434a7405f35455ac4a8a7bf95b82237eb8833becd5128ab1363aa53f3"
+  },
+  "limits": [
+    "This is a separate preparatory component; the public reader still refuses the wide source and the writer has not bound the original graph to its output. No end-to-end wide support or producer-independent semantics is claimed.",
+    "A trial using an external semantic serializer changed unrelated metadata, so the implemented component uses validated physical spans instead.",
+    "No DXF/DWG fixture is committed; all source and output drawings are scratch-only."
+  ]
+}

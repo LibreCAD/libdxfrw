@@ -8,11 +8,13 @@
 // invoked. It retains original spellings and never narrows handle values.
 #include "intern/dxfidentitysource.h"
 #include "dx_symbol_name_key.h"
+#include <algorithm>
 #include <charconv>
 #include <cstdint>
 #include <istream>
 #include <limits>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -27,8 +29,14 @@ struct Field {
 struct Graph {
     bool binary{false};
     Field rootSelf,rootOwner,rootEntry,dictionarySelf,dictionaryOwner,
-        dictionaryEntry,recordSelf,recordOwner,recordReference;
+        dictionaryEntry,recordSelf,recordOwner,recordReference,handSeed;
+    std::vector<Field> handleCandidates;
     std::uint64_t root{0},dictionary{0},record{0};
+};
+struct Normalized {
+    std::string bytes;
+    Graph source;
+    std::uint32_t root{0},dictionary{0},record{0},handSeed{0};
 };
 namespace detail {
 struct Object {std::string name;std::size_t marker{0};std::vector<Field> fields;};
@@ -41,6 +49,10 @@ inline bool relevant(int code) noexcept {
     return code==3||code==5||code==100||code==101||code==102||code==105
         ||(code>=320&&code<=369)||(code>=390&&code<=399)
         ||(code>=480&&code<=481)||code==1001||code==1005;
+}
+inline bool handleCandidate(int code) noexcept {
+    return code==5||code==105||(code>=320&&code<=369)
+        ||(code>=390&&code<=399)||(code>=480&&code<=481)||code==1005;
 }
 inline bool common(const Object& object,Field& self,Field& owner,std::size_t& body) {
     unsigned identities=0u,owners=0u;body=object.fields.size();
@@ -117,9 +129,16 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
         limits.records=maxObjects;limits.candidates=maxFields;identity.start(limits);
         bool sectionName=false,objects=false,header=false,eof=false,versionNext=false;
         std::size_t headerSections=0u,objectSections=0u,versions=0u;
-        std::string version;std::vector<Object> rows;std::size_t retained=0u;int code=0;
+        std::string version,headerVariable;Field handSeed;unsigned seeds=0u;
+        std::vector<Field> handles;std::vector<Object> rows;std::size_t retained=0u;int code=0;
         while(reader->readRec(&code)){
             DxfReadRecordView v;if(!reader->currentRecordView(v))return false;
+            if(handleCandidate(code)) {
+                if(v.kind!=DxfReadRecordView::Text||sizeof(Field)>maxBytes-retained)return false;
+                retained+=sizeof(Field);if(v.text.size()>maxBytes-retained)return false;
+                retained+=v.text.size();if(v.raw.size()>maxBytes-retained)return false;retained+=v.raw.size();
+                handles.push_back({code,std::string(v.text),std::string(v.raw),v.ordinal,v.beginOffset,v.endOffset});
+            }
             if(code==0){const auto name=reader->getStringView();
                 if(name=="SECTION"){sectionName=true;objects=header=false;}
                 else if(name=="ENDSEC"){sectionName=objects=header=false;}
@@ -134,8 +153,12 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
                 if(objects&&++objectSections!=1u)return false;
                 if(header&&++headerSections!=1u)return false;
                 sectionName=false;continue;}
-            if(header&&code==9)versionNext=reader->getStringView()=="$ACADVER";
+            if(header&&code==9){headerVariable=reader->getStringView();versionNext=headerVariable=="$ACADVER";}
             else if(header&&versionNext){if(code==1){if(++versions!=1u)return false;version=reader->getStringView();}versionNext=false;}
+            if(header&&code==5&&headerVariable=="$HANDSEED") {
+                if(++seeds!=1u||handles.empty())return false;
+                handSeed=handles.back();headerVariable.clear();
+            }
             if(objects&&!rows.empty()&&relevant(code)){
                 if(v.kind!=DxfReadRecordView::Text||sizeof(Field)>maxBytes-retained)return false;
                 retained+=sizeof(Field);if(v.text.size()>maxBytes-retained)return false;
@@ -154,7 +177,8 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
             }
             return found;
         };
-        Graph candidate;candidate.binary=binary;std::size_t body=0u;
+        Graph candidate;candidate.binary=binary;candidate.handSeed=std::move(handSeed);
+        candidate.handleCandidates=std::move(handles);std::size_t body=0u;
         const Object& root=rows.front();
         if(!common(root,candidate.rootSelf,candidate.rootOwner,body)
             ||!dictionaryEntry(root,body,dictionaryKey,candidate.rootEntry)
@@ -191,6 +215,119 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
         }
         output=std::move(candidate);return true;
     }catch(...){output=Graph{};return false;}
+}
+
+// Prepare an in-memory projection from the same immutable byte snapshot used
+// for observation. Only the selected graph's proven handle roles and HANDSEED
+// may change. Every other wide handle candidate is refused. This is still a
+// transport preparation step: the caller must bind actual import, emitted
+// handles and graph closure before treating the projection as a valid export.
+inline bool normalize(std::string_view input,std::string_view dictionaryKey,
+        std::string_view recordKey,Normalized& output) noexcept {
+    using namespace detail;
+    try {
+        constexpr std::size_t maxBytes=8u*1024u*1024u;
+        constexpr std::uint64_t reserved=UINT64_C(0xffffffff);
+        if(input.size()>maxBytes){output=Normalized{};return false;}
+        // Copy before clearing output: callers may pass a view of its bytes.
+        const std::string snapshot(input);
+        output=Normalized{};
+        std::istringstream stream(snapshot,std::ios::binary);
+        Normalized candidate;
+        if(!capture(stream,dictionaryKey,recordKey,candidate.source))return false;
+        auto& source=candidate.source;
+        if(source.handSeed.code!=5)return false;
+        std::uint64_t sourceSeed=0u;
+        if(!hex(source.handSeed.text,sourceSeed)||sourceSeed<=source.root
+            ||sourceSeed<=source.dictionary||sourceSeed<=source.record)return false;
+
+        struct Binding {std::uint64_t source;std::uint32_t target;};
+        const std::uint64_t graphHandles[]{source.root,source.dictionary,source.record};
+        std::unordered_set<std::uint32_t> occupied;
+        std::uint32_t maxUsed=0u;
+        for(const auto& field:source.handleCandidates) {
+            if(field.ordinal==source.handSeed.ordinal)continue;
+            std::uint64_t value=0u;
+            if(hex(field.text,value)&&value<reserved) {
+                occupied.insert(static_cast<std::uint32_t>(value));
+                maxUsed=std::max(maxUsed,static_cast<std::uint32_t>(value));
+            }
+        }
+        std::vector<Binding> bindings;
+        std::uint32_t next=1u;
+        for(const auto handle:graphHandles) {
+            if(handle<reserved)continue;
+            while(next<reserved&&occupied.count(next))++next;
+            if(next>=reserved)return false;
+            bindings.push_back({handle,next});occupied.insert(next);
+            maxUsed=std::max(maxUsed,next);++next;
+        }
+        if(bindings.empty()||maxUsed>=reserved-1u)return false;
+        const auto mapped=[&](std::uint64_t value)->std::uint32_t {
+            for(const auto& binding:bindings)if(binding.source==value)return binding.target;
+            return value<reserved?static_cast<std::uint32_t>(value):0u;
+        };
+        candidate.root=mapped(source.root);candidate.dictionary=mapped(source.dictionary);
+        candidate.record=mapped(source.record);candidate.handSeed=maxUsed+1u;
+        if(!candidate.root||!candidate.dictionary||!candidate.record||!candidate.handSeed)return false;
+
+        const Field* selected[]{&source.rootSelf,&source.rootEntry,&source.dictionarySelf,
+            &source.dictionaryOwner,&source.dictionaryEntry,&source.recordSelf,
+            &source.recordOwner,&source.recordReference};
+        for(const auto& field:source.handleCandidates) {
+            std::uint64_t value=0u;
+            if(!hex(field.text,value)||value<reserved)continue;
+            if(field.ordinal==source.handSeed.ordinal)continue;
+            bool known=false;
+            for(const auto* item:selected)if(item->ordinal==field.ordinal){known=true;break;}
+            if(!known||!mapped(value))return false;
+        }
+        struct Edit {std::size_t begin,end;std::string text;};
+        std::vector<Edit> edits;
+        const auto append=[&](const Field& field,std::uint32_t value) {
+            if(field.begin>=field.end||field.end>snapshot.size()||field.raw!=field.text)return false;
+            std::size_t start=0u;
+            if(source.binary) {
+                if(field.end-field.begin<3u)return false;
+                const auto code=static_cast<unsigned char>(snapshot[field.begin])
+                    |(static_cast<unsigned char>(snapshot[field.begin+1u])<<8u);
+                if(code!=field.code)return false;
+                start=field.begin+2u;
+                if(start+field.raw.size()+1u!=field.end||snapshot[field.end-1u]!='\0')return false;
+            } else {
+                const auto newline=snapshot.find('\n',field.begin);
+                if(newline==std::string::npos||newline>=field.end)return false;
+                start=newline+1u;
+                if(field.raw.size()>field.end-start)return false;
+                const auto tail=std::string_view(snapshot).substr(start+field.raw.size(),field.end-start-field.raw.size());
+                if(tail!="\n"&&tail!="\r\n")return false;
+            }
+            if(field.raw.size()>field.end-start||snapshot.compare(start,field.raw.size(),field.raw)!=0)return false;
+            char buffer[8];const auto converted=std::to_chars(buffer,buffer+sizeof(buffer),value,16);
+            if(converted.ec!=std::errc{})return false;
+            std::string text(buffer,converted.ptr);
+            for(char& ch:text)if(ch>='a'&&ch<='f')ch=static_cast<char>(ch-'a'+'A');
+            edits.push_back({start,start+field.raw.size(),std::move(text)});return true;
+        };
+        for(const auto* field:selected) {
+            std::uint64_t value=0u;if(!hex(field->text,value))return false;
+            if(value>=reserved&&!append(*field,mapped(value)))return false;
+        }
+        if(!append(source.handSeed,candidate.handSeed))return false;
+        std::sort(edits.begin(),edits.end(),[](const auto& a,const auto& b){return a.begin>b.begin;});
+        candidate.bytes=snapshot;std::size_t prior=snapshot.size();
+        for(const auto& edit:edits) {
+            if(edit.end>prior||edit.begin>edit.end)return false;
+            candidate.bytes.replace(edit.begin,edit.end-edit.begin,edit.text);prior=edit.begin;
+        }
+        Graph check;std::istringstream transformed(candidate.bytes,std::ios::binary);
+        if(!capture(transformed,dictionaryKey,recordKey,check)
+            ||check.root!=candidate.root||check.dictionary!=candidate.dictionary||check.record!=candidate.record
+            ||check.rootEntry.code!=source.rootEntry.code||check.dictionaryEntry.code!=source.dictionaryEntry.code
+            ||check.recordReference.code!=source.recordReference.code)return false;
+        std::uint64_t seed=0u;if(!hex(check.handSeed.text,seed)||seed!=candidate.handSeed)return false;
+        output=std::move(candidate);return true;
+    }catch(...){output=Normalized{};return false;}
 }
 }
 #endif

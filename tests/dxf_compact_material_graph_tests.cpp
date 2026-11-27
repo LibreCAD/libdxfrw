@@ -221,7 +221,7 @@ static bool multiPlotReactorRefusal(const std::filesystem::path& in,const std::f
 }
 enum class WideSourceVariant { Wide, Narrow, WrongDictionaryOwner, WrongRecordOwner,
     WrongReference, UnknownReference, DuplicateSelf, DuplicateEntry, DuplicateNameCase, DuplicateTarget,
-    MissingEnd, InvalidHandle, AlternateRole };
+    MissingEnd, InvalidHandle, AlternateRole, AliasCollision, ExternalWideReference, BadSeed, MissingSeed };
 static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
     std::ostringstream out(std::ios::binary);
     if(binary)out.write("AutoCAD Binary DXF\r\n\x1a\0",22);
@@ -234,6 +234,8 @@ static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
     const char* dict=narrow?"0000002f":"0000000100000010";
     const char* record=narrow?"30":"100000011";
     if(!text(0,"SECTION")||!text(2,"HEADER")||!text(9,"$ACADVER")||!text(1,"AC1027")
+        ||(variant!=WideSourceVariant::MissingSeed
+            &&(!text(9,"$HANDSEED")||!text(5,narrow?"100":variant==WideSourceVariant::BadSeed?"100000011":"100000012")))
         ||!text(0,"ENDSEC")||!text(0,"SECTION")||!text(2,"OBJECTS")
         ||!text(0,"DICTIONARY")||!text(5,"000a")||!text(330,"0")
         ||!text(100,"AcDbDictionary")||!number(281,1)||!text(3,"CODEX_GRAPH")
@@ -245,11 +247,17 @@ static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
         ||!text(100,"AcDbDictionary")||!number(280,1)||!number(281,1)
         ||!text(3,"CODEX_RECORD")||!text(350,record)
         ||!text(0,"XRECORD")||!text(5,record)||!text(330,variant==WideSourceVariant::WrongRecordOwner?"A":dict)
-        ||!text(100,"AcDbXrecord")||!number(280,1)||!text(1,"value")
+        ||!text(100,"AcDbXrecord")||!number(280,1)||!text(1,"literal 100000010 untouched")
         ||!text(340,variant==WideSourceVariant::WrongReference?"A":dict))return {};
     if(variant==WideSourceVariant::UnknownReference&&!text(341,"A"))return {};
     if(variant==WideSourceVariant::DuplicateSelf&&(!text(0,"XRECORD")||!text(5,record)
         ||!text(330,dict)||!text(100,"AcDbXrecord")||!number(280,1)))return {};
+    if(variant==WideSourceVariant::AliasCollision)for(const char* handle:{"1","2"})
+        if(!text(0,"XRECORD")||!text(5,handle)||!text(330,"A")
+            ||!text(100,"AcDbXrecord")||!number(280,1))return {};
+    if(variant==WideSourceVariant::ExternalWideReference
+        &&(!text(0,"XRECORD")||!text(5,"20")||!text(330,"A")
+            ||!text(100,"AcDbXrecord")||!number(280,1)||!text(340,dict)))return {};
     if(!text(0,"ENDSEC")||(variant!=WideSourceVariant::MissingEnd&&!text(0,"EOF"))||writer->hasWriteError())return {};
     return out.str();
 }
@@ -296,6 +304,41 @@ static bool wideSourceTest() {
             ||dx_wide_dictionary_source::capture(invalid,"CODEX_GRAPH","CODEX_RECORD",state)
             ||state.root!=0u||!state.rootSelf.text.empty()
             ||!dx_wide_dictionary_source::capture(retry,"CODEX_GRAPH","CODEX_RECORD",state))return false;
+        for(auto v:{WideSourceVariant::Wide,WideSourceVariant::AliasCollision,WideSourceVariant::AlternateRole}) {
+            auto original=wideSourceBytes(binary,v);
+            dx_wide_dictionary_source::Normalized normalized;
+            if(!dx_wide_dictionary_source::normalize(original,"CODEX_GRAPH","CODEX_RECORD",normalized)
+                ||normalized.source.root!=0xau||normalized.source.dictionary!=UINT64_C(0x100000010)
+                ||normalized.source.record!=UINT64_C(0x100000011)||normalized.root!=0xau
+                ||normalized.dictionary!=(v==WideSourceVariant::AliasCollision?3u:1u)
+                ||normalized.record!=(v==WideSourceVariant::AliasCollision?4u:2u)
+                ||normalized.handSeed<=normalized.root||normalized.handSeed<=normalized.dictionary
+                ||normalized.handSeed<=normalized.record||normalized.bytes==original
+                ||normalized.bytes.find("literal 100000010 untouched")==std::string::npos)return false;
+            dx_wide_dictionary_source::Graph projected;
+            std::istringstream check(normalized.bytes,std::ios::binary);
+            if(!dx_wide_dictionary_source::capture(check,"CODEX_GRAPH","CODEX_RECORD",projected)
+                ||projected.root!=normalized.root||projected.dictionary!=normalized.dictionary
+                ||projected.record!=normalized.record||projected.recordReference.code!=340
+                ||projected.rootEntry.code!=(v==WideSourceVariant::AlternateRole?360:350))return false;
+        }
+        dx_wide_dictionary_source::Normalized normalized;
+        normalized.bytes="stale";
+        for(auto v:{WideSourceVariant::ExternalWideReference,WideSourceVariant::BadSeed,WideSourceVariant::MissingSeed,
+                    WideSourceVariant::WrongReference,WideSourceVariant::InvalidHandle,WideSourceVariant::Narrow}) {
+            const auto source=wideSourceBytes(binary,v);
+            if(dx_wide_dictionary_source::normalize(source,"CODEX_GRAPH","CODEX_RECORD",normalized)
+                ||!normalized.bytes.empty()||normalized.dictionary!=0u)return false;
+        }
+        const auto original=wideSourceBytes(binary,WideSourceVariant::Wide);
+        if(!dx_wide_dictionary_source::normalize(original,"CODEX_GRAPH","CODEX_RECORD",normalized))return false;
+        const std::string_view aliasedInput(normalized.bytes);
+        if(dx_wide_dictionary_source::normalize(aliasedInput,"CODEX_GRAPH","CODEX_RECORD",normalized)
+            ||!normalized.bytes.empty()
+            ||!dx_wide_dictionary_source::normalize(original,"CODEX_GRAPH","CODEX_RECORD",normalized))return false;
+        const std::string tooLarge(8u*1024u*1024u+1u,'x');
+        if(dx_wide_dictionary_source::normalize(tooLarge,"CODEX_GRAPH","CODEX_RECORD",normalized)
+            ||!normalized.bytes.empty())return false;
     }
     return true;
 }
