@@ -1318,6 +1318,7 @@ tools/research/generate_wide_dictionary_xrecord_control.py
 tools/research/inspect_mtext_field_freecad.FCMacro
 tools/research/inventory_cover_peer_body_handles.py
 tools/research/lc3_spline_builder_removal_asan.cpp
+tools/research/librecad3-point-layer-merge-2026-11-27.patch
 tools/research/mutate_ac1024_header_suffix_traced.py
 tools/research/objectarx_witness.lsp
 tools/research/objectarx_witness_scan.py
@@ -1370,6 +1371,7 @@ tools/research/p6_ac1032_tablecontent_graph_capture.cpp
 tools/research/p6a_imagedef_witness.cs
 tools/research/p6a_imagedef_witness.csproj
 tools/research/package_ac1012_dictionary_witness.py
+tools/research/package_ac1012_populated_pair.py
 tools/research/probe_ac1024_layerstates_eed.cpp
 tools/research/probe_ac1024_layerstates_eed.py
 tools/research/probe_ac1027_layer_typed_null.cpp
