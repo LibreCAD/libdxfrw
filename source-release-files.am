@@ -1286,6 +1286,7 @@ EXTRA_DIST = \
     tools/research/audit_p5h_viewport_shadeplot.py \
     tools/research/audit_r14_header_reference.py \
     tools/research/canonical_ltype_peer_generator.cpp \
+    tools/research/check_lc3_binary_layout_pair.py \
     tools/research/check_mpolygon_projection_ezdxf.py \
     tools/research/check_r2000_layout_projection_peer.py \
     tools/research/compare_ac1014_profile_ezdxf.py \
@@ -1313,6 +1314,7 @@ EXTRA_DIST = \
     tools/research/generate_librecad3_mline_samples.py \
     tools/research/generate_librecad_r13_ltype_samples.py \
     tools/research/generate_r13_table_attrib_witness.py \
+    tools/research/generate_wide_dictionary_xrecord_control.py \
     tools/research/inspect_mtext_field_freecad.FCMacro \
     tools/research/inventory_cover_peer_body_handles.py \
     tools/research/lc3_spline_builder_removal_asan.cpp \
