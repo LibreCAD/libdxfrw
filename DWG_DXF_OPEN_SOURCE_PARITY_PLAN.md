@@ -163,8 +163,13 @@ evidence are recorded in `docs/research/` and Git history.
   covers built-in move/remove/rotate/scale/copy/filter/loop stacks without
   invoking source transforms or consuming IDs. The [nested-group preflight](docs/research/p8d-librecad3-locked-nested-compound-2026-11-26.json)
   propagates refusal through tested parent groups, preserves undo/redo, and
-  rejects cyclic/null graphs. Lock-changing groups, unqualified custom
-  operations and complex repeated successful stacks remain open.
+  rejects cyclic/null graphs. The [layer-transition preflight](docs/research/p8d-librecad3-layer-lock-transition-preflight-2026-11-26.json)
+  prevents partial groups when a known replacement locks a supplied existing
+  entity, including nested and chained replacements, while allowing unrelated
+  edits. It conservatively refuses even read-only or copy inputs in that case.
+  Fix stale layer metadata on forced retries; cover entities created earlier in
+  a group, other lock-changing operations, unqualified custom operations and
+  complex repeated successful stacks separately.
   The [script document guard](docs/research/p8d-librecad3-locked-script-document-2026-11-26.json)
   also protects direct Document bindings, offers checked and force methods, and
   fixes a null-storage constructor crash. Low-level StorageManager and entity

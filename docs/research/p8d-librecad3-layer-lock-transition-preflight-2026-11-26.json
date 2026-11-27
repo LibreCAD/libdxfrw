@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-26",
+  "consumer": "LibreCAD/LibreCAD_3",
+  "pull_request": 461,
+  "commit": "6f53f53e",
+  "scope": "Conservative compound preflight for supplied existing entities on layers locked by preceding ReplaceLayer operations, including nested groups and chained replacements.",
+  "red_before": "A nested lock-then-move partly changed the layer and lost redo before preflight.",
+  "validation": {
+    "platform": "macOS ARM64",
+    "focused_tests": "186 passed",
+    "binding_plan_checks": "full, actual PR base, and worktree inventory passed; 31 checker regressions passed",
+    "tests": [
+      "red-before nested lock and edit preserves state and redo",
+      "same-group explicit override and undo/redo",
+      "chained replacements across nested group",
+      "unrelated layer edit allowed"
+    ]
+  },
+  "limitations": [
+    "Conservative refusal also covers copy/read-only supplied entities following a lock transition.",
+    "Entities created earlier in the compound and custom operations that fetch other objects are not covered.",
+    "Forced retry using stale entity snapshots can retain old layer metadata; requires separate correction.",
+    "Native GUI and hosted platform qualification remain open."
+  ]
+}
