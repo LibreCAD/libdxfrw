@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1021-field-oda-peer-graph-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "question": "Does the existing ODA-converted DXF retain the full FIELDLIST and what decoded child-value disagreements distinguish the raw-only AC1021 carriers?",
+  "primaryReferences": [
+    {
+      "title": "Autodesk FIELD DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+      "scope": "FIELD child fields, object references, data-set keys and cache groups"
+    },
+    {
+      "title": "ODA Open Design Specification for .dwg files v5.4.1",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "scope": "Sections 20.1, 20.4.76 and 20.4.99: source framing and FIELD/CadValue layout; all R2007+ Unicode strings belong to the object string stream."
+    }
+  ],
+  "source": {
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "version": "AC1021",
+    "producer": "AutoCAD 2007, AppInfo 17.0.48.0",
+    "provenance": "Previously attributed local sample, not committed."
+  },
+  "peers": {
+    "libreDwg": "0.14 minJSON generated from the source; SHA-256 8947d321b784a3eab81a7fe1336c19fde04f37588ce476d7546e7eef3fd42a3f",
+    "oda": "27.10 linux/amd64 ACAD2007 ASCII DXF produced previously from that exact source; SHA-256 69ac93f16d7895e44e48448a25de60378be8af8d1fc7a36764da8feb33cbe989; see docs/research/p5-ac1021-general-value-oda-dxf-comparison-2026-11-25.json",
+    "ezdxf": "1.4.5 independently reports 162 FIELD, one FIELDLIST, zero audit errors and zero fixes on the ODA DXF."
+  },
+  "result": {
+    "comparedChildMembers": {
+      "key": 273,
+      "value.data_long": 80,
+      "value.data_string": 56,
+      "value.data_type": 273,
+      "value.format_flags": 273,
+      "value.format_string": 273,
+      "value.unit_type": 273,
+      "value.value_string": 273
+    },
+    "evaluatorCounts": {
+      "AcExpr": 15,
+      "AcObjProp": 19,
+      "AcObjProp.16.2": 38,
+      "AcSm": 9,
+      "_text": 81
+    },
+    "fieldListHandlesEqual": true,
+    "fieldListOwnersEqual": true,
+    "firstMismatchHandles": {
+      "child.key": "0x3AAF0",
+      "child.value.data_string": "0x1791E",
+      "child.value.data_type": "0x3AAF0",
+      "child.value.format_flags": "0x3AAF0",
+      "child.value.unit_type": "0x1791E",
+      "child.value.value_string": "0x3AAF0"
+    },
+    "limitations": "Decoded peer comparison only; no wire-schema, native validity, or lossless-output claim.",
+    "minjsonSha256": "8947d321b784a3eab81a7fe1336c19fde04f37588ce476d7546e7eef3fd42a3f",
+    "mismatches": {
+      "child.key": 14,
+      "child.value.data_string": 56,
+      "child.value.data_type": 14,
+      "child.value.format_flags": 14,
+      "child.value.unit_type": 70,
+      "child.value.value_string": 14
+    },
+    "orderedFieldListsEqual": true,
+    "pairedChildValues": 273,
+    "peerDxfSha256": "69ac93f16d7895e44e48448a25de60378be8af8d1fc7a36764da8feb33cbe989",
+    "peerFieldListMatchesFieldInventory": true,
+    "peerFieldListMembers": 162,
+    "peerFields": 162,
+    "sameFieldHandles": true,
+    "sourceChildFieldEdges": 81,
+    "sourceFieldListMatchesFieldInventory": true,
+    "sourceFieldListMembers": 162,
+    "sourceFieldListUnique": true,
+    "sourceFields": 162,
+    "sourceObjectEdges": 42,
+    "sourceUnreportedChildArrays": 25,
+    "unreportedArraysWithPeerChildren": 10
+  },
+  "observations": [
+    "The peers agree on all 162 FIELD identities, FIELDLIST identity and owner, complete ordered membership, evaluator and expression strings, common owner, evaluation metadata, 81 child-field edges and 42 object edges.",
+    "Among 273 positionally paired child values, the comparison finds 56 data-string differences, 70 unit-type differences, and 14 differences each in key, type, flags and displayed-value string. These are counts of compared members, may overlap, and are not independent error counts.",
+    "LibreDWG minJSON omits the child array for 25 records; 10 of those have one or more peer-exported child values. Omission is not assumed to mean zero values.",
+    "For FIELD 0x3AAF0 the peers match header metadata but differ from the second child onward: ODA exports ObjectPropertyUnresolvedId with ?BlockRefId and ObjectPropertyName with UpdatedDistance, while LibreDWG exposes an empty second data string and a third child with unsupported format flags. Existing source cursor and successor bounds remain in docs/research/p5-ac1021-field-cursor-agreement-and-output-boundary-2026-11-17.json."
+  ],
+  "validation": [
+    "The comparator reports source/list agreement and detects injected owner, evaluator and list-order mutations; it rejects truncated DXF pairs and unterminated child values.",
+    "The ODA-derived DXF and the source drawing are scratch/local evidence and are not committed."
+  ],
+  "artifacts": {
+    "comparator": "tools/research/compare_field_peer_graph.py",
+    "comparatorSha256": "8c3e5b6dc5a43966d29b539fc553004cd7c3dfecbf550702e3741c38ec90c539",
+    "comparisonSha256": "f62a9bf0aeb54099b8e18919df53b10dff136704df0353d8b4d807f1f584acff",
+    "mutationLogSha256": "cc5c73a010f35fb4329fac3afa49e7070427d709ca3f6e249c726af9c000ae47"
+  },
+  "nextStep": "For the bound source frames 0x3AAF0, 0x3AABD and 0x15C1F, instrument the independent body and string cursors through the first point where the ODA output and source decode diverge, compare all value members and the next-object boundary, and seek source-distinct producer/native witnesses. Preserve all 162 identities and strict refusal until every carrier, reference and output route is closed.",
+  "limitations": [
+    "ODA output is a converter interpretation, not AutoCAD semantic evidence or proof that the original DWG payload was preserved losslessly.",
+    "LibreDWG minJSON is a decoded representation; missing arrays and mismatched values do not establish which implementation is correct.",
+    "Comparison covers only selected present child members by position; it does not compare all raw fields, evaluator execution, application state, or native save/reopen.",
+    "The DWG residual text is not proof of inline Unicode or permission to violate the versioned string-stream rules. No support claim is promoted."
+  ]
+}
