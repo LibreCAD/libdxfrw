@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/463",
+  "candidate_commit": "ddfb992b1a9e2ea4ae6d05fe326433edc83d5fb0",
+  "failure": "Before the fix, two selected POINTs at the same XY but Z 20 and 100 left one point stationary when their coincident grips were dragged.",
+  "change": "The drag manager matches selected grips in the canvas XY plane and keeps each grip original Z during repeated movement.",
+  "validation": "macOS ARM64 headless: red-before control; 16/16 POINT and selection tests and 155/155 available lcunittest tests after the fix. The control checks two moves, exact coordinates, per-point Z and identity, undo and redo. Full and actual-base plan validation and whitespace checks passed. The saved layer-integration patch still applies cleanly.",
+  "limitations": "Native GUI, other platforms, overlapping grips on additional entity profiles, and final merged consumer qualification remain open. No package gate promoted."
+}
