@@ -57,5 +57,11 @@
     },
     "peer": "ODA rejected both with AcDbDimStyleTable improperly read; the GNU writer emitted DIMLDRBLK warnings, and r2004 also emitted handle-role warnings. No independent-source acceptance is claimed.",
     "next": "Do not reuse these generated files as valid interoperability samples; retain both readers\u2019 failure diagnostics and seek a different source or fix the producer profile."
+  },
+  "r2000InputDiscriminator": {
+    "inputDxfSha256": "795392e566e740bd646bbc8b818c6287f2810458313b23a7790971b76d4fcf8d",
+    "odaDwgSha256": "95a1bdb159a4da4f76aa8ed1914b2548fe06cc233fb64ac316db504452821be2",
+    "strictLogSha256": "1188e92003d24f8c3d31e39c93db4ea0063a2449caf060285aa139082fc008c0",
+    "observation": "Starting with an AC1015 DXF instead of AC1021 did not remove the CELLSTYLEMAP read disposition from the ODA-generated AC1015 DWG; strict output still refuses. This only tests this specific generated mixed drawing."
   }
 }
