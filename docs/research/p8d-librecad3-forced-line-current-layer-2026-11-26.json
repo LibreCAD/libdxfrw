@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-26",
+  "consumer": "LibreCAD/LibreCAD_3",
+  "pull_request": 461,
+  "commit": "bd725b68",
+  "scope": "When forcing an edit of an existing built-in Line from a stale snapshot, retain the current source layer if both layers have the same name; preserve intentional moves to a differently named layer.",
+  "red_before": "A forced move following a same-name layer lock restored the old unlocked layer pointer, including after redo.",
+  "validation": {
+    "platform": "macOS ARM64",
+    "focused_tests": "187 passed",
+    "binding_plan": "full, actual base, worktree and 31 checker regressions passed",
+    "checks": [
+      "forced grouped line move and geometry",
+      "layer retained through undo and redo",
+      "intentional move to another layer remains allowed"
+    ]
+  },
+  "limitations": [
+    "Other entity types and renamed source layers are not covered.",
+    "Host and native GUI qualification remain open."
+  ]
+}

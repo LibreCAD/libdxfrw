@@ -167,9 +167,12 @@ evidence are recorded in `docs/research/` and Git history.
   prevents partial groups when a known replacement locks a supplied existing
   entity, including nested and chained replacements, while allowing unrelated
   edits. It conservatively refuses even read-only or copy inputs in that case.
-  Fix stale layer metadata on forced retries; cover entities created earlier in
-  a group, other lock-changing operations, unqualified custom operations and
-  complex repeated successful stacks separately.
+  The [forced line retry fix](docs/research/p8d-librecad3-forced-line-current-layer-2026-11-26.json)
+  retains the current same-named source layer across a stale line edit and
+  undo/redo while allowing an intentional move to another layer. Extend stale
+  metadata handling to other entity types and renamed layers; cover entities
+  created earlier in a group, other lock-changing operations, unqualified custom
+  operations and complex repeated successful stacks separately.
   The [script document guard](docs/research/p8d-librecad3-locked-script-document-2026-11-26.json)
   also protects direct Document bindings, offers checked and force methods, and
   fixes a null-storage constructor crash. Low-level StorageManager and entity
