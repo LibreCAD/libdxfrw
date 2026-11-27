@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-exact-truecolor-2026-11-27",
+  "supportClaimEffect": "selected profile only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "b5bbf0b7d77b9d207599cc44648d4a7fee6987bc",
+  "parent": "b5d0120e25f2b52b149dfd673c62982b93e04cc9",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-AutoLISP-Reference/files/GUID-D47983BA-1E5D-417D-85B8-6F3DE5F506BA.htm"
+  ],
+  "scope": "Bounded ordinary ASCII AC1021 sparse-MATERIAL model-space POINT, LINE, CIRCLE, ARC, ELLIPSE and LWPOLYLINE. Admit RGB source only when its explicit ACI fallback and 24-bit group are exactly reproduced by the current writer; live RGB edits use the same shared appearance check.",
+  "checks": [
+    "Red-before source RGB POINT was refused.",
+    "With the current rebuilt and installed shared codec, 409 assertions pass for selected imports, edits, reopen/resave, mismatched and missing fallback, duplicate/malformed/out-of-range RGB, named colors, palette-coincident RGB, source/delivery mutations, atomic refusal and corrected retry.",
+    "The affected MATERIAL selector passes 3746 assertions in 21 cases.",
+    "ezdxf 1.4.5 independently checks 24 locally generated unedited/edited outputs for exact RGB, authored geometry, MATERIAL graph links and zero audit errors or fixes.",
+    "The bundled-codec filter translation unit compiles; runtime qualification is not claimed.",
+    "DYLD_PRINT_LIBRARIES confirms the selected installed shared library was loaded."
+  ],
+  "hashes": {
+    "redLog": "73909363920b0f950779a844643bd3c8ffb2574a13156246f7783aab037235e5",
+    "focusedLog": "463f97c24cb1e4783874c6f51ad8cdcc0111e6cdba125aeaf7ffafe109b3ad96",
+    "materialLog": "2fe6a937ef218f93623c161084ba3068d4fedcaefe2b2dea80f18b16393cc8bc",
+    "bundledCompileLog": "5422acc6cc5b44b9ee4ad07455d4e2f019db35b9e4fb3d4a7ecf8f39666849ab",
+    "loaderLog": "e4151afbc0141cf80106e38ec4cc5883c1c4a2075d6deee51badb9588ea18168",
+    "independentAudit": "42766e37829f62177b68cc6ef83f3f8c524648fe0bdb01e1c2bc886ad623a9d1",
+    "sharedLibrary": "a18e2367e0bc5727c7e8021ef7694230446c52972e0a7ae1856700c58bb1a099",
+    "testExecutable": "5fb7dc9e759123e443408ad4031c897773430db739425b2cbb7921301d56ef18"
+  },
+  "limits": [
+    "Only explicit 420 and matching emitted 62 are admitted; palette-coincident RGB, missing or mismatched fallback, named colors, BYBLOCK and contextual ACI 7 without exact RGB remain guarded.",
+    "Generated ASCII AC1021 profiles and headless macOS ARM64 only; no native GUI, binary, other producer, platform, other entity or general color claim.",
+    "No drawing fixture was committed."
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-candidate-linux-46039888727-2026-11-27",
+  "supportClaimEffect": "none",
+  "workflow": "https://github.com/dxli/libdxfrw/actions/runs/46039888727",
+  "job": "https://github.com/dxli/libdxfrw/actions/runs/46039888727/job/140644634893",
+  "workflowHead": "333d4ddfab488968dc212a1e0f6b0afbe3205582",
+  "sourceCommit": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "patchCount": 21,
+  "archiveSha256": "efd717b80f82d6c4ba10debc3c4fca5408cf57cb63fc9cccd8c594fb4fb040e7",
+  "platform": "GitHub Actions ubuntu-24.04 x86_64; GUI smoke uses Xvfb/xcb",
+  "headless": {
+    "receiptSha256": "a1d00356be8869c8b3a6bc30b334ec069c36ef26206cbe1c93adb0388a717a4d",
+    "freecadcmdSha256": "a1a79def83d01c34e05e94ba2c3a9f8e5aab20e348e44426ae680de0be6442a8",
+    "importModuleSha256": "f9ff8643ce4622df5d48c5f74c1f873e3d0c7909164716f4482327101bb8702e",
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "gui": {
+    "receiptSha256": "e6c151608ffdf321f48a83210ae6779f570f47fa73d15dd7a034f568a2f6c276",
+    "freecadSha256": "c7ccfff12ee178693abba0eff39c0eccd8799ffd7cee77750eaa49b19d37c1a1",
+    "importGuiSha256": "397b356e93305cbd2e62bce8f40b9af0aa39fcdbde5b464804f65b318788dc0b",
+    "cases": [
+      "polyface",
+      "polygon",
+      "mixed",
+      "nested_nolayers",
+      "layer_on_2",
+      "layer_off_2",
+      "layer_frozen_2",
+      "color",
+      "color_mixed",
+      "color_mixed_nocolor"
+    ],
+    "display": "Xvfb/xcb",
+    "scope": "focused GUI view-property checks; no pixel-rendering claim"
+  },
+  "limits": [
+    "Exact source and 21-patch candidate only; no broad FreeCAD or native producer claim.",
+    "GUI smoke checks view properties, layer grouping and diagnostics; it does not compare rendered pixels or execute the DWG handoff.",
+    "Windows candidate job remains in progress.",
+    "The workflow was pinned before later libdxfrw test-only changes; it is not a qualification of the final libdxfrw digest."
+  ]
+}
