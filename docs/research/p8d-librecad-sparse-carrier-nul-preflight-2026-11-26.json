@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumer_commit": "10381fb812de3bd71744458fc1d0ff36f9866886",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "codec_library_sha256": "715e638095a7994d091e3bf330a3710c993a703993df5cad709bababbb23f517",
+  "finding": "The consumer preflight used C-string prefixes for retained handle and dictionary strings, allowing an embedded NUL suffix to pass its graph checks. The codec later rejected the malformed raw object and preserved the destination in the observed control.",
+  "change": [
+    "Validate the full std::string for hexadecimal handles, shared by retained material, dictionary and image carrier checks. Compare subclass, reactor and source text values by their full strings.",
+    "Keep all existing graph and opt-in guards; no ordinary replay is enabled."
+  ],
+  "validation": [
+    "A failing-before in-memory mutation of both retained ASCII dictionary snapshots reached the object writer despite an invalid 350 handle; the codec refused and left the sentinel intact. The fixed preflight refuses before object writing.",
+    "The ASCII matrix injects embedded NULs into self, owner and item handles, separately and together in typed values and raw lexemes, with destination preservation and corrected same-filter retry.",
+    "A binary-source control with no raw lexeme array injects NULs into subclass, dictionary key and item-handle values; preflight refuses with a diagnostic, preserves the destination and accepts each corrected retry.",
+    "With the current hash-pinned system codec, 11 MATERIAL cases pass 1650 assertions and seven IMAGE cases pass 7512 assertions; the bundled-codec filter object compiles.",
+    "ezdxf independently checks the generated successful AC1021 retry: PlainMat and Sibling are present, layer and LINE reference PlainMat, and audit reports no errors or fixes. ezdxf adds its own standard materials when loading; this is bounded graph evidence."
+  ],
+  "retry_output_sha256": "04030f35e90a84ed8b2da91f66bf4c3e33d9af0dd675dbfd2ca56f09ac1bf97e",
+  "limits": [
+    "Malformed inputs are simulated by mutating retained in-memory snapshots; no independent malformed producer file is claimed.",
+    "The normal exporter remains guarded, and full sparse-material graph qualification, native behavior and other platforms remain open.",
+    "No generated fixture was committed."
+  ],
+  "supportClaimEffect": "none"
+}

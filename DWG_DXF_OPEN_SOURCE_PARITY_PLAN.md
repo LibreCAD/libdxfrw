@@ -25,7 +25,9 @@ evidence are recorded in `docs/research/` and Git history.
   checks common group-347 output. The [consumer integration](docs/research/p8d-entity-material-and-image-graph-2026-11-26.json) binds selected model/block LINE references and composes the existing IMAGE and MATERIAL checks; new/copy entities without stable source handles and broader profiles remain open. The [empty-layer audit](docs/research/p8d-empty-layer-material-audit-2026-11-26.json)
   checks that no unlisted layer has a material reference. The [opt-in replay slice](docs/research/p8d-opt-in-sparse-material-replay-2026-11-26.json)
   admits selected unchanged same-version ASCII graphs and verifies refusal and retry;
-  the normal exporter remains guarded. The [ordinary import slice](docs/research/p8d-ordinary-sparse-material-import-2026-11-26.json)
+  the [full-string preflight](docs/research/p8d-librecad-sparse-carrier-nul-preflight-2026-11-26.json)
+  rejects embedded-NUL carrier handles and dictionary strings before writing,
+  with ASCII/binary mutation controls and retry. The normal exporter remains guarded. The [ordinary import slice](docs/research/p8d-ordinary-sparse-material-import-2026-11-26.json)
   retains bounded ASCII/binary raw-only materials for viewing, warns about editing
   and save limits, and preserves the destination when ordinary save is refused.
   Extend this beyond the 256 KiB source bound only after aggregate capture and
