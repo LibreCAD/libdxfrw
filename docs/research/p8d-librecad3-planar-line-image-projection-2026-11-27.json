@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-planar-line-image-projection-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "5127d1c9",
+  "problem": "Planar selection queried a 3D nearest path first, so a tilted elevated LINE or IMAGE could be missed even when its projection passed under the cursor.",
+  "implementation": "Share XY segment and infinite-line projection in geo::Vector, interpolate source Z, and route only planar LINE and IMAGE picking through those nonvirtual methods. Existing 3D path queries are unchanged.",
+  "validation": [
+    "The generated tilted LINE and IMAGE viewer controls failed before their respective fixes.",
+    "87 focused viewer, vector, image, builder and layer tests pass, including selected tilted-line and image selection/snap, planar and 3D distinction, bounded versus infinite projection, XY-degenerate vectors and ordinary 2D controls."
+  ],
+  "lineRedLogSha256": "1ecae5d5f23422bc1eb842501084a211a7d5ec242300e0c7f8626d5451a49d44",
+  "testLogSha256": "c78e3d9816efe2f82bc757db630f7f28771467e0ced3b0bdc22b9f814b88d1a8",
+  "limits": [
+    "A line or image edge projected to one XY point has ambiguous depth; this implementation deterministically uses the starting elevation.",
+    "Native GUI, other entity types, extreme numeric magnitudes and broader 3D interaction remain unqualified."
+  ]
+}
