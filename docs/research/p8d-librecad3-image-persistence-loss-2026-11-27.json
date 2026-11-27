@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-persistence-loss-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "9f97c43f",
+  "scope": "Locally authored, scaled IMAGE through LibreCAD_3 bundled-codec AC1024 ASCII and binary DXF save/reopen, then reported-loss resave.",
+  "checks": [
+    "A selected image base, U/V vectors, pixel dimensions, display parameters and spatial bounds survive first save/reopen in both encodings.",
+    "On resave, ASCII reports one unreferenced dictionary; binary reports four unmodelled records. The selected image coordinates still reread, but neither path is a complete graph-preservation claim.",
+    "Independent ezdxf 1.4.5 audits an earlier matching generated ASCII first output with zero errors/fixes; its partial resave requires one invalid-owner dictionary repair."
+  ],
+  "asciiFirstSha256": "d8c6a7d206410b55b55d95363217c1baf803b5cccf7bd4745672175c9e02c05c",
+  "asciiPartialSha256": "5ec46be92b720486e391dfdf95d73bbb568fb474dee5026b51ee33dc68474c78",
+  "testLogSha256": "6797dbb7044e698d4db20649463f6461eacc01f3cb7da6c0f09d30ac41b6c98b",
+  "next": [
+    "Qualify source IMAGE dictionary, definitions, reactors and image references, including metadata and every dependent edge; use existing codec graph planning/finalizer only after exact source/delivery and output checks.",
+    "Preserve and report unsupported or ambiguous profiles; prove atomic refusal, corrected retry and independent clean graph readback before removing the loss expectation."
+  ],
+  "limits": [
+    "Generated source and focused fields only; no general IMAGE or native rendering qualification.",
+    "Neither DWG nor DXF fixture is committed."
+  ]
+}
