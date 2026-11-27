@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "f3344a73a484d94c0faf5859aa42f09fb36ccede",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "problem": "Lua and Python exposed direct document insert/remove methods that could modify or erase existing entities on locked layers despite the EntityBuilder guard. During validation, constructing a Lua DocumentImpl from a value-form storage manager also exposed an existing null-manager crash.",
+  "change": [
+    "Shared Document guard methods check the current entity by ID. Existing script-facing insertEntity/removeEntity preserve their no-result return shape, refuse locked changes and log a warning; try variants return a boolean, while explicitly named force variants call the original raw methods.",
+    "Creating new entities on locked layers remains allowed. Internal C++ raw methods remain available to import, undo and trusted callers.",
+    "DocumentImpl rejects a null storage manager and ignores null raw entity arguments with a warning. Lua gains explicit shared-pointer construction factories for its storage manager and document.",
+    "Documented the scripting behavior, explicit overrides and lower-level storage-manager bypass in docs/scripting-locked-layers.md."
+  ],
+  "validation": [
+    "A focused macOS ARM64 compatibility run passed 160 tests: 12 entity-builder, three layer-operation, eight selection, nine canvas, three DXF export, 76 DXF round-trip, 17 DWG import, 28 Python and four Lua tests.",
+    "Lua and Python runtime tests cover default refusal, no-result compatibility, try/force methods, creating on locked layers, derived DocumentImpl bindings and null inputs. The Lua control also checks that the formerly crashing value-form construction fails safely.",
+    "The test build uses a matching Lua 5.4 header/library pair."
+  ],
+  "limits": [
+    "The direct StorageManager and entity-container scripting APIs remain low-level bypasses; lock behavior is not enforced universally at those layers. Other document operations and native/platform behavior need independent qualification.",
+    "This change does not expand a file-format support claim, and no generated fixtures were committed."
+  ],
+  "supportClaimEffect": "none"
+}

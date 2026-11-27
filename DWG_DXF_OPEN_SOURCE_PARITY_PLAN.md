@@ -154,8 +154,10 @@ evidence are recorded in `docs/research/` and Git history.
   The [freeze/lock slice](docs/research/p8d-librecad3-frozen-locked-layer-2026-11-26.json)
   separates their DXF flags and normal canvas behavior. The [locked-operation guard](docs/research/p8d-librecad3-locked-entity-operations-2026-11-26.json)
   rejects mixed EntityBuilder edits atomically, permits creation and explicit
-  override, and tests Lua/Python, undo and block entities. Direct low-level
-  Document and StorageManager mutations, viewport-specific freeze and other
+  override, and tests Lua/Python, undo and block entities. The [script document guard](docs/research/p8d-librecad3-locked-script-document-2026-11-26.json)
+  also protects direct Document bindings, offers checked and force methods, and
+  fixes a null-storage constructor crash. Low-level StorageManager and entity
+  containers, other document operations, viewport-specific freeze and other
   layer flags remain open.
   The [state-only color provenance fix](docs/research/p8d-librecad3-layer-state-color-provenance-2026-11-26.json)
   preserves selected source ACI and color names across layer controls; non-state
