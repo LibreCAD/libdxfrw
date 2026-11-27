@@ -131,6 +131,7 @@ EXTRA_DIST = \
     docs/patches/librecad3-p8-underlay-import-loss-2026-11-16.patch \
     docs/patches/librecad3-p8-unrepresentable-layer-width-2026-11-16.patch \
     docs/patches/librecad3-p8-wipeout-import-loss-2026-11-16.patch \
+    docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json \
     docs/research/visualstyle-slot-evidence-grades-2026-10-16.json \
     docs/research/visualstyle-slot-map-readiness-2026-10-15.json \
     dwg2dxf/CMakeLists.txt \

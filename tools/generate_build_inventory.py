@@ -25,6 +25,7 @@ MANAGED = {
     "libdxfrw-autotools.pc.in", "docs/SOURCE_RELEASE.md",
 }
 RESEARCH_INPUTS = {
+    "docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json",
     "docs/research/visualstyle-slot-map-readiness-2026-10-15.json",
     "docs/research/visualstyle-slot-evidence-grades-2026-10-16.json",
 }
@@ -69,7 +70,7 @@ def cmake_list(text: str, key: str, prefix: str = "${CMAKE_CURRENT_LIST_DIR}/") 
 
 def in_release(name: str) -> bool:
     # Keep append-only execution evidence out of its own archive/hash cycle.
-    # The two historical reports below are actual CMake test inputs.
+    # The explicit reports are inputs to shipped tests or research tools.
     return (name != "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
             and (not name.startswith("docs/research/") or name in RESEARCH_INPUTS))
 
@@ -182,6 +183,7 @@ def self_test() -> None:
     assert not in_release("docs/research/new-receipt.json")
     assert not in_release("DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md")
     assert all(in_release(p) for p in RESEARCH_INPUTS)
+    assert in_release("docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json")
     assert paths(["package/m4/lt~obsolete.m4"], generated_archive=True)
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
