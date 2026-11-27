@@ -21,7 +21,13 @@ ARCHIVES = {
         "d956ec561639cfa83f755504b1b3358ea799428e",
     "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4":
         "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+    # git archive of FILES only, with the FreeCAD-<commit>/ prefix and gzip -n.
+    "008c9834581375624d26a2b264995b65cb8b10bd7a3234e3771cce6bd3fc3225":
+        "477a7041803823a1fcae528133cb07ee5533b1b2",
 }
+# Earlier candidate receipts describe the normalized outputs. For this newer
+# source retain upstream's CRLF header instead of rewriting the entire file.
+PRESERVE_NEWLINES = {"477a7041803823a1fcae528133cb07ee5533b1b2"}
 FILES = (
     "src/Mod/Import/App/dxf/ImpExpDxf.cpp",
     "src/Mod/Import/App/dxf/ImpExpDxf.h",
@@ -78,6 +84,7 @@ def main():
     patch_hashes = {}
     with tempfile.TemporaryDirectory(prefix="freecad-patch-replay-") as temp:
         root = Path(temp)
+        crlf_files = []
         with tarfile.open(args.source_archive, "r:gz") as archive:
             for relative in FILES:
                 member = archive.getmember("FreeCAD-" + source_commit + "/" + relative)
@@ -88,7 +95,12 @@ def main():
                     raise ValueError("unreadable archive entry: " + relative)
                 target = root / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(source.read())
+                data = source.read()
+                if source_commit in PRESERVE_NEWLINES and b"\r\n" in data:
+                    if b"\n" in data.replace(b"\r\n", b""):
+                        raise ValueError("mixed source line endings: " + relative)
+                    crlf_files.append(relative)
+                target.write_bytes(data)
         for name in PATCHES:
             patch = patch_dir / name
             patch_hashes[name] = digest(patch)
@@ -99,6 +111,10 @@ def main():
                                   capture_output=True, text=True, check=False)
             if proc.returncode:
                 raise RuntimeError("patch failed: " + name + "\n" + proc.stderr.strip())
+        for relative in crlf_files:
+            target = root / relative
+            data = target.read_bytes().replace(b"\r\n", b"\n")
+            target.write_bytes(data.replace(b"\n", b"\r\n"))
         actual_files = set()
         for item in root.rglob("*"):
             if item.is_symlink():

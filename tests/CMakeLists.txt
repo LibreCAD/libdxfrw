@@ -7610,6 +7610,10 @@ set_tests_properties(libdxfrw_dimassoc_duplicate_dxf PROPERTIES LABELS "dxf;fast
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
 if(Python3_Interpreter_FOUND)
+    add_test(NAME libdxfrw_freecad_patch_replay
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/freecad_patch_replay_tests.py)
+    set_tests_properties(libdxfrw_freecad_patch_replay PROPERTIES
+        LABELS "fast;freecad;research" TIMEOUT 10)
     add_test(NAME libdxfrw_mtext_field_source_audit
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/audit_mtext_field_source_tests.py)
     set_tests_properties(libdxfrw_mtext_field_source_audit PROPERTIES
