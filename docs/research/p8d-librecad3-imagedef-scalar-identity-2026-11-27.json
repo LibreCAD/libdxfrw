@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-imagedef-scalar-identity-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "a01e5ade9d5494a1145a5f18c5afb147619d5511",
+  "problem": "The LibreCAD_3 adapter ignored the writer-owned IMAGEDEF, leaving its pixel dimensions and source display scalars zeroed and conflating separate definitions with the same path.",
+  "implementation": "Capture shared source definition scalars and a bounded path, then use the codec's source-generation definition plan when available. Initialize new-image definitions, report unmodeled source metadata and unsupported fallbacks, reserve original definition handles, and report removal of stale source dictionary entries. Conflicting captured source identities fail before the write; older codec headers use the filename fallback and report identity loss.",
+  "validation": [
+    "Scalar-loss and same-path definition controls failed before the fix. 87 focused IMAGE/persistence tests and 18 layout tests pass, including source fields, new-image defaults, ASCII and binary reopens, source metadata loss reporting, path changes, low source handles, a rejected malformed duplicate-handle input, and removal/copy retry.",
+    "Independent ezdxf 1.4.5 verifies two same-path IMAGEs retain distinct definition links, image dimensions, pixel sizes and resolution; low-handle and shared-definition retry outputs also have zero audit errors or fixes.",
+    "The independent binary cross-encoding output preserves the same distinct definition fields and links but still needs one orphan paper-space block repair; its raw-source graph loss is reported.",
+    "The adapter syntax-checks against the older bundled codec headers with the plan API disabled; older-codec runtime behavior is not qualified."
+  ],
+  "scalarRedLogSha256": "79886bafac5e84e23c53a6150e314e875ed12374cd899902ccdf0bb96655434b",
+  "identityRedLogSha256": "0db6aed20aecd6915984e64bf694045ba826f3ab4c6f85decaaafba49e72166c",
+  "testLogSha256": "a138022cc87c8f3ba9588e87eb4292ff793071b4e6fa66cf099c9ebf847ef102",
+  "layoutLogSha256": "cab67cb42df8394ca947db128dd32e7a458918efa4cc91cb60bf4683f75e3109",
+  "olderHeaderLogSha256": "9bd1866077a51ed750abefebd0c799dc2d019ea4929be5aa892b57c1d5935247",
+  "peerResultSha256": "132bec924e96dc059ff4cbcfaf3366e6a8d6f4b2fa206e6c73e0d52ec3603837",
+  "limits": [
+    "Source IMAGEDEF/reactor object identities, XDATA, application groups, original dictionary keys and other inbound links are not fully retained. Omitted metadata and source entries are reported; the generated objects are not a full-graph preservation proof.",
+    "The source-path capture limit is 4 MiB logical bytes and the definition plan is limited to 100000 identities. These are not total process-memory limits; limit exhaustion and the defensive export-side collision branch are not independently exercised here.",
+    "Binary cross-encoding, removed-only images, older-codec runtime, clipped rendering, native producers, and broader graph/platform qualification remain open. No generated drawing was committed."
+  ]
+}
