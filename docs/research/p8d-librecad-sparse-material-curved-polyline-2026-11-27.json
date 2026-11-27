@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-curved-polyline-2026-11-27",
+  "supportClaimEffect": "bounded selected consumer profile only",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "pullRequest": 3289,
+    "commit": "f6753acac9d302c5367a59bd3e73982ae5dd818b",
+    "parent": "9df41c96e3a1dc411c55018574e24bcc7b90bcf3"
+  },
+  "profile": "Selected ASCII AC1021 model-space sparse MATERIAL graphs and open/closed lightweight polylines, with zero widths and finite arc bulges. Source physical fields and delivered geometry are checked before replay. Arc joins allow 64 binary64 epsilons scaled by coordinates; straight joins remain exact. Flattened nonzero bulges and unsupported metadata are refused.",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-748FC305-F3F2-4F74-825A-61F04D757A50.htm",
+    "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Polyline_SetBulgeAt_int_double.html"
+  ],
+  "checks": {
+    "beforeFix": "The new open curved polyline test failed ordinary export before implementation.",
+    "focused": "450 assertions, 3 cases; includes open/closed arcs, edit/reopen/resave, typed and physical source mismatch, live geometry rejection, destination preservation and corrected retry.",
+    "material": "3221 assertions, 17 cases, system codec.",
+    "polylineAndExtrusion": "1019 assertions, 17 cases, system codec.",
+    "bundled": "Affected filter and test translation units compile with the bundled codec; no bundled runtime test is claimed.",
+    "independentPeer": "ezdxf 1.4.5 read 12 locally generated outputs, verifying moved vertices, positive and negative bulges, terminal/closing bulges and four MATERIAL references; all audits had zero errors or fixes. Virtual arc centers and radii agree with independent analytic values.",
+    "scratchOnly": "The generated DXF drawings and peer outputs remain in scratch storage and are not committed."
+  },
+  "logSha256": {
+    "red": "d20915092b2853db9f655bd6e2cd26cc8928c204268fdfc6bc580f9e6116924e",
+    "focused": "9dce2bf4d95b759713d2d71073b8240ce7e00dcbebcf61f4381c8acc8aae05d2",
+    "material": "0ed497c527611e8803a2e21b3cb0e0d3aed0e9e7fc9e9502266d63dad79eeb76",
+    "polylineAndExtrusion": "52436fd485181edbcf7da4f47043c321c13e151f0b895d6de5f0a47bcdc44257",
+    "bundled": "cdbd97d2b95f6bc4a698068af58b47ba2d1df536784162e5f84ea4f777eee8e0",
+    "peer": "0333cedd3c5c9dcf104c71a622a41ccd6e2e2c566e0c6b949c5f0cc0d33ed2f8"
+  },
+  "limitations": [
+    "Reconstruction of source geometry uses the LibreCAD geometry implementation and is a consistency check, not independent native producer evidence.",
+    "The independent output check covers these generated examples, not arbitrary polylines, native GUI behavior, other producers, versions or platforms.",
+    "Widths, unsupported fields, flattened tiny arcs, rotated elliptic polyline output and broader MATERIAL graphs remain guarded."
+  ]
+}
