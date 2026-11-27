@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "b887460b",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "problem": [
+    "Zoom-to-fit used an INSERT bounding box containing hidden child geometry.",
+    "Layer replacement and removal searched only model-space entities; block children retained stale layer objects after toggling.",
+    "INSERT and IMAGE modification created new IDs during layer replacement."
+  ],
+  "change": [
+    "Include all stored block entities in the shared layer query used by layer replacement and removal. Preserve INSERT and IMAGE identities when modifying layer metadata.",
+    "Compute fit bounds by walking block children using the same effective layer inheritance as drawing, applying insert offsets and preventing block-cycle recursion."
+  ],
+  "validation": [
+    "A generated test reproduced an incorrectly small fit scale before the fix and a stale off state after replacement. It now checks drawing and fit before and after toggle plus undo/redo.",
+    "Eight canvas tests, two layer-operation tests, three offscreen layer UI tests, 72 DXF round-trip, 17 DWG import and 17 layout tests pass on macOS ARM64.",
+    "The layer-operation control checks replacement, undo, redo, removal and undo for block-contained LINE, INSERT and IMAGE, with stable identity.",
+    "Plan full, worktree, base-ref and 31 checker tests pass."
+  ],
+  "limits": [
+    "The fit implementation follows the current viewer INSERT translation model; rotation and scaling of INSERT are not established by this slice.",
+    "Native GUI and other-platform qualification remain open; no generated drawing fixture was committed."
+  ],
+  "supportClaimEffect": "none"
+}
