@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-cadkit-root-dictionary-peer-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "Independent native dictionary decode of the existing locally authored and ODA 27.10 generated AC1012 collision-and-unique-entry source/destination pair, plus source review of the AC1024 post-HEADER suffix.",
+  "peer": {
+    "name": "TNYCL/cadkit cadkit-dwg",
+    "version": "0.5.4",
+    "commit": "965567ac854c37b04d2325fe130367b3dea09d03",
+    "repository": "https://github.com/TNYCL/cadkit",
+    "dictionaryDecoder": "https://github.com/TNYCL/cadkit/blob/965567ac854c37b04d2325fe130367b3dea09d03/crates/cadkit-dwg/src/object/tables.rs#L251-L279",
+    "headerDecoder": "https://github.com/TNYCL/cadkit/blob/965567ac854c37b04d2325fe130367b3dea09d03/crates/cadkit-dwg/src/header.rs#L552-L618",
+    "provenance": "Specification-directed decoder with some documented ACadSharp-derived rules; not AutoCAD, ODA or independent native application behavior. The project labels R13 untested.",
+    "build": "cargo build --locked -p cadkit-dwg --example dwgdump; macOS ARM64, cargo 1.100.0 debug",
+    "binarySha256": "0cb592694a50c7503391a23d302c67f2c3c754a5ccc40ea0f4abcef42cb31351"
+  },
+  "inputs": {
+    "sourceDwgSha256": "25c08bb8b303ce1729b2171efe163aeebf4ebf31e468fb41dc5236f66a635bd8",
+    "destinationDwgSha256": "23f2f3282e9a6cef217f0be4944713408fb043f9834ea4689f38c4f768a11be9",
+    "sourceReceipt": "docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json"
+  },
+  "rootReadback": {
+    "command": "dwgdump <source-or-destination> --handle C",
+    "object": "DICTIONARY handle 0xC; each root CRC passes, decode succeeds with 0 main and 2 handle bits remaining",
+    "orderedEntryCount": 18,
+    "emptyNameNullEntryCount": 1,
+    "cloningAndHardOwner": "both None for R13; no native default inferred",
+    "eed": "APPID handle 0x12, decoded TREAT_AS_HARD string and short 0",
+    "logSha256": "22110d5eb721d8ec3ac1015b8852df27af139d84bb1cffb06bef58179025ca8d",
+    "independenceLimit": "Numeric handle value 0 is not a proof of its source wire role; the separate physical walker binds that role. Identical source and destination roots do not test collision merging or application validity."
+  },
+  "ac1024Suffix": {
+    "inputSha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "readerObservation": "R2010, 275 header variables, complete true, trailer CRC/end sentinel true, 226/226 object-map entries observed.",
+    "sourceReview": "The parser bounds streams by the declared data size and checks the next CRC and sentinel; it returns without classifying the remaining logical section bytes. Therefore a successful read does not establish that the existing 739-byte post-sentinel suffix is safe to discard.",
+    "priorReceipt": "docs/research/p6-ac1024-header-stream-suffix-authority-2026-11-24.json"
+  },
+  "currentSanitizer": {
+    "implementationDigestSha256": "63651edc1dad5da5c8ffa9913800c56487c7f2d00c6e642aaa2b04c961d371fb",
+    "scope": "focused whole-source capture and compact MATERIAL/wide-graph CTests",
+    "result": "both pass with AddressSanitizer; ASAN_OPTIONS=detect_leaks=0"
+  },
+  "limits": [
+    "No native AutoCAD open, save, clone, dictionary API or application validity observed.",
+    "No suffix semantics, native EED/merge meaning, graph closure or support claim is established.",
+    "No DWG/DXF fixture was added or committed."
+  ],
+  "selectedStyleDictionary": {
+    "handle": "0x17",
+    "ownerAndReactor": "0xC",
+    "eed": "APPID 0x12, TREAT_AS_HARD and short 0",
+    "sourceEntries": [
+      [
+        "SAME_KEY",
+        "0x2E"
+      ],
+      [
+        "SOURCE_ONLY",
+        "0x2F"
+      ],
+      [
+        "STANDARD",
+        "0x18"
+      ]
+    ],
+    "destinationEntries": [
+      [
+        "DEST_ONLY",
+        "0x2F"
+      ],
+      [
+        "SAME_KEY",
+        "0x2E"
+      ],
+      [
+        "STANDARD",
+        "0x18"
+      ]
+    ],
+    "sourceLogSha256": "4fc1fcb905555eb3593aea8f52ac5a722a7a19fae7d55ebc06826ecee929b1c5",
+    "destinationLogSha256": "f0eea9f72b4820fbc339b71536291c72077d2bd6407c190a61d50431e0984988",
+    "limits": "Same handle values occur in separate source and destination namespaces; this readback does not perform clone or determine which duplicate wins."
+  }
+}
