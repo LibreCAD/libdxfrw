@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-candidate-windows-mesa-2026-11-27",
+  "supportClaimEffect": "none",
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/46051681238",
+  "job": "https://github.com/dxli/libdxfrw/actions/runs/46051681238/job/140684288859",
+  "workflowHead": "923f677cd09ed0b7299811af8b8c4fb433c727c3",
+  "sourceCommit": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidatePatchCount": 21,
+  "candidateArchiveSha256": "efd717b80f82d6c4ba10debc3c4fca5408cf57cb63fc9cccd8c594fb4fb040e7",
+  "linuxComparison": "same exact source replay and ten named GUI cases as run 46039888727 on Linux",
+  "headless": {
+    "receiptSha256": "4edd33d85a385968961392bd50e351bf9936a5f87d2eb4ed3c2a0de4a3f62434",
+    "executableSha256": "40dc097505fb0e1724d53bf45174468349ca4d5c4d201804723f91f5a135889d",
+    "importModuleSha256": "132607d57c5f09139f134e31602911141a30378d5bfb2cbd40d67f9905567e84",
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "gui": {
+    "receiptSha256": "b07a914b5f0d797d05442bc3627ea2b2a00fd673b31fc183266001063a894e51",
+    "stdoutSha256": "bc37b81b6977893af8d13552ffce4ab5ae1ff9dc7104197b1e49c29b27189a91",
+    "stderrSha256": "f9dd1d0c49f346e26176670b1a8db00a1e296839c0acbf4cba942b64e0fb6c24",
+    "executableSha256": "0dc862f8d430f5d32cbdc0c26f9bafc410e5679d67686b4cafcc31e18ec078b6",
+    "importGuiSha256": "8e8574c8467951e439c16440faf00fae9c56c9682d1b2b705cdb53525792eeb2",
+    "platform": "windows-2022 x86_64",
+    "qtPlatform": "windows",
+    "guiUp": 1,
+    "caseNames": [
+      "polyface",
+      "polygon",
+      "mixed",
+      "nested_nolayers",
+      "layer_on_2",
+      "layer_off_2",
+      "layer_frozen_2",
+      "color",
+      "color_mixed",
+      "color_mixed_nocolor"
+    ],
+    "fatalDiagnosticSignatures": {},
+    "openGLModule": "D:\\a\\_temp\\freecad-candidate-build\\bin\\OPENGL32.dll",
+    "openGLModuleSha256": "b49b87248f6bb496318a7cbde469dd60c9ff6938b2a11bdb01fd9777c1d884a3",
+    "remainingWarnings": {
+      "missingIconLines": 124,
+      "missingLayerZeroReferences": 3
+    }
+  },
+  "checks": [
+    "PASS the pinned Mesa 23.3.5 Windows module was loaded from the candidate build directory and hashed.",
+    "PASS diagnostic guard found none of the previously observed access violation, OpenGL version, texture allocation or context failure signatures.",
+    "PASS 16 headless tests and ten generated GUI view-property cases with the candidate module and expected source replay."
+  ],
+  "limits": [
+    "View-property smoke checks do not verify rendered pixels, interaction, or hardware-driver behavior.",
+    "The focused generated DXF profiles do not establish the DWG-to-DXF handoff, independent producer compatibility or general 3D support.",
+    "Missing-icon and missing-layer warnings remain; investigate them separately if those resources or inputs are in the acceptance scope.",
+    "All public format support claims remain experimental."
+  ]
+}

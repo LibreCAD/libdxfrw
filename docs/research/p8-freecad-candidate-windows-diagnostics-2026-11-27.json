@@ -46,12 +46,13 @@
     "retry": {
       "run": "https://github.com/dxli/libdxfrw/actions/runs/46051681238",
       "workflowHead": "923f677cd09ed0b7299811af8b8c4fb433c727c3",
-      "status": "in_progress"
+      "status": "success",
+      "receipt": "docs/research/p8-freecad-candidate-windows-mesa-2026-11-27.json"
     }
   },
   "limitations": [
     "A green job conclusion is not GUI qualification when its captured process reports unhandled exceptions.",
     "The 16 headless tests qualify the pinned importer candidate and listed generated inputs only; they do not establish DWG handoff or native rendering.",
-    "The software-renderer change is prepared and locally validated for syntax, archive identity and diagnostic classification; it is not verified on Windows until the new job runs."
+    "The original GUI run remains invalid; the later guarded Windows retry succeeded for its focused view-property profile."
   ]
 }
