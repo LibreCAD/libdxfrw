@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-metadata-edits-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "123bf6a4690ce2f1b7113bc3e517e6e54b1a5a67",
+  "problem": "Replacing an IMAGE's complete style metadata map via modify discarded its source display and clipping sidecar.",
+  "implementation": "Carry the reserved immutable source entry through Image::modify without mutating the supplied style metadata; share the key with the persistence adapter.",
+  "validation": [
+    "The selected moved-image and replacement-metadata output control failed before the fix.",
+    "85 IMAGE and DXF persistence tests pass, including model-space R2000/R2010 source images, a replacement RGB style, polygonal clip and display fields, and reopen/resave. The supplied style map remains unchanged."
+  ],
+  "redLogSha256": "9cfb1b7c7df56d150013cec1d173a49951a0838658fe529661c216ee144fef07",
+  "testLogSha256": "92d24f520ae85090095a8a1f21926d76a8adc4a961efb59410d97f6a7ee07fe7",
+  "limits": [
+    "Only Image::modify and the tested move path carry the reserved sidecar; manual reconstruction of an Image from individual fields remains unqualified.",
+    "This does not implement clipped rendering or picking, independently validate output semantics, or close the IMAGEDEF/reactor graph."
+  ]
+}
