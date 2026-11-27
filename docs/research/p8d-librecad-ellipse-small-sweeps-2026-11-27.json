@@ -12,8 +12,8 @@
   "authority": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm",
   "checks": [
     "Red controls exposed near-full import becoming a whole ellipse, tiny zero-origin arcs becoming whole, full-turn length reported for a tiny entity, full-ellipse bounds and an incorrect nearest point.",
-    "The final focused control passes 56 assertions in three cases, including selected ordinary and sparse-MATERIAL import/edit/resave, exact parameter readback, tiny and near-full sweeps, reversed tiny bounds/nearest point, entity length, destination safety and retry.",
-    "The system-codec MATERIAL selection passes 3337 assertions in 20 cases; the extrusion selection passes 184 assertions in five cases.",
+    "The final focused control passes 56 assertions in three cases, including selected ordinary and sparse-MATERIAL import/edit/resave, exact parameter readback, tiny and near-full sweeps, reversed tiny bounds/nearest point, and entity length.",
+    "The system-codec MATERIAL selection, including refusal and retry controls, passes 3337 assertions in 20 cases; the extrusion selection passes 184 assertions in five cases.",
     "A scratch test runner linked the current system-codec library with the existing ellipse, axis-swap, length and nearest-distance test sources. The ellipse selection passes 69851 assertions in 38 cases, including the public helper's previous near-equal-angle contract.",
     "ezdxf 1.4.5 independently confirms distinct endpoints, selected parameters and MATERIAL references for near-full and tiny-arc outputs; both audits report no errors or fixes. The two output hashes remain unchanged after the final geometric checks.",
     "The affected bundled-codec filter, ellipse and test translation units compile; no bundled runtime test is claimed. Generated drawings and the scratch test runner are not committed."
