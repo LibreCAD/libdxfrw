@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-regenerated-image-graph-guard-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "c77caa02",
+  "scope": "LibreCAD_3 root reattachment when the writer regenerates selected IMAGEDEF and IMAGEDEF_REACTOR records.",
+  "reproduction": "A locally generated custom dictionary referenced a raw IMAGEDEF_REACTOR. Root planning counted it as emitted even though writeObjects skipped it, so the custom root was reattached and the loss count was too low.",
+  "implementation": "Use one shared IMAGE detection and regeneration predicate for both raw emission and root graph planning. When an image is present, skipped IMAGEDEF/IMAGEDEF_REACTOR records no longer satisfy source raw graph closure.",
+  "validation": [
+    "The generated reactor-reference control fails before the fix: LC_REACTOR is reattached and only one loss is reported.",
+    "After the fix LC_REACTOR is not reattached and both incomplete roots are reported; six focused persistence tests pass, including cyclic/shared and no-image root controls."
+  ],
+  "testLogSha256": "0b149d322559233d112dd17888b2f8f12bfc45c6f6afc11611bae52e617ae33e",
+  "limits": [
+    "This is a guard and loss-reporting correction, not IMAGE graph preservation. Detached raw dictionaries may still need output cleanup or full source graph replay, with independent proof.",
+    "Generated DXF input remains temporary and is not committed."
+  ]
+}
