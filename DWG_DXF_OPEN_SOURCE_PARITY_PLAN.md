@@ -162,7 +162,9 @@ evidence are recorded in `docs/research/` and Git history.
   also protects direct Document bindings, offers checked and force methods, and
   fixes a null-storage constructor crash. Low-level StorageManager and entity
   containers, other document operations, viewport-specific freeze and other
-  layer flags remain open.
+  layer flags remain open. The [binding-plan synchronization](docs/research/p8d-librecad3-locked-binding-plan-sync-2026-11-26.json)
+  maps the new scripting documentation and passes against the current PR base;
+  hosted jobs remain pending.
   The [state-only color provenance fix](docs/research/p8d-librecad3-layer-state-color-provenance-2026-11-26.json)
   preserves selected source ACI and color names across layer controls; non-state
   replacements, color books, transparency, native toggling and other platforms
