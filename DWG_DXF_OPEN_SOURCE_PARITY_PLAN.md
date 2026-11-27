@@ -260,8 +260,9 @@ evidence are recorded in `docs/research/` and Git history.
   validates strict refusal and bounded partial output. The [shared-check rerun](docs/research/p6-ac1012-generated-pair-shared-checks-2026-11-26.json)
   passes both existing generated frames and the AC1012/AC1014/AC1015 controls
   on the current implementation. A [freshly generated pair](docs/research/p6-ac1012-user-request-generated-pair-2026-11-26.json)
-  exercises both strict refusals and partial encodings; the [current shared-frame recheck](docs/research/p6-ac1012-shared-frame-ba76-2026-11-26.json)
-  passes both source frames after the later codec changes. It does not prove native
+  exercises both strict refusals and partial encodings; the [current-candidate recheck](docs/research/p6-ac1012-spec-pair-current-993262-2026-11-26.json)
+  passes both source frames, strict refusal and independently audited partial output
+  after the later codec changes. It does not prove native
   duplicate-key semantics. Continue P6-F with the existing
   [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
   do not regenerate unchanged samples without a new discriminator.

@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-spec-pair-current-993262-2026-11-26",
+  "date": "2026-11-26",
+  "candidateCommit": "f6417a2f5a21db4bac9ed96910b572a3461a58d5",
+  "implementationDigestSha256": "993262664a93937c103ca3b53046b0bdd4a5328b949507bb63e27f76f156bdc1",
+  "supportClaimEffect": "none",
+  "sourceReceipt": "docs/research/p6-ac1012-user-request-generated-pair-2026-11-26.json",
+  "results": [
+    "PASS both previously generated physical AC1012 dictionary frames through the shared version-aware dictionary and handle-role checks, including malformed-role refusal and retry.",
+    "PASS focused dictionary source and AC1012/AC1014/AC1015 dictionary-version controls.",
+    "PASS both source and destination: strict ASCII and binary export refuses and preserves the preexisting destination; explicit-partial ASCII and binary output independently passes the bounded dictionary/style graph, owner, key and angle audit."
+  ],
+  "candidateRuns": [
+    {
+      "sample": "destination",
+      "mode": "strict",
+      "encoding": "ascii",
+      "exitCode": 1,
+      "destinationPreservedOnRefusal": true,
+      "outputSha256": null
+    },
+    {
+      "sample": "destination",
+      "mode": "strict",
+      "encoding": "binary",
+      "exitCode": 1,
+      "destinationPreservedOnRefusal": true,
+      "outputSha256": null
+    },
+    {
+      "sample": "destination",
+      "mode": "explicit-partial",
+      "encoding": "ascii",
+      "exitCode": 0,
+      "destinationPreservedOnRefusal": null,
+      "outputSha256": "2324d9d6becb093c742e96995d8d5a9aa393ce33864b5a5d4e4372108f845e7b"
+    },
+    {
+      "sample": "destination",
+      "mode": "explicit-partial",
+      "encoding": "binary",
+      "exitCode": 0,
+      "destinationPreservedOnRefusal": null,
+      "outputSha256": "011b3263d9d01817cdc130bd813881481e24008c81334d00fb371beb07d97975"
+    },
+    {
+      "sample": "source",
+      "mode": "strict",
+      "encoding": "ascii",
+      "exitCode": 1,
+      "destinationPreservedOnRefusal": true,
+      "outputSha256": null
+    },
+    {
+      "sample": "source",
+      "mode": "strict",
+      "encoding": "binary",
+      "exitCode": 1,
+      "destinationPreservedOnRefusal": true,
+      "outputSha256": null
+    },
+    {
+      "sample": "source",
+      "mode": "explicit-partial",
+      "encoding": "ascii",
+      "exitCode": 0,
+      "destinationPreservedOnRefusal": null,
+      "outputSha256": "127e7b757f775ac7c17a59bb9b86429de38670d3dc0321ee70fc2405728956a0"
+    },
+    {
+      "sample": "source",
+      "mode": "explicit-partial",
+      "encoding": "binary",
+      "exitCode": 0,
+      "destinationPreservedOnRefusal": null,
+      "outputSha256": "1a3140971fcd7a6a4aadacac645a786801ce8f324f01e8d58bc6d9bb163c7d5a"
+    }
+  ],
+  "limits": [
+    "Specification-directed locally authored samples do not establish native normal-open, absent cloning defaults or duplicate-key merge semantics.",
+    "Explicit partial output is a bounded projection, not whole-file completeness or lossless conversion. No samples were added to the repository."
+  ]
+}
