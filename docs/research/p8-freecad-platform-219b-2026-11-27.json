@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-27",
+  "workflowRun": "https://github.com/dxli/libdxfrw/actions/runs/45952852789",
+  "headSha": "219b5164a41650dc834ab96d499cba8cf6030764",
+  "implementationDigestSha256": "defe1f69008aa5109d960a443628fdf050f2932e37ce46328a9dd9010cd007d0",
+  "workflow": "FreeCAD native platform qualification; pinned official FreeCAD 1.1.4 and legacy DXF importer; installed candidate dwg2dxf.",
+  "linux": {
+    "result": "PASS: 16 selected tests",
+    "artifact": "freecad-platform-linux-45952852789-1",
+    "lastTestSha256": "2935e8b97bca9fc8c19d3a868d91e0807aca8ad1fc581dfbcb1bea138c085ad5"
+  },
+  "windows": {
+    "result": "PASS: 17 selected tests including batch output names",
+    "artifact": "freecad-platform-windows-45952852789-1",
+    "lastTestSha256": "e9e273bcc96126c6cbdab36f0e3b8741adc18a163cd5ac5bfc180fa154b9b81d"
+  },
+  "profiles": "Built and installed CLI compatibility plus open/insert of locally generated AC1021 line, AC1021/AC1024/AC1032 primitive and legacy POLYFACE controls.",
+  "limits": [
+    "FreeCAD release 1.1.4 command-line handoff tests; downstream candidate application build and GUI matrix were not run in this job.",
+    "Code head 219b5164 predates the later ODA-qualified DXF 330/331 slice; rerun final candidate for affected profiles.",
+    "Only stated fixtures and operations, not general DWG/DXF parity or native modeler semantics.",
+    "No support claim or package gate promoted."
+  ]
+}

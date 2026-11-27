@@ -293,7 +293,9 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** the [Windows reader-matrix investigation](docs/research/p8-windows-reader-matrix-crash-2026-11-26.json)
   passed its seven focused hosted tests on `6f49a372c` after a test-only MSVC
   stack-reserve change; the exact crash cause remains unconfirmed. Recheck the
-  final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
+  final pushed head. The [FreeCAD Linux/Windows handoff](docs/research/p8-freecad-platform-219b-2026-11-27.json)
+  passes selected open/insert and installed CLI controls on codec `219b5164`;
+  recheck the final head and other profiles. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
   digest: 73883917edd685e37514afa80b887f809a1072a3a1baf5a199870b34f6311cb9
