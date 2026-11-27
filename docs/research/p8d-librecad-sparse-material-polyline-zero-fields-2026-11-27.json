@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-polyline-zero-fields-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "efeab05daab92a63c77e60464d5fb8be32621618",
+  "parentCommit": "e1337f7105efdf6c6e372ee0eef86ffda6052e10",
+  "authority": "Autodesk DXF LWPOLYLINE group codes 38, 39, 40, 41 and 42 have zero defaults; constant and variable widths are not combined: https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-748FC305-F3F2-4F74-825A-61F04D757A50.htm",
+  "change": "Accept explicit zero elevation, thickness, per-vertex start/end width and bulge in the selected AC1021 ASCII sparse-MATERIAL open or closed straight-polyline profile; normalize equivalent defaults. Validate source types and raw values, vertex association, uniqueness and incompatible constant/variable widths.",
+  "validation": [
+    "The focused generated source initially imported but failed ordinary save; after the change 149 assertions pass, including open and closed save/reopen, conflicting widths, duplicate fields, five unqualified reference roles, preservation on refusal and same-adapter retry.",
+    "The system-codec MATERIAL selector passes 2920 assertions in 15 cases on macOS ARM64; the bundled-codec filter translation unit compiles.",
+    "ezdxf 1.4.5 independently reads the generated open source and resaved output with identical three points, zero widths/bulges/elevation/thickness and material handle A1; both audits report zero errors and fixes."
+  ],
+  "hashes": {
+    "redLog": "84a35ff217a8216b4717678c9496a8f8a86da43ea5ebe927cd0ed5eb42f1cac8",
+    "focusedLog": "0c3b4374b59b8cff5cd36e9bb3deb37aa535acfa626b59876ae7fdae181eeeca",
+    "materialSelectorLog": "dbd206a31a8e887a617409bacce1913020954dabbeff462af524263836310afc",
+    "bundledCompileLog": "237f61753d122b588ef9829dfc779f941a02acf062648cddfdb08b0cecd72324",
+    "peerOutput": "dd0ec22f21b9e6595e856b6872dfdada27bc693437cdfe0c3e4fec87066a730a",
+    "peerSource": "f8bba93bdc9debd142781daddb8c48e9cd261c970b6536370e1febfeb0f66a4f"
+  },
+  "limits": [
+    "Raw presence of zero fields is not preserved; only equivalent default geometry is claimed. Nonzero width, bulge, elevation, thickness and other unqualified metadata remain guarded.",
+    "No native GUI or external producer qualification is implied; generated DXF remains scratch-only."
+  ]
+}

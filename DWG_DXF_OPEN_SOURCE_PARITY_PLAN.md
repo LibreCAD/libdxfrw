@@ -32,7 +32,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    entity/producer profiles and semantic delivery one at a time. Ordinary
    same-version saves now admit bounded AC1021 [simple lines](docs/research/p8d-librecad-ordinary-sparse-material-2026-11-27.json),
    [simple circles and arcs](docs/research/p8d-librecad-sparse-material-curves-2026-11-27.json),
-   [planar points](docs/research/p8d-librecad-sparse-material-points-2026-11-27.json), and straight lightweight polylines, both [open](docs/research/p8d-librecad-sparse-material-lwpolyline-2026-11-27.json) and [closed](docs/research/p8d-librecad-sparse-material-closed-lwpolyline-2026-11-27.json), including selected edits and reopen/resave. Curved and metadata-bearing polylines remain guarded. The bounded profile admits
+   [planar points](docs/research/p8d-librecad-sparse-material-points-2026-11-27.json), and straight lightweight polylines, both [open](docs/research/p8d-librecad-sparse-material-lwpolyline-2026-11-27.json) and [closed](docs/research/p8d-librecad-sparse-material-closed-lwpolyline-2026-11-27.json), including selected edits and reopen/resave. [Explicit zero-valued polyline fields](docs/research/p8d-librecad-sparse-material-polyline-zero-fields-2026-11-27.json) are normalized to their equivalent defaults in the selected profile; conflicting width fields, nonzero geometry and other metadata remain guarded. The bounded profile admits
    [canonical indexed colors](docs/research/p8d-librecad-sparse-material-canonical-aci-2026-11-27.json)
    when the emitted index matches the source; contextual index 7, palette
    aliases, true color and other profiles remain guarded.
