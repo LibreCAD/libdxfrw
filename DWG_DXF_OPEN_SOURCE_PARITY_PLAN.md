@@ -284,7 +284,9 @@ evidence are recorded in `docs/research/` and Git history.
   including final-head hosted checks and native consumers. Current implementation
   digest: ba76b71d87dcf9d42f81c820396f6f13afd99e0fe245cb8d93b94a0f41c3f317
   (781 inputs); the official digest and support checks pass in a clean staged
-  checkout. Revalidate affected platform profiles on this candidate. The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
+  checkout. The [current focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
+  pass on Linux, macOS and Windows; revalidate affected consumer profiles on the
+  final candidate. The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;
   its [GCC allocator follow-up](docs/research/p8-sat-gcc-allocator-harness-2026-11-26.json)
   preserves warning-clean allocation fault injection. Hosted results for the
