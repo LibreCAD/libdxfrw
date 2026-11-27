@@ -71,7 +71,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    operations, custom operations and repeated compound stacks. Cover viewport
    freeze and remaining layer flags; preserve warning/report behavior when older
    formats approximate or omit color. Reuse the [lock-transition preflight](docs/research/p8d-librecad3-layer-lock-transition-preflight-2026-11-26.json)
-   and [stale-line metadata control](docs/research/p8d-librecad3-forced-line-current-layer-2026-11-26.json).
+   and [stale-line metadata control](docs/research/p8d-librecad3-forced-line-current-layer-2026-11-26.json); the same-name forced-edit rebind also covers [circles and arcs](docs/research/p8d-librecad3-forced-curves-current-layer-2026-11-27.json).
 6. **LibreCAD_3 layouts and MPOLYGON.** Extend checked replay to extra block
    records, different layout counts, external plot resources, unknown references,
    source identities and larger bounded captures. Preserve refusal, destination
