@@ -18,8 +18,7 @@ The current test-inclusive implementation digest is
 `126f1bb73e76375868f719ed71165651a5651a4f7f2a8b7dc05bbc9ec7cb2cba`
 (783 inputs). The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 passes on the current production code. The fast and focused native lanes also
-pass at the numeric-test head; package checks used the same production sources. The earlier [FreeCAD matrix](docs/research/p8-native-freecad-f6c0-2026-11-27.json)
-passed at f6c06139.
+pass at the numeric-test head; package checks used the same production sources. The [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed 16 Linux and 17 Windows checks against codec head 2e4ae17b. This covers the specified CLI and legacy importer profiles, not GUI or general 3D parity.
 Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
 
@@ -120,8 +119,8 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    passed its hosted link step; the subsequent [MPOLYGON cleanup repair](docs/research/p8d-librecad3-windows-mpolygon-cleanup-2026-11-27.json)
    passed the affected Windows tests. Two later stream-sharing failures were fixed
    in the [unit and spline cleanup](docs/research/p8d-librecad3-windows-unit-spline-cleanup-2026-11-27.json);
-   the hosted Windows run at bdeb2046 subsequently passed build and packaging
-   and continues with feature checks; updated-head qualification remains open. Preserve the FreeCAD
+   the hosted Windows run at bdeb2046 passed build and packaging but failed
+   six LF-only layout tests on CRLF output. The [line-ending repair](docs/research/p8d-librecad3-windows-layout-crlf-2026-11-27.json) passes 18 local layout tests; hosted Windows qualification on the updated head remains open. Preserve the FreeCAD
    3DFACE, SOLID and polyface limitations until their independent gates close.
    Freeze the candidate before broad suites and release claims.
 
