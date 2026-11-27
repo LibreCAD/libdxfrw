@@ -314,7 +314,8 @@ evidence are recorded in `docs/research/` and Git history.
   its [current-codec macOS headless IMAGE/MATERIAL check](docs/research/p8d-librecad-current-codec-compatibility-2026-11-26.json)
   passes 18 cases. Qualify remaining profiles, platforms and native consumers.
   Prior platform receipts apply only
-  to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
+  to their recorded inputs. The [current LibreCAD_3 persistence recheck](docs/research/p8d-librecad3-current-codec-219b-2026-11-27.json)
+  passes eight selected DXF and six DWG cases headlessly on macOS. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`. The later
   [hosted recheck](docs/research/p8-pr106-hosted-focused-pass-2026-11-26.json)

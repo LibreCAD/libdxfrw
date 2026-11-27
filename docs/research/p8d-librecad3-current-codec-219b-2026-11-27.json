@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-27",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "bd725b686eb20583f3c485217748a7c292ffb83b",
+  "codecCommit": "219b5164a41650dc834ab96d499cba8cf6030764",
+  "implementationDigestSha256": "defe1f69008aa5109d960a443628fdf050f2932e37ce46328a9dd9010cd007d0",
+  "platform": "macOS ARM64; headless focused GoogleTest executables",
+  "build": "Fresh detached consumer checkout with codec at the candidate commit; isolated scratch CMake edit removes the consumer-provided -Wno-error for dxfrw. Consumer sources and codec sources otherwise unchanged. Focused test translation units were compiled from that checkout and linked to its newly built persistence and kernel libraries and gtest_main.",
+  "dxf": "PASS: 8 selected cases: true color and layer true color, 3D line import and round-trip, spline resave, hatch boundaries, ASCII output and ASCII/binary text.",
+  "dwg": "PASS: 6 selected cases: format sniffing, population from the eight checked-in DWG fixtures, DWG-to-DXF agreement, encoding geometry agreement, and elevated line/curved hatch controls.",
+  "artifacts": {
+    "staticCodecSha256": "e1f7df2ae514eeada0ed55daa478847d77789daea813d7d84b583fa51b43a0ea",
+    "persistenceSha256": "27d315fdb11e895620ccb27ccd8640a0a34681e0aacac6672226fc7fe307c7fc",
+    "kernelSha256": "86c67d98c2fc3b446b08ac6be2ea8b1511ac68cd724511938f7c23d5c150481a",
+    "dxfTestSha256": "b1b59c9862df7cc213d2c4e0b03f983ca72859478dd3f7b649d76eec90e3aafb",
+    "dwgTestSha256": "02dcb83e87c0f8fa923e941d12ca03d66ce26dcf172734269395de8b59d4c873"
+  },
+  "loader": "DYLD_PRINT_LIBRARIES confirms the isolated candidate persistence and kernel libraries.",
+  "limits": [
+    "Selected headless persistence tests and fixtures only; no native UI, new source producer, or broad 2D/3D semantics qualification.",
+    "Linux and Windows current consumer integration and final candidate GUI remain open.",
+    "No support claim or package gate promoted."
+  ]
+}
