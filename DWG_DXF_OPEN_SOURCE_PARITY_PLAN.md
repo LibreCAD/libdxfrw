@@ -133,7 +133,11 @@ evidence are recorded in `docs/research/` and Git history.
   unmatched reverse links, copy and identity collisions; retain the explicit
   deassociation report. Extend the bounded wide-self-handle profile to 64-bit
   owners and translated references with source/target closure, while keeping
-  the existing 32-bit public semantic API. Qualify consumers independently.
+  the existing 32-bit public semantic API. The [exact 64-bit inventory queries](docs/research/p7-wide-dxf-inventory-query64-2026-11-26.json)
+  expose unique emitted self and owner identities without truncation; they do not
+  admit wide-owner or reference output. Next bind source identities and reference
+  roles to these records, then implement a bounded graph with staged closure,
+  refusal and retry. Qualify consumers independently.
 - **LibreCAD_3 entity true color:** the [shared color and model-only binary fixes](docs/research/p8d-librecad3-truecolor-and-model-only-binary-2026-11-26.json)
   preserve selected imported RGB and color names through edits and R2004+ output,
   report indexed approximation for older versions, and avoid an orphaned synthetic
@@ -248,7 +252,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 922ee37ffca0420ca161ac977da8e0a60397b5e12b49b337d120f2ff396a31b3
+  digest: 151623ec636cffc0b2a63dd8c2bb9f1f8014d2cc5c0953cce5cdc32d2c60d23a
   (781 inputs). The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;
   its [GCC allocator follow-up](docs/research/p8-sat-gcc-allocator-harness-2026-11-26.json)
@@ -266,10 +270,9 @@ evidence are recorded in `docs/research/` and Git history.
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`. The later
   [hosted recheck](docs/research/p8-pr106-hosted-focused-pass-2026-11-26.json)
   passed fast, Linux, Windows and macOS focused jobs on `ef5f77cc8`.
-  The current implementation commit `985a48c89` also passes those four hosted
-  jobs; subsequent plan/evidence commits do not change the implementation
-  digest. Revalidate the final
-  pushed head. All format claims remain EXPERIMENTAL.
+  Implementation commit `985a48c89` also passed those four hosted jobs. The
+  later 64-bit inventory queries changed the implementation digest; revalidate
+  the final pushed head. All format claims remain EXPERIMENTAL.
 - **External host:** its release, OS, SDK and access route remain unknown.
   Use the [host intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once
   available and only the witness packets reviewed for that profile. Work on

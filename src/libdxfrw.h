@@ -415,6 +415,18 @@ public:
                                    const std::string& sectionName) const;
     bool dxfWriteRecordHasOwner(std::uint32_t handle,
                                 std::uint32_t ownerHandle) const noexcept;
+    /** Inspect an exact 64-bit emitted record identity while a write is in
+     * progress. These queries share the optional record inventory and do not
+     * narrow handles. Results are tentative until finalization and publication;
+     * they prove neither source identity nor reference/ownership graph closure.
+     * Count returns zero outside a write, on a write error, or when inventory
+     * is disabled. Identity and owner require exactly one matching handle. */
+    std::size_t dxfWriteRecordHandleCount64(std::uint64_t handle) const noexcept;
+    bool dxfWriteRecordHasIdentity64(std::uint64_t handle,
+                                     const std::string& recordName,
+                                     const std::string& sectionName) const;
+    bool dxfWriteRecordHasOwner64(std::uint64_t handle,
+                                  std::uint64_t ownerHandle) const noexcept;
     /** During an admitted write, return a source table's successfully staged
      * identity (currently LAYER, APPID, STYLE and VPORT), or zero. Unlike
      * preallocateTableRecordHandle(), this requires a completed row encoder.

@@ -5511,6 +5511,26 @@ bool dxfRW::dxfWriteRecordHasOwner(
         && writer->recordHandleHasOwner(handle, ownerHandle);
 }
 
+std::size_t dxfRW::dxfWriteRecordHandleCount64(
+        std::uint64_t handle) const noexcept {
+    return m_dxfWriteAttemptActive && writer != nullptr && !m_writeError &&
+        !writer->hasWriteError() && writer->recordInventoryEnabled()
+        ? writer->recordHandleCount(handle) : 0u;
+}
+
+bool dxfRW::dxfWriteRecordHasIdentity64(
+        std::uint64_t handle, const std::string& recordName,
+        const std::string& sectionName) const {
+    return dxfWriteRecordHandleCount64(handle) == 1u &&
+        writer->recordHandleHasIdentity(handle, recordName, sectionName);
+}
+
+bool dxfRW::dxfWriteRecordHasOwner64(
+        std::uint64_t handle, std::uint64_t ownerHandle) const noexcept {
+    return dxfWriteRecordHandleCount64(handle) == 1u &&
+        writer->recordHandleHasOwner(handle, ownerHandle);
+}
+
 std::uint32_t dxfRW::dxfWriteEmittedSourceTableHandle(std::uint32_t sourceHandle) const noexcept {
     if (!m_dxfWriteAttemptActive || writer == nullptr || m_writeError || writer->hasWriteError()
         || sourceHandle == 0u || sourceHandle == DRW::NoHandle

@@ -15154,6 +15154,25 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
                      && writer->hasWideRecordOwner(),
                  "DXF inventory preserves wide identities and rollback owners");
 
+        // Exercise the public query against a wide owner too. Production
+        // publication of wide owners remains deliberately refused.
+        dxfRW queryProbe("unused.dxf");
+        queryProbe.writer = std::move(writer);
+        queryProbe.m_dxfWriteAttemptActive = true;
+        t.expect(queryProbe.dxfWriteRecordHandleCount64(UINT64_C(0x100000000)) == 1u
+                     && queryProbe.dxfWriteRecordHasIdentity64(UINT64_C(0x100000000), "LINE", "ENTITIES")
+                     && queryProbe.dxfWriteRecordHasOwner64(UINT64_C(0x100000000), UINT64_C(0x100000001))
+                     && !queryProbe.dxfWriteRecordHasOwner64(UINT64_C(0x100000000), UINT64_C(1))
+                     && !queryProbe.dxfWriteRecordHasIdentity64(UINT64_C(0x200000000), "LINE", "ENTITIES"),
+                 "DXF public inventory queries retain full self and owner identities");
+        queryProbe.m_writeError = true;
+        t.expect(queryProbe.dxfWriteRecordHandleCount64(UINT64_C(0x100000000)) == 0u
+                     && !queryProbe.dxfWriteRecordHasIdentity64(UINT64_C(0x100000000), "LINE", "ENTITIES")
+                     && !queryProbe.dxfWriteRecordHasOwner64(UINT64_C(0x100000000), UINT64_C(0x100000001)),
+                 "DXF wide inventory queries refuse a failed write");
+        writer = std::move(queryProbe.writer);
+        queryProbe.m_dxfWriteAttemptActive = false;
+
         std::ostringstream duplicates;
         std::unique_ptr<dxfWriter> duplicate = binary
             ? std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterBinary>(&duplicates))
@@ -15165,6 +15184,15 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
             && duplicate->writeString(5, "100000000")
             && duplicate->writeString(0, "POINT")
             && duplicate->writeString(5, "0000000100000000");
+        queryProbe.writer = std::move(duplicate);
+        queryProbe.m_writeError = false;
+        queryProbe.m_dxfWriteAttemptActive = true;
+        t.expect(queryProbe.dxfWriteRecordHandleCount64(UINT64_C(0x100000000)) == 2u
+                     && !queryProbe.dxfWriteRecordHasIdentity64(UINT64_C(0x100000000), "LINE", "ENTITIES")
+                     && !queryProbe.dxfWriteRecordHasOwner64(UINT64_C(0x100000000), UINT64_C(1)),
+                 "DXF wide inventory identity rejects duplicate numeric handles before finalization");
+        duplicate = std::move(queryProbe.writer);
+        queryProbe.m_dxfWriteAttemptActive = false;
         t.expect(duplicateWritten && !duplicate->finalizeRecordInventory(),
                  "DXF inventory detects equivalent wide handle spellings");
     }
@@ -15286,7 +15314,19 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
             }
         }
         bool finalizeDxfWrite() override {
-            if (wideMode == 1 || wideMode == 4)
+            if (wideMode == 1) {
+                wideQueriesObserved = dxfW != nullptr
+                    && dxfW->dxfWriteRecordHandleCount64(UINT64_C(0x100000000)) == 1u
+                    && dxfW->dxfWriteRecordHandleCount64(UINT64_C(0x200000000)) == 0u
+                    && dxfW->dxfWriteRecordHasIdentity64(UINT64_C(0x100000000), "XRECORD", "OBJECTS")
+                    && !dxfW->dxfWriteRecordHasIdentity64(UINT64_C(0x100000000), "LINE", "OBJECTS")
+                    && !dxfW->dxfWriteRecordHasIdentity64(UINT64_C(0x100000000), "XRECORD", "ENTITIES")
+                    && dxfW->dxfWriteRecordHasOwner64(UINT64_C(0x100000000), UINT64_C(0xC))
+                    && !dxfW->dxfWriteRecordHasOwner64(UINT64_C(0x100000000), UINT64_C(0x10000000C))
+                    && !dxfW->dxfWriteRecordHasOwner64(UINT64_C(0x200000000), UINT64_C(0xC));
+                return wideRecordEmitted && wideQueriesObserved;
+            }
+            if (wideMode == 4)
                 return wideRecordEmitted;
             const auto* context = dxfW != nullptr
                 ? dxfW->getWritingContext() : nullptr;
@@ -15425,6 +15465,7 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
         bool failAfterFirstField {true};
         int wideMode {0};
         bool wideRecordEmitted {false};
+        bool wideQueriesObserved {false};
         std::uint32_t modelLineEmittedHandle {0};
         std::vector<TestDxfRecordIdentity> inventory;
     };
@@ -15493,6 +15534,12 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
                 t.expect(wideWritten && interface_.wideRecordEmitted &&
                              bytes.find(expectedSeed) != std::string::npos,
                          "DXF wide self identity writes an above-maximum HANDSEED");
+                if (mode == 1)
+                    t.expect(interface_.wideQueriesObserved &&
+                                 codec.dxfWriteRecordHandleCount64(UINT64_C(0x100000000)) == 0u &&
+                                 !codec.dxfWriteRecordHasIdentity64(UINT64_C(0x100000000), "XRECORD", "OBJECTS") &&
+                                 !codec.dxfWriteRecordHasOwner64(UINT64_C(0x100000000), UINT64_C(0xC)),
+                             "DXF 64-bit identity queries are exact and expire after publication");
                 if (mode == 1 && wideWritten) {
                     if (const char* prefix = std::getenv("LIBDXFRW_KEEP_WIDE_SEED_OUTPUT")) {
                         const std::filesystem::path copy = std::string(prefix)
