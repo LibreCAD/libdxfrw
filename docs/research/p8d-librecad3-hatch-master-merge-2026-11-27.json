@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-hatch-master-merge-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
+  "parentHead": "113111eca15d698bbc8132374b6bc27ad2c99e2d",
+  "masterCommit": "60727c6c55a84d416d42b4b3d1664d0feb10cf61",
+  "consumerCommit": "6f104abff28e48143b5c39833cf2b5e861420d71",
+  "change": "Merge current master and retain both Python binding plan ledger entries; the only textual conflict was the review ledger.",
+  "validation": [
+    "macOS ARM64 headless Release lcunittest build with DWG import enabled and pinned bundled libdxfrw d68fb1ed passed.",
+    "19 selected Bezier, spline, DXF HATCH roundtrip and format-sniff tests passed, including rational and elevated HATCH controls.",
+    "Python binding plan full and master-base checks, 31 checker tests and git diff --check passed.",
+    "GitHub reports updated PR mergeable; hosted qualification remains pending."
+  ],
+  "testLogSha256": "17baffe0e2ccaa34ae2208dd1b2b4dfe89deebeb1a9e49fcce5a75b1659dd835",
+  "limits": [
+    "No native GUI, Qt viewer, standalone-codec or hosted platform qualification is established.",
+    "The HATCH cases are generated DXF roundtrips in a DWG-enabled build; they are not native DWG HATCH interoperability evidence.",
+    "No gate or support claim is promoted."
+  ]
+}
