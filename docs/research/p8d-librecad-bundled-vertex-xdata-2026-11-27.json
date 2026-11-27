@@ -12,9 +12,15 @@
     "bundled_failing_cases": "passed on macOS, 213 assertions across 2 test cases; AC1009 and AC1021 reopen/resave",
     "independent_readback": "ezdxf 1.4.5 read all 8 generated AC1009/AC1021 outputs; each selected VERTEX retained 1040/1041, with zero audit errors and fixes",
     "malformed_vertex_failure_and_retry": "passed on macOS: 40 assertions, AC1009 and AC1021 in ASCII and binary; original destination retained on failure, corrected same-writer retry and vertex readback passed",
-    "hosted_ci": "pending on candidate test commit",
+    "hosted_ci": "PASS on a5c8b3e5: Linux VerifyDwgDxfFast 17/17 CTests, including bundled librecad_dxf_fast_tests; Headless ON/OFF pass. Windows and other jobs remain pending.",
     "system_codec": "not affected; upstream already emits vertex extended data"
   },
   "scope": "Generated LibreCAD ellipse sidecar profiles tested by the affected cases; no new general vertex XDATA or native-platform claims.",
-  "candidate_test_commit": "a5c8b3e5"
+  "candidate_test_commit": "a5c8b3e5",
+  "hosted_ci": {
+    "head": "a5c8b3e5",
+    "fastJob": "https://github.com/LibreCAD/LibreCAD/actions/runs/46053097977/job/140689016573",
+    "fastJobLogSha256": "12592d529386f356b506902fb6829b966df658d94c641b68ec80855d77de479a",
+    "headlessRun": "https://github.com/LibreCAD/LibreCAD/actions/runs/46053097859"
+  }
 }
