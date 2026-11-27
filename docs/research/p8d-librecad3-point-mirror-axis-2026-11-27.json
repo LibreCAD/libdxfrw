@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/463",
+  "candidate_commit": "0ae12d3c4234cf07b74b724602cdd4f38bd6d52e",
+  "reproduction": "Before the fix POINT reflection across diagonal axes of magnitude 1e-200 and 1e200 returned NaN.",
+  "change": "The shared coordinate mirror projection normalizes a finite nonzero axis direction by its largest absolute component before squaring; reflection forms ret + (ret - source).",
+  "validation": "macOS ARM64 headless lcunittest: 154/154 passed, including planar and spatial POINT reflections for axis magnitudes 1e-300, 1e-200, 1e200 and 1e300, existing selection and mirror cases. Actual-base plan validation and whitespace check passed. The saved layer integration patch still applies cleanly.",
+  "limitations": "Endpoint subtraction overflow, unrepresentable values, native GUI and other platforms remain unqualified. No package gate promoted."
+}
