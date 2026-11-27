@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-closed-lwpolyline-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "e1337f7105efdf6c6e372ee0eef86ffda6052e10",
+  "parentCommit": "a5bf8d0dc085884afb7f77d6405e6c941569c765",
+  "change": "Extend the existing AC1021 ASCII sparse-MATERIAL straight LWPOLYLINE profile to closed polylines with 3\u2013128 vertices. Require the delivered closed flag, all straight continuous finite segments, exact final-to-first closure, matching physical vertex sequence and source count.",
+  "validation": [
+    "Before the change a generated closed triangle imported but ordinary save refused.",
+    "The expanded focused test passes 114 assertions covering edit, save, reopen/resave, closed flag, 128/129 vertices, duplicate and too-short source closure, disconnected live closing segment, destination preservation and same-filter retry, along with the prior open and delivery controls.",
+    "The system-codec MATERIAL selector passes 2885 assertions in 15 cases on macOS ARM64; the bundled-codec filter translation unit compiles.",
+    "ezdxf 1.4.5 independently checks 3-vertex edited and 128-vertex resaved closed polylines, ordered coordinates, closure and entity/header/layer/dictionary MATERIAL references; both audits have zero errors and fixes."
+  ],
+  "hashes": {
+    "redLog": "d701bac751db903e9e4c9b1aa67b788ccd8b78b300b2e6276d28923b10291906",
+    "focusedLog": "633bd62f9a9f4d934c4789d18032cc08feea213c386678f52e885ed86fde6ae5",
+    "materialSuiteLog": "617bd8be0f5430f49415ea6329dead30bbcc99f50633a9b7fdd8db16ae3dbe0c",
+    "peerTriangle": "162766bf8c70906f7b6c29775d1f62bc8201fcfedca416e0d3e297f408ea2848",
+    "peer128": "bd13f136f0d4d6289d181025d73c076fc617172570bf6d354335d77e2598e467",
+    "bundledCompileLog": "237f61753d122b588ef9829dfc779f941a02acf062648cddfdb08b0cecd72324"
+  },
+  "limits": [
+    "Generated default-appearance AC1021 ASCII model-space straight polylines only. Curved, nonzero width/elevation, extra metadata, ambiguous or short closure, 129+ vertices, other versions and broader graph profiles remain guarded.",
+    "No native GUI or external producer qualification is implied; no DWG/DXF fixture was committed and no package gate or broad support claim is promoted."
+  ]
+}
