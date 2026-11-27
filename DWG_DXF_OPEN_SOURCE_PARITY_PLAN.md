@@ -100,7 +100,9 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    and [unowned-paper guard](docs/research/p8d-librecad3-unowned-paper-refusal-2026-11-26.json).
 7. **AC1012 and legacy source semantics.** Reuse the specification-directed pair
    and shared version-aware frame, dictionary and handle-role checks; they do
-   not establish native clone semantics. Qualify EED, the root empty-name/null
+   not establish native clone semantics. The [fresh requested pair](docs/research/p6-ac1012-user-generated-pair-2026-11-27.json)
+   passes current frame, refusal and partial-output controls, but does not
+   replace a native witness. Qualify EED, the root empty-name/null
    entry, extension/XRECORD graph and ModelDocViewStyle bridge before guarded
    output. The [cadkit native readback](docs/research/p6-ac1012-cadkit-root-dictionary-peer-2026-11-27.json) independently confirms the observed empty/null entry and EED but does not establish native validity. Use the [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)
    and P6-F; do not regenerate unchanged pairs without a discriminating question.
