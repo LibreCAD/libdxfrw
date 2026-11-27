@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-last-image-removal-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "3e54c102a8d8a330583d164ce9119229c00b11bf",
+  "problem": "Deleting the last IMAGE left its source reactor and dictionary entries targeting objects that were no longer emitted, allowing unrelated generated handles to be referenced.",
+  "implementation": "Track reactor handles tied to imported IMAGEs, drop those known raw reactors when no image remains, remove recognized entries to omitted source objects, and report source IMAGEDEFs that no longer have a retained definition. Unrelated raw reactors are not removed by the no-image path.",
+  "validation": [
+    "The last-image deletion control failed before the fix. 88 focused IMAGE/persistence tests and 18 layout tests pass, including an unrelated raw reactor, loss reporting and restoring the removed image for a corrected retry.",
+    "Independent ezdxf 1.4.5 finds no IMAGE, IMAGEDEF or IMAGEDEF_REACTOR after deletion and confirms one of each with the expected source fields after restoration. The deletion output still requires one orphan paper-space block repair; the restoration output has no audit fixes.",
+    "The adapter syntax-checks with older bundled codec headers; older-codec runtime behavior remains unqualified."
+  ],
+  "redLogSha256": "2be23eff729800757c3613ea54f430207a1d5d19277bdd8171555e7063c84566",
+  "testLogSha256": "5f7fc02f68a1514f1e10a2cc1a1b34472653b777d9c7f5f50fa9a0ca64580453",
+  "layoutLogSha256": "d1e0569bd5b5f240ecbef7751de4db4fa224d830cf29201ad2aaa6c0fd7434c2",
+  "olderHeaderLogSha256": "9bd1866077a51ed750abefebd0c799dc2d019ea4929be5aa892b57c1d5935247",
+  "peerResultSha256": "34876db2bd0755c9ad784be1ecdd57cbfae38c1c8bfba1901689de3a98eda49c",
+  "limits": [
+    "This reports discarded source definitions rather than preserving independently useful unused IMAGEDEFs. Unknown reactor associations, arbitrary raw inbound references and broader source graphs remain unresolved.",
+    "The no-image output still has an orphan synthetic paper-space block. Binary cross-encoding, native producer behavior and full graph parity remain open; no generated drawing was committed."
+  ]
+}
