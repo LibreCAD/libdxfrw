@@ -55,5 +55,12 @@
     "validation": "The focused version selector passed 189 standalone assertions in eleven cases and 188 bundled assertions in ten cases. Controls cover matching and case-variant types, different types, duplicate raw objects, object/entity collisions, report counts, typed output and selected LINE reactor behavior; existing version and retry controls also pass.",
     "limits": "This qualifies the selected typed-object stand-in path and LINE reactor. Fixed typed objects, typed entities, all graph roles, live identity collisions and semantic equivalence of same-type records remain separate work.",
     "adjacentHandleSelector": "Bundled codec: 463 assertions in 21 cases passed. Standalone codec: 17 of 21 cases passed, with the same four raw sparse-MATERIAL export failures and 212/216 assertions as the pre-change 219b handle-selector baseline; these remain guarded and unresolved."
+  },
+  "fixedTypedStandInFollowup": {
+    "consumerCommit": "2efea2fe",
+    "finding": "The fixed-object preflight used handle-only stand-ins and reproduced hidden omitted FIELD records and retained ambiguous LINE reactors for MLINESTYLE, including duplicate raw objects and object/entity collisions.",
+    "change": "Use the same unique, case-insensitive type-and-handle stand-in helper for fixed and class-based typed objects; keep existing typed-entity behavior unchanged.",
+    "validation": "The selected version, LAYOUT, and MLINESTYLE linetype controls pass: 308 assertions in 14 standalone cases and 305 assertions in 13 bundled cases. The red-before MLINESTYLE control covered matching and case-variant types, different types, duplicate objects, object/entity collisions, reports, and selected LINE reactor references.",
+    "limits": "The collision profile directly exercises MLINESTYLE and SCALE. LAYOUT is covered by adjacent behavior tests rather than a dedicated collision witness. Typed entities, other graph roles, live-identity ambiguity, and same-type semantic equivalence remain open."
   }
 }
