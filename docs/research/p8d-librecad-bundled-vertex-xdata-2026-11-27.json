@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-27",
+  "profile": "LibreCAD bundled classic POLYLINE vertex extended data",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "failed_ci": "https://github.com/LibreCAD/LibreCAD/actions/runs/46046185710/job/140666035209",
+  "failed_head": "8334bd54f5c8d5062b886f7e75022d8efda3112d",
+  "failure": "Two bundled fast tests failed because per-vertex LibreCad 1040/1041 ellipse sidecar data was not written; reopened elliptic segments became arcs, and the legacy sidecar control could not find group 1041.",
+  "candidate_commit": "9d99aca8",
+  "change": "Call the existing checked writeExtData utility on each non-empty classic POLYLINE vertex data list inside the existing record transaction, matching the upstream writer.",
+  "verification": {
+    "diff_check": "passed",
+    "bundled_failing_cases": "passed on macOS, 213 assertions across 2 test cases; AC1009 and AC1021 reopen/resave",
+    "independent_readback": "ezdxf 1.4.5 read all 8 generated AC1009/AC1021 outputs; each selected VERTEX retained 1040/1041, with zero audit errors and fixes",
+    "malformed_vertex_failure_and_retry": "passed on macOS: 40 assertions, AC1009 and AC1021 in ASCII and binary; original destination retained on failure, corrected same-writer retry and vertex readback passed",
+    "hosted_ci": "pending on candidate test commit",
+    "system_codec": "not affected; upstream already emits vertex extended data"
+  },
+  "scope": "Generated LibreCAD ellipse sidecar profiles tested by the affected cases; no new general vertex XDATA or native-platform claims.",
+  "candidate_test_commit": "a5c8b3e5"
+}
