@@ -97,7 +97,8 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    Selected macOS headless [LibreCAD](docs/research/p8d-librecad-current-codec-219b-2026-11-27.json)
    and [LibreCAD_3](docs/research/p8d-librecad3-current-codec-219b-2026-11-27.json)
    checks do not qualify native GUI or other platforms. The [Windows test link repair](docs/research/p8d-librecad3-windows-link-2026-11-27.json)
-   still needs its hosted Windows rerun. Preserve the FreeCAD
+   passed its hosted link step; the subsequent [MPOLYGON cleanup repair](docs/research/p8d-librecad3-windows-mpolygon-cleanup-2026-11-27.json)
+   needs a hosted Windows rerun. Preserve the FreeCAD
    3DFACE, SOLID and polyface limitations until their independent gates close.
    Freeze the candidate before broad suites and release claims.
 
