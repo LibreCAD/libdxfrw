@@ -135,9 +135,11 @@ evidence are recorded in `docs/research/` and Git history.
   owners and translated references with source/target closure, while keeping
   the existing 32-bit public semantic API. The [exact 64-bit inventory queries](docs/research/p7-wide-dxf-inventory-query64-2026-11-26.json)
   expose unique emitted self and owner identities without truncation; they do not
-  admit wide-owner or reference output. Next bind source identities and reference
-  roles to these records, then implement a bounded graph with staged closure,
-  refusal and retry. Qualify consumers independently.
+  admit wide-owner or reference output. The [owner ambiguity guard](docs/research/p7-wide-dxf-owner-ambiguity-2026-11-26.json)
+  refuses to certify multiple common-header owners and retains rollback and
+  wide-owner detection. Next bind source identities and reference roles to these
+  records, then implement a bounded graph with staged closure, refusal and retry.
+  Qualify consumers independently.
 - **LibreCAD_3 entity true color:** the [shared color and model-only binary fixes](docs/research/p8d-librecad3-truecolor-and-model-only-binary-2026-11-26.json)
   preserve selected imported RGB and color names through edits and R2004+ output,
   report indexed approximation for older versions, and avoid an orphaned synthetic
@@ -256,9 +258,9 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 151623ec636cffc0b2a63dd8c2bb9f1f8014d2cc5c0953cce5cdc32d2c60d23a
-  (781 inputs), verified with the official digest and support checks in a clean
-  checkout of `83ac5c65`. The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
+  digest: a935ef97828c05bebd4a3028036022304a853c986520be7d70829ac8543e6c1f
+  (781 inputs); the official digest and support checks pass in a clean staged
+  checkout. Revalidate affected platform profiles on this candidate. The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;
   its [GCC allocator follow-up](docs/research/p8-sat-gcc-allocator-harness-2026-11-26.json)
   preserves warning-clean allocation fault injection. Hosted results for the
@@ -600,11 +602,11 @@ integration gates below remain independent.
 | P8-D / NATIVE_CONSUMER_GATES_OPEN | Qualify the remaining native rendering, editing, save and reopen profiles against the final consumer and codec candidates on macOS, Linux and Windows. Recheck only profiles affected by later changes. | Review [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289) and [LibreCAD_3 PRs #460](https://github.com/LibreCAD/LibreCAD_3/pull/460), [#461](https://github.com/LibreCAD/LibreCAD_3/pull/461), [#462](https://github.com/LibreCAD/LibreCAD_3/pull/462) and [#463](https://github.com/LibreCAD/LibreCAD_3/pull/463), including upstream and bundled codecs where applicable. PRs #461 and #462 depend on #460; #3289 depends on libdxfrw #106, and #463 requires the #460 linetype fix. The current-candidate [macOS MPOLYGON move and reopen](docs/research/p8d-librecad3-current-candidate-mpolygon-move-2026-11-26.json) qualifies one locally authored profile; visible rendering, other producers and platforms remain open. The [LibreCAD MLINE copy](docs/research/p8d-librecad-mline-native-copy-750c-2026-11-26.json) and [named-linetype editing](docs/research/p8d-native-linetype-dialog-edit-288d-2026-11-26.json) controls are bounded and used earlier candidates; rerun where final inputs differ. Revalidate the [ownerless resave](docs/research/p8d-librecad-3289-ownerless-resave-fix-2026-11-20.json) and [DIMSTYLE null-handle](docs/research/p8d-dimstyle-null-xdictionary-cross-codec-2026-11-20.json) controls on final inputs. Qualify exact rational geometry, other HATCH spline and periodic profiles, singular-scale normals, elevated DWG MPOLYGON sources, tilted planes and native rendering separately. Headless results do not establish native GUI behavior; locally generated sources qualify only their tested profiles. |
 | P8-G / INTEGRATION_GATE | Set consumer/platform release thresholds and freeze the candidate. Recheck P8-A/B/C/E/F receipts against the final inputs and rerun only mismatched profiles. | After required package and platform gates close, build and test the complete GCC profile, run the broad suite and extended fuzz lane once for the frozen candidate, resolve required failures, and publish the evidence-backed support matrix. No required job may remain red and no unqualified route may be advertised. |
 
-The current-candidate FreeCAD handoff passes its selected generated-profile
+The previous-candidate FreeCAD handoff passed its selected generated-profile
 checks on [Linux](docs/research/p8-freecad-linux-f046-2026-11-26.json) (16)
 and [Windows x64](docs/research/p8-freecad-windows-f046-2026-11-26.json) (17).
-Reuse each result while its implementation digest, consumer and tested
-profiles remain unchanged. These checks do not qualify native GUI behavior,
+The owner-inventory change has since changed the implementation digest; rerun
+affected profiles on the final candidate. These checks do not qualify native GUI behavior,
 independent producers, other platforms, or the FreeCAD importer features
 explicitly reported unsupported.
 

@@ -420,7 +420,8 @@ public:
      * narrow handles. Results are tentative until finalization and publication;
      * they prove neither source identity nor reference/ownership graph closure.
      * Count returns zero outside a write, on a write error, or when inventory
-     * is disabled. Identity and owner require exactly one matching handle. */
+     * is disabled. Identity and owner require exactly one matching handle;
+     * owner also requires one unambiguous common-header owner group. */
     std::size_t dxfWriteRecordHandleCount64(std::uint64_t handle) const noexcept;
     bool dxfWriteRecordHasIdentity64(std::uint64_t handle,
                                      const std::string& recordName,

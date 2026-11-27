@@ -36,6 +36,7 @@ public:
         std::size_t currentRecordIndex {0};
         std::uint64_t currentRecordOwnerHandle {0};
         bool currentRecordHasOwnerHandle {false};
+        bool currentRecordOwnerAmbiguous {false};
         bool sectionNamePending {false};
         std::uint32_t currentRecordName {0};
         std::uint32_t currentSectionName {0};
@@ -47,6 +48,7 @@ public:
         std::uint32_t sectionName {0};
         std::uint64_t ownerHandle {0};
         bool hasOwnerHandle {false};
+        bool ownerAmbiguous {false};
     };
     explicit dxfWriter(std::ostream *stream, bool binary = false):filestr(stream), m_binaryStrings(binary) {}
     virtual ~dxfWriter() = default;
@@ -167,6 +169,7 @@ public:
                 m_recordOwnerPending, m_recordApplicationDepth, m_currentRecordIndex,
                 currentRecord != nullptr ? currentRecord->ownerHandle : 0u,
                 currentRecord != nullptr && currentRecord->hasOwnerHandle,
+                currentRecord != nullptr && currentRecord->ownerAmbiguous,
                 m_sectionNamePending, m_currentRecordName,
                 m_currentSectionName, m_recordInventoryEnabled};
     }
@@ -181,6 +184,7 @@ public:
                 m_emittedRecords[checkpoint.currentRecordIndex];
             record.ownerHandle = checkpoint.currentRecordOwnerHandle;
             record.hasOwnerHandle = checkpoint.currentRecordHasOwnerHandle;
+            record.ownerAmbiguous = checkpoint.currentRecordOwnerAmbiguous;
         }
         m_recordHandlePending = checkpoint.recordHandlePending;
         m_recordOwnerPending = checkpoint.recordOwnerPending;

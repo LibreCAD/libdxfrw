@@ -15173,6 +15173,59 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
         writer = std::move(queryProbe.writer);
         queryProbe.m_dxfWriteAttemptActive = false;
 
+        std::ostringstream ownersOutput;
+        std::unique_ptr<dxfWriter> owners = binary
+            ? std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterBinary>(&ownersOutput))
+            : std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterAscii>(&ownersOutput));
+        owners->setRecordInventoryEnabled(true, 8u);
+        bool ownerWrote = owners->writeString(0, "SECTION")
+            && owners->writeString(2, "ENTITIES")
+            && owners->writeString(0, "LINE")
+            && owners->writeString(5, "100000010")
+            && owners->writeString(330, "10");
+        bool rejectedDuplicate = false;
+        {
+            DxfWriterRecordScope duplicateOwner(*owners);
+            ownerWrote = ownerWrote && owners->writeString(330, "10");
+            rejectedDuplicate = !owners->recordHandleHasOwner(
+                UINT64_C(0x100000010), 0x10u);
+        }
+        const bool restoredOwner = owners->recordHandleHasOwner(
+            UINT64_C(0x100000010), 0x10u);
+        ownerWrote = ownerWrote && owners->writeString(102, "{ACAD_REACTORS")
+            && owners->writeString(330, "100000099")
+            && owners->writeString(102, "}")
+            && owners->writeString(100, "AcDbEntity")
+            && owners->writeString(330, "100000098")
+            && owners->writeString(0, "POINT")
+            && owners->writeString(5, "100000011")
+            && owners->writeString(330, "11")
+            && owners->writeString(330, "11")
+            && owners->writeString(100, "AcDbEntity")
+            && owners->writeString(0, "CIRCLE")
+            && owners->writeString(5, "100000012")
+            && owners->writeString(330, "12")
+            && owners->writeString(330, "100000013")
+            && owners->writeString(100, "AcDbEntity")
+            && owners->writeString(0, "ENDSEC")
+            && owners->finalizeRecordInventory();
+        t.expect(ownerWrote && rejectedDuplicate && restoredOwner
+                     && owners->recordHandleHasOwner(UINT64_C(0x100000010), 0x10u)
+                     && !owners->recordHandleHasOwner(UINT64_C(0x100000011), 0x11u)
+                     && !owners->recordHandleHasOwner(UINT64_C(0x100000012), 0x12u)
+                     && !owners->recordHandleHasOwner(UINT64_C(0x100000012), UINT64_C(0x100000013))
+                     && owners->hasWideRecordOwner(),
+                 "DXF owner inventory rejects duplicate common owners, ignores reactor/body references, and rolls back ambiguity");
+        queryProbe.writer = std::move(owners);
+        queryProbe.m_writeError = false;
+        queryProbe.m_dxfWriteAttemptActive = true;
+        t.expect(queryProbe.dxfWriteRecordHasOwner64(UINT64_C(0x100000010), 0x10u)
+                     && !queryProbe.dxfWriteRecordHasOwner64(UINT64_C(0x100000011), 0x11u)
+                     && !queryProbe.dxfWriteRecordHasOwner64(UINT64_C(0x100000012), UINT64_C(0x100000013)),
+                 "DXF public wide-owner query refuses ambiguous common-header roles");
+        owners = std::move(queryProbe.writer);
+        queryProbe.m_dxfWriteAttemptActive = false;
+
         std::ostringstream duplicates;
         std::unique_ptr<dxfWriter> duplicate = binary
             ? std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterBinary>(&duplicates))

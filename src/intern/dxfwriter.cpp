@@ -274,9 +274,16 @@ bool dxfWriter::observeRecordString(int code, std::string_view text) {
             return false;
         }
         EmittedRecordIdentity& record = m_emittedRecords[m_currentRecordIndex];
-        record.ownerHandle = ownerHandle;
-        record.hasOwnerHandle = true;
-        m_recordOwnerPending = false;
+        if (record.hasOwnerHandle) {
+            // Even identical duplicate owner groups do not establish a
+            // unique common-header role. Keep the widest value for the
+            // conservative wide-owner guard, but never certify the owner.
+            record.ownerAmbiguous = true;
+            record.ownerHandle = std::max(record.ownerHandle, ownerHandle);
+        } else {
+            record.ownerHandle = ownerHandle;
+            record.hasOwnerHandle = true;
+        }
     }
     return true;
 }
@@ -402,6 +409,7 @@ bool dxfWriter::recordHandleHasOwner(
     const auto matches = [handle, ownerHandle](
                              const EmittedRecordIdentity& record) {
         return record.handle == handle && record.hasOwnerHandle
+            && !record.ownerAmbiguous
             && record.ownerHandle == ownerHandle;
     };
     if (m_recordInventoryFinalized) {
