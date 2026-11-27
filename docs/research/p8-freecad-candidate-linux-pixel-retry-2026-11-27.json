@@ -14,5 +14,6 @@
   "limits": [
     "A prior Linux run failed the line pixel transition. This successful state-guarded rerun does not identify the cause of that failure or establish repeatability.",
     "One generated profile and virtual-display environment do not establish native-desktop, other-version, producer or Windows behavior. Windows candidate pixel run 46070632893 is pending."
-  ]
+  ],
+  "repeatabilityRun": "https://github.com/dxli/libdxfrw/actions/runs/46070754237"
 }

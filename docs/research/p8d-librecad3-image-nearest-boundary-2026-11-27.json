@@ -9,7 +9,8 @@
   "validation": [
     "The generated tilted, planar and degenerate nearest-point control failed before the change.",
     "After the change, five focused tests passed, including selected tilted edge and endpoint queries, a vertical degenerate segment, point, planar case, path snap, image bounds and transforms, and selected image persistence.",
-    "The default logical-corner snap control failed before the follow-up; after it, six focused tests pass, including corners, entity/path snap IDs and distance filtering. Bounds, nearest queries and corner snaps share one corner calculation."
+    "The default logical-corner snap control failed before the follow-up; after it, six focused tests pass, including corners, entity/path snap IDs and distance filtering. Bounds, nearest queries and corner snaps share one corner calculation.",
+    "After the snap follow-up, 71 selected image, builder and layer tests passed."
   ],
   "redTestLogSha256": "5271608f68d3835ebd6b94d053e5c0dd211be323c1e9ba1ef98c5e303f8d1626",
   "testLogSha256": "19126884f86a0929574b7fb6579b3a35f2cf103cac3ea9c55251c5f6409e10f4",
@@ -17,5 +18,6 @@
     "This measures 3D boundary distance, not projected-screen selection for an elevated image. Other snap modes are unchanged.",
     "Clipping boundaries, extreme floating-point magnitudes, arbitrary application GUI workflows, and complete image persistence remain unqualified."
   ],
-  "snapTestLogSha256": "0aad9b42dbc9dcefa5db8f926db43fd308ed69cecee180d54e11fd769c0c9b35"
+  "snapTestLogSha256": "0aad9b42dbc9dcefa5db8f926db43fd308ed69cecee180d54e11fd769c0c9b35",
+  "builderLayerTestLogSha256": "bbc703dc4888e0d38943c29622d32b5f006cff875d19382c06f4e4c1e29bd5d6"
 }
