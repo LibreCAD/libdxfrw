@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-native-tilted-line-move-2026-11-27",
+  "supportClaimEffect": "selected generated profile only",
+  "consumerCommit": "919a91f1",
+  "bundledCodecCommit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64; isolated ad-hoc signed local application bundle and settings directory",
+  "procedure": "Opened a locally authored minimal AC1015 ASCII DXF, used Select All and observed one selected item, moved from (0,0,0) to (10,0,0), saved as a new R2000 DXF, reopened that output in a new window, selected all and observed one item again. The follow-up move was cancelled.",
+  "independentReadback": "ezdxf 1.4.5 reports one LINE and zero audit errors or fixes for each file. Source endpoints are (2,3,70) and (6,3,74); output endpoints are (12,3,70) and (16,3,74).",
+  "hashes": {
+    "source": "8f4b3289fddd7842c9ea200f6ebb6fcc0eb950f493b4ef722398d43c1b6e47be",
+    "output": "13c5fa005c8cc1fc213275af69fc9bfc1ef21ea05b6265904b6ea507866d7a7b",
+    "application": "f1f90857581a45a8868b89b6758ddc0123c29847a7732b293564e5f375517c2e",
+    "kernel": "c48c352fa37830c67fe505fedcdc78ffe9cc27b202943203bf0e3da8bdb3a165",
+    "viewer": "80fc96c6a783e0d9519d669d716317073d2609a76b1b1fb70b8f1f3efec00dac",
+    "persistence": "8f7fd1fb7fe6ca6f81178b79a76344ed2af870ab4a75858a38931cb675882977",
+    "staticCodec": "645ceb0d6e6e3010b1b4c847941f859b666d70adbb7d596fcb5e365640a45abd"
+  },
+  "runtimeBinding": "lsof on the running proof process confirmed the recorded kernel, viewer and persistence libraries came from this isolated build.",
+  "limits": [
+    "The captured drawing canvas was black. Selection used Select All; visible rendering, pointer picking and snap behavior are not qualified.",
+    "The consumer used its bundled codec revision, not libdxfrw PR #106; this is one generated ASCII DXF and one translation on macOS.",
+    "A separate initial ezdxf setup-heavy input produced a reported partial import of two LAYOUT records and was not used for the successful output. No generated fixture was committed."
+  ]
+}
