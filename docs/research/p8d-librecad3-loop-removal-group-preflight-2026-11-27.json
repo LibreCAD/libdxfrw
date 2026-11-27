@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-loop-removal-group-preflight-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "16e143b5",
+  "finding": "The source-identity shadow projection excluded loop and remove stacks, leaving earlier stack-created entities invisible or retaining identities after removal during compound preflight.",
+  "change": "Reuse the same cloned operations and shadows for loops and removals; project removals before inserts, matching EntityBuilder execution. Ignore generated-copy identities while retaining the source identity when applicable. The prerequisite removal journal records only actual current entities.",
+  "validation": "Red-before flat and nested loop controls and forced locked removal/reinsertion pass after the change. Across five supported source entity types, tests include looped move, looped copy, copy then remove, absent removal, no preflight ID consumption, atomic refusal, explicit retry and undo/redo. All 56 focused BuilderTest and EntityBuilderTest cases pass on macOS ARM64. Python plan structural, worktree, actual GitHub base and 31 checker tests plus git diff --check pass.",
+  "limits": "Generated copy identities, unknown operations, unqualified entity types, repeated compound-stack semantics, native GUI and other platforms remain open. Hosted checks on this commit are pending."
+}
