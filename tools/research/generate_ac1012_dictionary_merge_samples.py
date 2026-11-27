@@ -17,6 +17,7 @@ import json
 import math
 from pathlib import Path
 import re
+import struct
 import subprocess
 import sys
 import tempfile
@@ -94,6 +95,62 @@ def observe_single_line_frame(frame: bytes, handle: int, layer: int) -> dict:
             "previousHandleBit": previous_bit, "extension": extension,
             "layer": layer_ref, "previous": previous, "next": next_ref,
             "frameSha256": sha(frame)}
+
+
+def observe_populated_style_frame(frame: bytes, handle: int, name: str,
+                                  owner: int, start_angle: float) -> dict:
+    """Bind a generated R13 MLINESTYLE's body and handle roles to its frame."""
+    bits = Bits(frame)
+    spans = {}
+
+    def field(label, reader):
+        start = bits.position
+        value = reader()
+        spans[label] = {"startBit": start, "endBit": bits.position, "value": value}
+        return value
+
+    def text_value():
+        length = bits.bs()
+        require(length <= 128, "style text exceeds the selected profile")
+        raw = bytes(bits.take(8) for _ in range(length))
+        require(raw.count(b"\0") <= 1 and (b"\0" not in raw or raw.endswith(b"\0")),
+                "style text has an invalid terminator")
+        return (raw[:-1] if raw.endswith(b"\0") else raw).decode("ascii")
+
+    def bit_double():
+        tag = bits.take(2)
+        if tag == 0:
+            return struct.unpack("<d", bytes(bits.take(8) for _ in range(8)))[0]
+        require(tag in (1, 2), "invalid style bit-double")
+        return 1.0 if tag == 1 else 0.0
+
+    require(field("type", bits.bs) == 73
+            and field("self", lambda: bits.handle(0, own=True))["value"] == handle
+            and field("eedSize", bits.bs) == 0, "wrong or unsupported style frame")
+    data_end = field("dataEndBit", lambda: bits.little(4))
+    require(field("reactorCount", bits.bl) == 1
+            and field("name", text_value) == name
+            and field("description", text_value) == ""
+            and field("flags", bits.bs) == 0
+            and field("fillColor", bits.bs) == 256, "unexpected style prefix")
+    require(math.isclose(field("startAngle", bit_double), start_angle, abs_tol=1e-10)
+            and math.isclose(field("endAngle", bit_double), math.pi / 2, abs_tol=1e-10)
+            and field("elementCount", lambda: bits.take(8)) == 2,
+            "unexpected style angles or element count")
+    for index, offset in enumerate((0.5, -0.5)):
+        require(field(f"offset{index}", bit_double) == offset
+                and field(f"color{index}", bits.bs) == 256
+                and field(f"linetypeIndex{index}", bits.bs) == 32767,
+                "unexpected style element")
+    require(bits.position == data_end, "style body boundary differs")
+    parent = field("owner", lambda: bits.handle(4, handle))
+    reactor = field("reactor", lambda: bits.handle(4, handle))
+    extension = field("extension", lambda: bits.handle(3, handle))
+    require(parent["value"] == owner and reactor["value"] == owner
+            and extension["role"] == 3 and extension["value"] == 0
+            and len(frame) * 8 - bits.position < 8, "style handles or tail differ")
+    return {"frameSha256": sha(frame), "spans": spans,
+            "paddingBits": len(frame) * 8 - bits.position}
 
 
 def check_single_line_graph(drawing: dict) -> tuple[dict, int, int]:
@@ -293,7 +350,8 @@ def read_model(path: Path, dwgread: str,
 def run_candidate(candidate: str, source: Path, root: Path, label: str,
                   partial: bool, binary: bool = False,
                   expected_angle: float | None = None,
-                  expected_styles: dict[str, float] | None = None) -> dict:
+                  expected_styles: dict[str, float] | None = None,
+                  expected_line_count: int | None = None) -> dict:
     candidate_path = Path(candidate).resolve()
     mode = "explicit-partial" if partial else "strict"
     encoding = "binary" if binary else "ascii"
@@ -358,13 +416,22 @@ def run_candidate(candidate: str, source: Path, root: Path, label: str,
         if expected_angle is not None:
             require(abs(style["start_angle"] - expected_angle) < 1e-8,
                     "output MLINESTYLE start angle differs from the selected source")
+        if expected_line_count is not None:
+            require(style.get("line_count") == expected_line_count
+                    and style.get("end_angle") is not None
+                    and abs(style["end_angle"] - 90.0) < 1e-8,
+                    "output MLINESTYLE elements or end angle differ")
         if expected_styles is not None:
             for name, angle in expected_styles.items():
                 matches = [item for item in roots[0].get("styles", [])
                            if item.get("key") == name and item.get("name") == name]
                 require(len(matches) == 1
                         and matches[0].get("owner") == roots[0]["target"].get("handle")
-                        and abs(matches[0]["start_angle"] - angle) < 1e-8,
+                        and abs(matches[0]["start_angle"] - angle) < 1e-8
+                        and (expected_line_count is None or
+                             (matches[0].get("line_count") == expected_line_count
+                              and matches[0].get("end_angle") is not None
+                              and abs(matches[0]["end_angle"] - 90.0) < 1e-8)),
                         f"output MLINESTYLE {name} differs from the selected source")
     lines = [line.strip() for line in log.splitlines()
              if ("DWG read observations:" in line
@@ -429,6 +496,22 @@ def materialize_r13_source(initial: Path, output: Path, dwgread: str,
     line["nolinks"] = 0
     line["prev_entity"] = [4, 0, 0, 0]
     line["next_entity"] = [4, 0, 0, 0]
+    styles = [obj for obj in drawing["OBJECTS"] if obj.get("object") == "MLINESTYLE"]
+    standard = [obj for obj in styles if obj.get("name") == "Standard"]
+    require(len(standard) == 1 and len(standard[0].get("lines", [])) == 2,
+            "producer did not provide a two-element Standard MLINESTYLE")
+    standard_lines = standard[0]["lines"]
+    require([row.get("offset") for row in standard_lines] == [0.5, -0.5]
+            and all(row.get("color") == 256 and row.get("lt_index") == 32767
+                    for row in standard_lines)
+            and math.isclose(standard[0].get("end_angle", 0), math.pi / 2, abs_tol=1e-10),
+            "Standard MLINESTYLE has an unexpected element profile")
+    for style in styles:
+        if style.get("name") != "Standard":
+            require(style.get("name") in {ENTRY_KEY, "SOURCE_ONLY", "DEST_ONLY"}
+                    and not style.get("lines"), "unexpected generated style payload")
+            style["lines"] = [dict(row) for row in standard_lines]
+            style["end_angle"] = standard[0]["end_angle"]
     patched = root / f"{label}-header-bound.json"
     patched.write_text(json.dumps(drawing, separators=(",", ":")) + "\n")
     run([dwgwrite, "-I", "JSON", "--as", "r13", "-o", str(output),
@@ -449,6 +532,35 @@ def materialize_r13_source(initial: Path, output: Path, dwgread: str,
             and decoded_line.get("prev_entity") == [4, 0, 0, 0]
             and decoded_line.get("next_entity") == [4, 0, 0, 0],
             "explicit model-space LINE links did not read back")
+    decoded_styles = [obj for obj in decoded_output["OBJECTS"]
+                      if obj.get("object") == "MLINESTYLE"]
+    require(len(decoded_styles) == len(styles) and all(
+        obj.get("lines") == standard_lines and math.isclose(
+            obj.get("end_angle", 0), math.pi / 2, abs_tol=1e-10)
+        for obj in decoded_styles), "populated MLINESTYLE data did not read back")
+    style_wire = {}
+    for style in decoded_styles:
+        name = style["name"]
+        handle = style["handle"][-1]
+        owner = style["ownerhandle"][-1]
+        offset, style_frame = read_object_frame(output, dwgread, handle, 73)
+        proof = observe_populated_style_frame(style_frame, handle, name, owner,
+                                               style["start_angle"])
+        bad_bit = proof["spans"]["extension"]["startBit"] + 3
+        damaged = bytearray(style_frame)
+        damaged[bad_bit // 8] ^= 1 << (7 - bad_bit % 8)
+        try:
+            observe_populated_style_frame(bytes(damaged), handle, name, owner,
+                                          style["start_angle"])
+        except ValueError:
+            pass
+        else:
+            raise ValueError("style extension role mutation unexpectedly accepted")
+        require(observe_populated_style_frame(style_frame, handle, name, owner,
+                                             style["start_angle"])["frameSha256"] == proof["frameSha256"],
+                "style frame retry changed")
+        style_wire[name] = {"handle": handle, "offset": offset, "wire": proof,
+                            "wrongRoleRejectedAndRetryPassed": True}
     offset, frame = read_object_frame(output, dwgread, line_handle, 19)
     line_wire = observe_single_line_frame(frame, line_handle, layer_handle)
     for bit in (line_wire["noLinksBit"], line_wire["previousHandleBit"] + 3):
@@ -467,13 +579,17 @@ def materialize_r13_source(initial: Path, output: Path, dwgread: str,
         "headerDimstyleBefore": original_reference,
         "headerDimstyleAfter": normalized,
         "targetDimstyle": {"name": "Standard", "handle": dimstyle_handle},
+        "styleElements": {"count": 2, "lines": standard_lines,
+                          "endAngleRadians": standard[0]["end_angle"]},
+        "styleFrames": style_wire,
         "modelLine": {"handle": line_handle, "originalNoLinks": original_no_links,
                       "frameOffset": offset, "wire": line_wire,
                       "noLinksAndRoleMutationsRejected": True},
         "normalization": (
             "Set the AC1012 HEADER DIMSTYLE H field to the unique Standard "
             "DIMSTYLE handle and write explicit typed-null previous/next links "
-            "for the sole model-space LINE, per ODA v5.4.1 sections 9 and 20.4."
+            "for the sole model-space LINE, and populate each MLINESTYLE with "
+            "the two Standard elements, per ODA v5.4.1 sections 9 and 20.4."
         ),
     }
 
@@ -596,11 +712,11 @@ def main() -> None:
                 "ascii": run_candidate(
                     args.candidate, path, root, label, True,
                     expected_angle=float(angle),
-                    expected_styles=expected_output_styles),
+                    expected_styles=expected_output_styles, expected_line_count=2),
                 "binary": run_candidate(
                     args.candidate, path, root, label, True, binary=True,
                     expected_angle=float(angle),
-                    expected_styles=expected_output_styles),
+                    expected_styles=expected_output_styles, expected_line_count=2),
             }
         dictionary_frame_test = None
         if args.dictionary_source_test:

@@ -133,9 +133,11 @@ files against the receipt before transfer. They have been reopened by ODA and
 read by LibreDWG, but require native normal-open and style validation. Their
 15/37-degree duplicate and 22/51-degree unique entries make the following
 merge observations distinguishable. The older LibreDWG-origin populated pair
-was rejected by ODA. A [corrected LibreDWG-generated pair](../../docs/research/p6-ac1012-explicit-entity-links-2026-11-27.json)
-also passes selected ODA conversion and independent DXF graph checks; use it
-as an additional native control, not as proof of native validity.
+was rejected by ODA. The first [explicit-link LibreDWG pair](../../docs/research/p6-ac1012-explicit-entity-links-2026-11-27.json)
+converts, but its selected styles have no source elements and ODA supplies one.
+Use the newer [two-element LibreDWG pair](../../docs/research/p6-ac1012-populated-style-wire-2026-11-27.json)
+as an additional native control: its source style frames and selected peer
+outputs retain both elements. Neither pair proves native validity.
 
 Prepare a scratch handoff, including the ODA reopen DXFs, native procedure and
 a manifest, by running the command below. It verifies the recorded hashes and
@@ -152,6 +154,11 @@ python3 -B tools/research/package_ac1012_populated_pair.py \
   --profile explicit-links \
   /private/tmp/ac1012-final-explicit-links-20261127 \
   /private/tmp/ac1012-native-explicit-links-handoff
+
+python3 -B tools/research/package_ac1012_populated_pair.py \
+  --profile populated-links \
+  /private/tmp/ac1012-two-element-wire-20261127 \
+  /private/tmp/ac1012-native-two-element-handoff
 ```
 
 Before transfer, the bounded source audit can recheck both frames and their
@@ -170,7 +177,7 @@ soft-owner entry. Its validity and output semantics remain unqualified. The
 audit does not qualify lossless output or native semantics. Use the earlier
 pair without the options to audit its style-dictionary extension graph.
 
-The corrected LibreDWG pair is a different profile: its
+The corrected LibreDWG pairs are a different profile: their
 [selected root and child frames](../../docs/research/p6-ac1012-generated-simple-root-2026-11-27.json)
 contain three named root entries, no root/style EED or extensions, and two
 empty child dictionaries with checked owner/reactor links. A wrong root-entry
@@ -195,6 +202,7 @@ the destination and source use distinguishable 15- and 37-degree start
 angles. The generator points the current DIMSTYLE header hard pointer to the
 unique Standard DIMSTYLE using the ODA v5.4.1 §9 definition and normalizes the
 sole model LINE to explicit null previous/next soft pointers (§§20.4.1–20.4.2),
+and gives each generated MLINESTYLE two checked Standard-like elements,
 then writes the result as AC1012. This is a LibreDWG-generated, specification-directed control,
 not an AutoCAD-authored source.
 
@@ -210,7 +218,9 @@ handles against ODA v5.4.1 §§9 and 20.4.44. The focused test passes each frame
 through `DRW_Dictionary` and the shared version-aware observer; wrong item
 roles and every truncation are rejected, parser state resets, and the complete
 frame succeeds on retry. The generator separately checks the LINE frame CRC,
-link flag, typed-null handle roles, and two frame-level mutations. With `--candidate`, strict conversion must preserve
+link flag, typed-null handle roles, and two frame-level mutations. It also
+checks the selected MLINESTYLE body/element spans and rejects a wrong extension
+role before retrying the clean frame. With `--candidate`, strict conversion must preserve
 its preexisting destination on refusal; explicit partial ASCII/Binary outputs
 are checked for the selected dictionary/style identity, owner, value and
 emitted cloning flag by a bounded local DXF wire audit. None of these controls

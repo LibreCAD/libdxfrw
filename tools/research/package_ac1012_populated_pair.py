@@ -16,7 +16,8 @@ from audit_ac1012_oda_merge_pair import PROFILES, audit
 from audit_ac1012_generated_root import audit as audit_generated_root
 from generate_ac1012_dictionary_witness import executable_identity, require, run, sha
 from generate_ac1012_dictionary_merge_samples import (check_single_line_graph,
-    observe_single_line_frame, read_dictionary_frame, read_model, read_object_frame)
+    observe_populated_style_frame, observe_single_line_frame, read_dictionary_frame,
+    read_model, read_object_frame)
 
 
 def main():
@@ -24,7 +25,7 @@ def main():
     parser.add_argument("run", type=Path, help="source-profile scratch run")
     parser.add_argument("output", type=Path, help="new scratch handoff directory")
     parser.add_argument("--dwgread", default="dwgread")
-    parser.add_argument("--profile", choices=("oda", "explicit-links"), default="oda")
+    parser.add_argument("--profile", choices=("oda", "explicit-links", "populated-links"), default="oda")
     args = parser.parse_args()
     require(not os.path.lexists(args.output), "output already exists")
     require(args.output.parent.is_dir(), "output parent does not exist")
@@ -32,8 +33,10 @@ def main():
     require(dwgread is not None, "dwgread executable not found")
     require(b"0.14" in run([dwgread, "--version"]).stdout, "dwgread 0.14 required")
     root = Path(__file__).resolve().parents[2]
-    receipt_name = ("p6-ac1012-oda-root-case-pair-2026-11-25.json" if args.profile == "oda"
-                    else "p6-ac1012-explicit-entity-links-2026-11-27.json")
+    receipt_names = {"oda": "p6-ac1012-oda-root-case-pair-2026-11-25.json",
+                     "explicit-links": "p6-ac1012-explicit-entity-links-2026-11-27.json",
+                     "populated-links": "p6-ac1012-populated-style-wire-2026-11-27.json"}
+    receipt_name = receipt_names[args.profile]
     receipt_path = root / "docs/research" / receipt_name
     receipt_bytes = receipt_path.read_bytes()
     receipt = json.loads(receipt_bytes)
@@ -90,6 +93,16 @@ def main():
                 require(line["frameSha256"] == expected["line"]["wire"]["frameSha256"],
                         "LINE frame differs from the receipt")
                 root_proof = audit_generated_root(packet / f"{side}.dwg", side, expected, dwgread)
+                style_frames = {}
+                if args.profile == "populated-links":
+                    for name, row in expected["styleFrames"].items():
+                        _, style_raw = read_object_frame(scratch, dwgread, row["handle"], 73)
+                        style = observe_populated_style_frame(style_raw, row["handle"], name,
+                                                              model["dictionaryHandle"],
+                                                              row["startAngleRadians"])
+                        require(style["frameSha256"] == row["frameSha256"],
+                                f"style {name} frame differs from the receipt")
+                        style_frames[name] = style["frameSha256"]
                 records[side] = {"files": hashes, "stylesDegrees": expected["styles"],
                                  "rootHandle": model["rootHandle"],
                                  "dictionaryHandle": model["dictionaryHandle"],
@@ -98,7 +111,8 @@ def main():
                                  "rootFrameSha256": root_proof["root"]["frameSha256"],
                                  "emptyChildFrameSha256": {
                                      name: value["wire"]["frameSha256"]
-                                     for name, value in root_proof["emptyChildren"].items()}}
+                                     for name, value in root_proof["emptyChildren"].items()},
+                                 "styleFrameSha256": style_frames}
         shutil.copyfile(guide, packet / "NATIVE_WITNESS.md")
         (packet / "source-receipt.json").write_bytes(receipt_bytes)
         readme = ("Locally generated AC1012 controls screened by ODA; native behavior is unobserved.\n"

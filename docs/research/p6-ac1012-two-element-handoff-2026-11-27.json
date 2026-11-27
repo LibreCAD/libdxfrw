@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-two-element-handoff-2026-11-27",
+  "supportClaimEffect": "none",
+  "sourceReceipt": "docs/research/p6-ac1012-populated-style-wire-2026-11-27.json",
+  "generator": "tools/research/package_ac1012_populated_pair.py --profile populated-links",
+  "scratchHandoff": "/private/tmp/ac1012-native-two-element-final-20261127",
+  "manifestSha256": "1ca2c34934364ca53484c9000d5a88a51bac435e38bcc1c1cdebe253d8d0cacf",
+  "checks": [
+    "PASS hashes, selected root/child graph, LINE frame, three MLINESTYLE frames and peer DXF hashes per source before packet publication.",
+    "PASS twelve physical element-count and offset mutations rejected with a clean-frame retry; generator separately rejects extension-role mutations.",
+    "PASS no-candidate generation reports source-only status.",
+    "PASS prior ODA and explicit-link package profiles after the new profile was added.",
+    "No drawing fixture was committed."
+  ],
+  "limits": [
+    "No native AutoCAD open, clone, WBLOCK, complete graph closure, or general support claim.",
+    "ODA conversion and selected output comparisons do not establish full lossless conversion."
+  ]
+}
