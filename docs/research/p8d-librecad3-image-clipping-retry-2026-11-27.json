@@ -1,0 +1,14 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-clipping-retry-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "ff63157a2e1da28745618ef458de2f78f979f94b",
+  "testLogSha256": "80c79cb80fb160ef8251a4b905ac4d8c9402da154648ee54c50f045b851045f6",
+  "checks": [
+    "Six focused IMAGE and persistence tests pass, including budget overflow and unchanged source fields across null metadata replacement.",
+    "Changing the pixel width while reusing source metadata reports one dropped IMAGE clipping boundary; restoring the original entity permits retry without that loss and preserves the selected polygon vertices."
+  ],
+  "limits": [
+    "This is selected adapter behavior, not a whole-document rollback proof or independent graph qualification."
+  ]
+}
