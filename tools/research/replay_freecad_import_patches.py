@@ -25,6 +25,8 @@ ARCHIVES = {
     # git archive of FILES only, with the FreeCAD-<commit>/ prefix and gzip -n.
     "008c9834581375624d26a2b264995b65cb8b10bd7a3234e3771cce6bd3fc3225":
         "477a7041803823a1fcae528133cb07ee5533b1b2",
+    "efd717b80f82d6c4ba10debc3c4fca5408cf57cb63fc9cccd8c594fb4fb040e7":
+        "477a7041803823a1fcae528133cb07ee5533b1b2",
 }
 # Earlier candidate receipts describe the normalized outputs. For this newer
 # source retain upstream's CRLF header instead of rewriting the entire file.

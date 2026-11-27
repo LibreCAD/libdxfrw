@@ -239,7 +239,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: FreeCAD/FreeCAD
-          ref: 157bfcb7462a733b03a7d041aeaa79fee7aff7a3
+          ref: 477a7041803823a1fcae528133cb07ee5533b1b2
           path: _freecad_candidate
           submodules: recursive
           persist-credentials: false
@@ -256,8 +256,8 @@ jobs:
             throw 'FreeCAD submodules do not match their recorded gitlinks'
           }
           $modules | Out-File -FilePath (Join-Path $evidence 'submodules.txt') -Encoding utf8
-          $archive = Join-Path $env:RUNNER_TEMP 'freecad-157.tar.gz'
-          Invoke-WebRequest -Uri 'https://codeload.github.com/FreeCAD/FreeCAD/tar.gz/157bfcb7462a733b03a7d041aeaa79fee7aff7a3' -OutFile $archive
+          $archive = Join-Path $env:RUNNER_TEMP 'freecad-477a704.tar.gz'
+          Invoke-WebRequest -Uri 'https://codeload.github.com/FreeCAD/FreeCAD/tar.gz/477a7041803823a1fcae528133cb07ee5533b1b2' -OutFile $archive
           (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant() | Out-File -FilePath (Join-Path $evidence 'archive-sha256.txt') -Encoding utf8
           python (Join-Path $env:GITHUB_WORKSPACE 'tools/research/apply_freecad_import_candidate.py') --source-root $source --source-archive $archive
           if ($LASTEXITCODE -ne 0) { throw 'Candidate replay or application failed' }
@@ -283,7 +283,7 @@ jobs:
           if ($env:RUNNER_OS -eq 'Windows') { $configureArgs += @('-DCMAKE_GENERATOR_PLATFORM=', '-DCMAKE_GENERATOR_TOOLSET=') }
           pixi run cmake @configureArgs
           if ($LASTEXITCODE -ne 0) { throw 'Candidate configuration failed' }
-          pixi run cmake --build $build --parallel 2 --target FreeCADMainCmd Import ImportScripts ImportPy Part PartScripts
+          pixi run cmake --build $build --parallel 2 --target FreeCADMainCmd Import ImportScripts ImportPy Part PartScripts MaterialLib MaterialModelLib AppearanceLib PatternLib FluidMaterialLib
           if ($LASTEXITCODE -ne 0) { throw 'Candidate build failed' }
           if ($env:CANDIDATE_GUI -eq 'true') {
             pixi run cmake --build $build --parallel 2 --target FreeCADMain ImportGui pivy_coin MaterialLib MaterialModelLib AppearanceLib MaterialScripts Draft DraftUtils
@@ -292,10 +292,10 @@ jobs:
           $name = if ($env:RUNNER_OS -eq 'Windows') { 'FreeCADCmd.exe' } else { 'FreeCADCmd' }
           $command = Join-Path (Join-Path $build 'bin') $name
           $source = Join-Path $env:GITHUB_WORKSPACE '_freecad_candidate'
-          $archive = Join-Path $env:RUNNER_TEMP 'freecad-157.tar.gz'
+          $archive = Join-Path $env:RUNNER_TEMP 'freecad-477a704.tar.gz'
           $evidence = Join-Path $env:RUNNER_TEMP 'freecad-candidate-evidence'
           pixi run python (Join-Path $env:GITHUB_WORKSPACE 'tools/research/run_freecad_candidate_probe.py') `
-            --source-archive $archive --expected-source-commit 157bfcb7462a733b03a7d041aeaa79fee7aff7a3 `
+            --source-archive $archive --expected-source-commit 477a7041803823a1fcae528133cb07ee5533b1b2 `
             --require-git-base --source-root $source --build-root $build --freecadcmd $command --output-dir $evidence
           if ($LASTEXITCODE -ne 0) { throw 'Candidate headless probe failed' }
 
@@ -310,9 +310,9 @@ jobs:
           $command = Join-Path (Join-Path $build 'bin') $name
           $runner = Join-Path $env:GITHUB_WORKSPACE 'tools/research/run_freecad_candidate_gui_probe.py'
           $source = Join-Path $env:GITHUB_WORKSPACE '_freecad_candidate'
-          $archive = Join-Path $env:RUNNER_TEMP 'freecad-157.tar.gz'
+          $archive = Join-Path $env:RUNNER_TEMP 'freecad-477a704.tar.gz'
           $evidence = Join-Path $env:RUNNER_TEMP 'freecad-candidate-evidence'
-          $probeArgs = @($runner, '--source-archive', $archive, '--expected-source-commit', '157bfcb7462a733b03a7d041aeaa79fee7aff7a3',
+          $probeArgs = @($runner, '--source-archive', $archive, '--expected-source-commit', '477a7041803823a1fcae528133cb07ee5533b1b2',
                          '--require-git-base', '--source-root', $source, '--build-root', $build, '--freecad', $command, '--output-dir', $evidence)
           if ($env:RUNNER_OS -eq 'Linux') {
             if (-not (Get-Command xvfb-run -ErrorAction SilentlyContinue)) { throw 'xvfb-run is required for the Linux GUI smoke test' }

@@ -103,6 +103,7 @@ def main():
         spec.loader.exec_module(definition)
         env = os.environ.copy()
         env["FREECAD_CANDIDATE_SOURCE_ROOT"] = str(source)
+        env["FREECAD_CANDIDATE_SOURCE_COMMIT"] = args.expected_source_commit
         try:
             proc = subprocess.run([str(command), "--user-cfg", str(run_dir / "user.cfg"),
                                    "--system-cfg", str(run_dir / "system.cfg"), str(PROBE)],
@@ -123,7 +124,8 @@ def main():
         expected_test = source / "src" / "Mod" / "Import" / "importtests" / "TestImportDXF.py"
         if not report.get("ok") or report.get("guiUp") != 0 or report.get("skipped") != 0 or report.get("failures") != 0 or report.get("errors") != 0:
             raise RuntimeError("focused FreeCAD tests failed or were skipped")
-        if report.get("tests") != list(definition.TESTS) or report.get("testsRun") != len(definition.TESTS) or report.get("testsExpected") != len(definition.TESTS):
+        expected_tests = definition.tests_for_commit(args.expected_source_commit)
+        if report.get("tests") != list(expected_tests) or report.get("testsRun") != len(expected_tests) or report.get("testsExpected") != len(expected_tests):
             raise RuntimeError("FreeCAD did not execute the exact required test set")
         if Path(report.get("sourceRoot") or "").resolve() != source or Path(report.get("testModule") or "").resolve() != expected_test:
             raise RuntimeError("FreeCAD used a different candidate source or test module")

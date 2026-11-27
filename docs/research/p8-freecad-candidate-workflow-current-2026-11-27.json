@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-candidate-workflow-current-2026-11-27",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "codeloadArchiveSha256": "efd717b80f82d6c4ba10debc3c4fca5408cf57cb63fc9cccd8c594fb4fb040e7",
+  "patchCount": 21,
+  "localProbeReceiptSha256": "48d815f032e55eb2be756b2b3d74b862428a7b7488f2357ee7b9f17705db0a67",
+  "localProbe": "Source archive, complete replay and all five source-file hashes match the checked-out patched candidate; Git base, FreeCAD build source and exact executable/Import module are verified. The 16 selected FreeCADCmd tests pass on macOS ARM64 without failures or skips.",
+  "workflow": ".github/workflows/freecad-platform-qualification.yml",
+  "changes": [
+    "Pin candidate checkout, codeload archive, replay and probe to the same 477a704 source.",
+    "Build material resource targets required by the headless startup.",
+    "Select and verify the extra regression test only for the source profile containing its patch; old source profiles retain their original 15-test expectation."
+  ],
+  "validation": [
+    "actionlint and the replay unit tests pass.",
+    "Local source-replay and full wrapped FreeCADCmd probe pass using the full hash-pinned codeload archive.",
+    "Version-specific expected test sets are 15 and 16 respectively."
+  ],
+  "limits": [
+    "No hosted Linux or Windows result has been obtained for this revision yet.",
+    "The wrapped local probe is headless and does not establish GUI, independent-producer or general support."
+  ]
+}
