@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "cb3b91ea",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "checks": [
+    "Generate a 3D LINE in BLOCK_FIRST, move it, transfer it to BLOCK_SECOND, then save R2004 ASCII; undo and save ASCII; redo and save binary.",
+    "Fresh libdxfrw imports and ezdxf 1.4.5 independently verify exactly one LINE in the expected block, an empty other block, start (6,9,14), end (9,13,20), and zero audit errors or fixes.",
+    "All 75 focused DXF round-trip tests plus full, worktree, base-ref and 31 plan checker tests pass on macOS ARM64."
+  ],
+  "sha256": {
+    "transferred_ascii": "b508d99a45edb42f71a19b6827a8ac96e58d8d5b13491d61075301176ac1fe4a",
+    "undo_ascii": "4822521e402df7f12f431aeaa9cefbbb3af046917c425f532c7c4fab5edc010b",
+    "redo_binary": "29fa4a3c2beffc2407681237bad82287cc8a62b1d591ca2acd31a805085c4023"
+  },
+  "limits": [
+    "Generated 3D LINE only; other entity types, native GUI and other platforms remain open.",
+    "No generated DXF fixtures were committed."
+  ],
+  "supportClaimEffect": "none"
+}

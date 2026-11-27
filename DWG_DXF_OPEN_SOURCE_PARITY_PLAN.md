@@ -131,8 +131,10 @@ evidence are recorded in `docs/research/` and Git history.
   A [generated block save/reopen control](docs/research/p8d-librecad3-block-layer-save-reopen-2026-11-26.json)
   checks both DXF encodings and independent readback.
   The [block entity update fix](docs/research/p8d-librecad3-block-entity-update-undo-2026-11-26.json)
-  preserves 3D line updates and owner changes through undo/redo; qualify other
-  entity types and native workflows.
+  preserves 3D line updates and owner changes through undo/redo. The [DXF
+  readback control](docs/research/p8d-librecad3-block-entity-3d-dxf-2026-11-26.json)
+  verifies the selected 3D line and block ownership after ASCII and binary
+  saves; qualify other entity types and native workflows.
   The [freeze/lock slice](docs/research/p8d-librecad3-frozen-locked-layer-2026-11-26.json)
   separates their DXF flags and normal canvas behavior. Direct scripted edits
   on locked layers, viewport-specific freeze, other layer flags, color-name
