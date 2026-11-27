@@ -148,7 +148,9 @@ evidence are recorded in `docs/research/` and Git history.
   now allow the complete narrow control to round-trip and pass independent
   readback in both encodings. The wide control still refuses atomically at the
   root dictionary reference. Preserve this distinction and qualify consumers
-  independently. Extend other plot-style shapes only with equivalent immutable
+  independently. The [reactor-link follow-up](docs/research/p8-ac1027-plot-graph-reactor-closure-2026-11-26.json)
+  also checks selected emitted reactor links and rejects unknown application groups.
+  Extend other plot-style shapes only with equivalent immutable
   source, staged output and graph-closure proof; cross-version conversion and
   unverified nested extensions remain refused.
 - **LibreCAD_3 entity true color:** the [shared color and model-only binary fixes](docs/research/p8d-librecad3-truecolor-and-model-only-binary-2026-11-26.json)
@@ -269,7 +271,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 5b05412039f1a6ab56f7db1379bc8bd5721a1bd4a2a32205319ea74fa20b7f42
+  digest: 993262664a93937c103ca3b53046b0bdd4a5328b949507bb63e27f76f156bdc1
   (781 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,

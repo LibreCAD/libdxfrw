@@ -98058,6 +98058,7 @@ bool dx_iface::inspectDxfLayerPlotObjects(const dxfRW::DxfObjectsWriteView& view
             std::vector<dxfRW::DxfDictionaryOutputExpectation> entries;
             std::map<std::uint32_t,const DRW_XRecord*> xrecords;
             std::map<std::uint32_t,std::string> leaves;
+            std::map<std::uint32_t,const DRW_TableEntry*> leafModels;
             std::unordered_set<std::uint32_t> wanted;
             for (const auto& rootEntry:cData->namedObjectDictionary.m_entries) {
                 if (rootEntry.m_handle==state.plotOwner) continue;
@@ -98121,7 +98122,11 @@ bool dx_iface::inspectDxfLayerPlotObjects(const dxfRW::DxfObjectsWriteView& view
                     const auto model=models.find(child.m_handle);
                     if (model==models.end() || model->second.type!=record.name
                         || model->second.value->xDictHandle
-                        || !model->second.value->extData.empty()) return false;
+                        || !model->second.value->extData.empty()
+                        || model->second.value->reactorHandles.size()>1u
+                        || (!model->second.value->reactorHandles.empty()
+                            && model->second.value->reactorHandles.front()!=source->handle)
+                        || !leafModels.emplace(childTarget,model->second.value).second) return false;
                     if (record.name=="XRECORD") {
                         const auto found=frozenXrecords.find(child.m_handle);
                         if (found==frozenXrecords.end()
@@ -98157,10 +98162,28 @@ bool dx_iface::inspectDxfLayerPlotObjects(const dxfRW::DxfObjectsWriteView& view
                 },[&](const auto& shape,std::string_view body) {
                     dx_standard_output::RecordCursor cursor(body,view);
                     dx_standard_output::RecordCursor::Token token;
+                    const auto model=leafModels.find(shape.handle);
+                    if (model==leafModels.end()) return false;
+                    bool reactorGroup=false, reactorSeen=false;
+                    std::size_t reactorCount=0u;
                     while (!cursor.done()) {
-                        if (!cursor.next(token) || token.code==1001
-                            || (token.code==102 && token.text=="{ACAD_XDICTIONARY")) return false;
+                        if (!cursor.next(token) || token.code==1001) return false;
+                        if (token.code==102) {
+                            if (token.text=="{ACAD_REACTORS" && !reactorGroup && !reactorSeen) {
+                                reactorGroup=true;reactorSeen=true;
+                            } else if (token.text=="}" && reactorGroup) reactorGroup=false;
+                            else return false;
+                        } else if (reactorGroup) {
+                            std::uint32_t emitted=0u,expected=0u;
+                            if (token.code!=330 || reactorCount>=model->second->reactorHandles.size()
+                                || !parsePlotSettingsHexHandle(token.text,emitted)
+                                || !map(model->second->reactorHandles[reactorCount++],expected)
+                                || emitted!=expected || dxfW->dxfWriteRecordHandleCount(emitted)!=1u)
+                                return false;
+                        }
                     }
+                    if (reactorGroup || reactorCount!=model->second->reactorHandles.size()
+                        || reactorSeen!=(reactorCount!=0u)) return false;
                     ++inspectedLeaves;
                     const auto found=xrecords.find(shape.handle);
                     if (found==xrecords.end()) return true;

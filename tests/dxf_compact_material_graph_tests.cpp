@@ -187,6 +187,7 @@ static bool multiPlotRoundTrip(const std::filesystem::path& in,const std::filesy
  if(!reject([&](){child->m_entries.front().m_handle=0x71u;},[&](){child->m_entries=childEntries;}))return false;
  auto& record=data.xRecords.front();const auto savedRecord=record;
  if(!reject([&](){record.xDictHandle=0x74u;},[&](){record=savedRecord;}))return false;
+ if(!reject([&](){record.reactorHandles.push_back(0x74u);},[&](){record=savedRecord;}))return false;
  io.late=[&](){record.m_dataEntries[0]=DRW_Variant(1,std::string("changed"));};
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
  const bool refusedRecord=!write();io.late={};record=savedRecord;
