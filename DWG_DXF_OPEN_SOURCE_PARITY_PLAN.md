@@ -111,8 +111,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
 8. **Integration.** Recheck affected profiles on the final codec and consumer
    heads, including LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and FreeCAD.
    The [POINT candidate](docs/research/p8d-librecad3-point-master-merge-2026-11-27.json)
-   now includes current master; qualify elevated-point 2D interaction and the
-   standalone-codec linetype dependency before final acceptance.
+   now includes current master; its [elevated POINT slice](docs/research/p8d-librecad3-elevated-point-view-2026-11-27.json) passes selected headless selection, snapping, drag and undo/redo checks. Resolve its merge conflicts with PR #461, applying the hidden-layer filter after adding elevated POINT candidates, and qualify the standalone-codec linetype dependency and native GUI before final acceptance.
    Selected macOS headless [LibreCAD](docs/research/p8d-librecad-current-codec-219b-2026-11-27.json)
    and [LibreCAD_3](docs/research/p8d-librecad3-current-codec-219b-2026-11-27.json)
    checks do not qualify native GUI or other platforms. The [Windows test link repair](docs/research/p8d-librecad3-windows-link-2026-11-27.json)

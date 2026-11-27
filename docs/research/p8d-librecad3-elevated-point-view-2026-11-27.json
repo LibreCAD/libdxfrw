@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-27",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/463",
+  "candidate_commit": "ea25d31fc3dcab39c9a5a57948c4bb38f77b421e",
+  "changes": "XY canvas selection and snapping include elevated POINTs without changing core 3D point distance. Dragging keeps the original elevation across repeated mouse moves and undo/redo. Frozen point layers are excluded.",
+  "validation": {
+    "platform": "macOS ARM64 headless",
+    "tests": "SelectionTest.* and Point3D.*: 14/14 passed, including snap enablement, competition with a flat point, frozen layer, repeated drag and undo/redo.",
+    "plan": "Full, worktree and actual-base plan checks passed; 31 plan-checker unit tests passed."
+  },
+  "integration": "A merge-tree trial with LibreCAD_3 PR #461 head 1395a2f5 has conflicts in the plan, CMake tests and snap manager. Resolve the snap conflict with the hidden/off/frozen-layer filter after elevated candidates are added; validate both profiles together.",
+  "limitations": "No native GUI, hosted cross-platform or final standalone-codec qualification; no gate promoted."
+}
