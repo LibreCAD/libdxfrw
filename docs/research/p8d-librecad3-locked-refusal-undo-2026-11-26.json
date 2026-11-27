@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "63ea1acf9507aabde4c548bfc15fd71c5c10f816",
+  "finding": "A directly executed EntityBuilder rejected for a locked layer still emitted a commit event. The undo manager would record a no-op and clear any redo history.",
+  "change": "The undo manager ignores commit events from EntityBuilder operations rejected by the locked-layer guard before modifying either history stack.",
+  "validation": [
+    "A focused control first undoes an actual unlocked creation, then refuses a locked edit and verifies the redo remains available; after redo, a second refused edit does not consume the next undo step.",
+    "Twenty-nine focused EntityBuilder, compound Builder, layer-operation and Lua/Python tests pass on macOS ARM64."
+  ],
+  "limits": [
+    "This covers directly executed rejected EntityBuilder operations. Mixed compound Builder transactions and reuse of an EntityBuilder after a previously committed operation need separate atomicity and history qualification.",
+    "Other low-level storage APIs and native/platform behavior remain open. No support claim or generated fixture was added."
+  ],
+  "supportClaimEffect": "none"
+}
