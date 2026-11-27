@@ -20,5 +20,10 @@
   ],
   "limits": [
     "No format, hardware or native consumer support claim follows."
-  ]
+  ],
+  "linuxFastRerun": {
+    "consumerHead": "3c52f0ba74175d6783403c5fedc9c016f2b5c3ba",
+    "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/46064052931/job/140725106368",
+    "result": "Bounded DWG/DXF fast lane passed; Windows ARM64 and x64 are still running."
+  }
 }
