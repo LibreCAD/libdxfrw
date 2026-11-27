@@ -155,8 +155,10 @@ evidence are recorded in `docs/research/` and Git history.
   separates their DXF flags and normal canvas behavior. The [locked-operation guard](docs/research/p8d-librecad3-locked-entity-operations-2026-11-26.json)
   rejects mixed EntityBuilder edits atomically, permits creation and explicit
   override, and tests Lua/Python, undo and block entities. The [rejected-operation undo fix](docs/research/p8d-librecad3-locked-refusal-undo-2026-11-26.json)
-  preserves undo/redo history for direct refusals; mixed compound transactions
-  and reuse after a previous commit need separate qualification. The [script document guard](docs/research/p8d-librecad3-locked-script-document-2026-11-26.json)
+  preserves undo/redo history for direct refusals. A [reuse control](docs/research/p8d-librecad3-locked-reused-builder-undo-2026-11-26.json)
+  preserves a previously applied journal after a later refused edit; complex
+  repeated stacks and mixed compound transactions need separate qualification.
+  The [script document guard](docs/research/p8d-librecad3-locked-script-document-2026-11-26.json)
   also protects direct Document bindings, offers checked and force methods, and
   fixes a null-storage constructor crash. Low-level StorageManager and entity
   containers, other document operations, viewport-specific freeze and other
