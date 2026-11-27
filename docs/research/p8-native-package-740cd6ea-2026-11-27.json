@@ -34,5 +34,15 @@
     "job": 140371304033,
     "conclusion": "success",
     "checks": "Fast runner and fixture policy, build and source-release inventories, frozen CTest inventory, bounded fast build, vectors and required CLI regressions passed. The source-release job was skipped."
+  },
+  "laterHeadRecheck": {
+    "head": "8f3774109a46153005d3b555e615389c2d32039f",
+    "implementationDigestSha256": "126f1bb73e76375868f719ed71165651a5651a4f7f2a8b7dc05bbc9ec7cb2cba",
+    "productionCode": "same production sources as 740cd6ea; adds numeric tests and evidence",
+    "fastRun": "https://github.com/dxli/libdxfrw/actions/runs/45960651658",
+    "fastResult": "success",
+    "nativeRun": "https://github.com/dxli/libdxfrw/actions/runs/45960651710",
+    "nativeResult": "success on Linux, macOS and Windows",
+    "packageNote": "Package matrix was not rerun at this test/documentation-only head; the matching production code passed at 740cd6ea."
   }
 }

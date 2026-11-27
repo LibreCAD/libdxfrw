@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-native-linetype-current-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "4418f427a7e64e6b923b6beceeb80c64eece21f1",
+  "codecCommit": "219b5164a41650dc834ab96d499cba8cf6030764",
+  "codecScope": "The public src/ codec used by this app is unchanged by later dwg2dxf-only and test/evidence commits through 8f377410.",
+  "platform": "macOS 27.2.1 build 26B131, arm64, native GUI",
+  "harness": "Clean consumer PR source; scratch-only startup patch changes the QSettings organization to LibreCADNativeProof20261127. The scratch bundle gets a unique identifier, an rpath to the current shared codec, and an ad-hoc signature. Startup source was restored after the build; dialog, adapter and codec source were not altered.",
+  "applicationSha256": "dca5fbf9b441c681311d2bd14f130dcf61bad4fee479d80bc50f6cbec1025740",
+  "sharedLibrarySha256": "a18e2367e0bc5727c7e8021ef7694230446c52972e0a7ae1856700c58bb1a099",
+  "runtimeEvidence": "lsof on the running scratch application showed both its executable and /private/tmp/libdxfrw-current-consumer-shared-20261126/libdxfrw.3.0.0.dylib mapped.",
+  "inputSha256": "f9223467ad3e791f71643c4e5fff0272ee3a6de8682e68b707073b2483a4084e",
+  "outputSha256": "8808c9ce286d0ee04dec6f140e508946892832cd00d164c4e25938fe0e298b5b",
+  "observations": [
+    "Opened the locally authored AC1032 scratch input; the native canvas displayed the dashed green LINE on P8D_LAYER.",
+    "Line Properties displayed explicit P8D_CUSTOM and endpoints (0,0) and (100,0). Changed the endpoint to (120,0), saved as AC1021, closed and reopened the output; the dialog again displayed P8D_CUSTOM and (120,0).",
+    "The application reported two objects omitted because the target DXF version could not hold them. This is not a whole-drawing losslessness pass.",
+    "ezdxf 1.4.5 independently read the saved output: one LINE, P8D_LAYER, P8D_CUSTOM, endpoints (0,0,0) and (120,0,0); linetype pattern length 6 with elements 4 and -2. Audit reported zero errors and fixes."
+  ],
+  "limits": [
+    "The executable includes the isolated-settings startup patch, changed rpath, bundle identifier and ad-hoc signature; it is not the byte-identical unmodified candidate executable.",
+    "This checks one locally generated linetype and geometry edit on macOS; no broad native, other-producer, or other-platform claim.",
+    "The two omitted objects and any source graph impact remain unqualified. No drawing fixture or output was committed."
+  ],
+  "physicalObjectScreen": "The source AC1032 and saved AC1021 physical OBJECTS sections each contain the same five records: root DICTIONARY C, DICTIONARY D, ACDBDICTIONARYWDFLT E, ACDBPLACEHOLDER F and PLOTSETTINGS 5A. Their ordered code/value groups compare equal after trimming ASCII numeric padding. This does not identify the two omitted raw carriers or prove whole-file equivalence.",
+  "leftOutDiagnostic": {
+    "diagnosticApplicationSha256": "94bef34c22ab4c0bc390c479093484145496e63190d5f8d323bd74ba92b92cc8",
+    "instrumentation": "Scratch-only logging at version-mismatch raw object/entity/section counters and typed stand-ins; source restored after build. This diagnostic reopens the original input and saves it unchanged as AC1021.",
+    "loggedRecords": [
+      "ACDBDICTIONARYWDFLT handle 0xE",
+      "ACDBPLACEHOLDER handle 0xF"
+    ],
+    "traceSha256": "9dea781655a598d4a433be8369918485887657eee8629a60ee39588dd0cc3eb0",
+    "diagnosticOutputSha256": "0635530a8cac99386b1563ad8ab33a9557801adb0a50e4d63bbdff05ee95b7cf",
+    "conclusion": "The raw carriers were skipped; generated output contains matching records. The warning counts carrier replay, so it must not assert that every corresponding object is absent. No general graph equivalence is implied."
+  }
+}
