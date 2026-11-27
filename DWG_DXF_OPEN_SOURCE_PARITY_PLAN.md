@@ -108,6 +108,9 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    and P6-F; do not regenerate unchanged pairs without a discriminating question.
 8. **Integration.** Recheck affected profiles on the final codec and consumer
    heads, including LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and FreeCAD.
+   The [spline branch master merge](docs/research/p8d-librecad3-spline-master-merge-2026-11-27.json)
+   resolves its plan-ledger conflict and passes selected headless checks; hosted
+   CI, GUI and standalone-codec validation remain open.
    The [POINT candidate](docs/research/p8d-librecad3-point-master-merge-2026-11-27.json)
    now includes current master; its [elevated POINT slice](docs/research/p8d-librecad3-elevated-point-view-2026-11-27.json) passes selected headless selection, snapping, drag and undo/redo checks, including [coincident grips at different elevations](docs/research/p8d-librecad3-point-coincident-grips-2026-11-27.json). The [overlapping line-grip fix](docs/research/p8d-librecad3-line-overlapping-grips-2026-11-27.json) prevents duplicate entity notifications while retaining both endpoint elevations. An isolated merge trial with PR #461 passed 15 headless POINT/selection tests; an off-layer negative control proves the hidden-layer filter must follow elevated candidate collection. Resolve the real merge conflicts using the [tested integration patch](tools/research/librecad3-point-layer-merge-2026-11-27.patch) as a reference and revalidate the combined head. The shared [mirror-axis scaling fix](docs/research/p8d-librecad3-point-mirror-axis-2026-11-27.json) passes 154 headless tests for the candidate, including planar and spatial axes from 1e-300 to 1e300; overflowing endpoint differences remain unqualified. Qualify the standalone-codec linetype dependency and native GUI before final acceptance.
    Selected macOS headless [LibreCAD](docs/research/p8d-librecad-current-codec-219b-2026-11-27.json)

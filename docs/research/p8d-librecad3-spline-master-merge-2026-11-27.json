@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-spline-master-merge-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
+  "parentHead": "8b9ba9e8f671cfc0a48159d91ba366e31afc7223",
+  "masterCommit": "60727c6c55a84d416d42b4b3d1664d0feb10cf61",
+  "consumerCommit": "5f4f265141eb2c1bc767ab267e62264978cf133b",
+  "change": "Merge master; retain both sides of the Python binding plan review ledger and add a synchronized merge review row. Source conflict was limited to the ledger.",
+  "validation": [
+    "macOS ARM64 headless Release build of lcunittest with bundled libdxfrw d68fb1ed and DWG reading disabled succeeded.",
+    "43 selected Bezier/spline geometry, area, DXF spline and HATCH persistence tests passed.",
+    "Python binding plan full and actual master-base checks passed; 31 plan checker tests passed; git diff --check passed.",
+    "GitHub reports the updated PR mergeable; hosted jobs queued."
+  ],
+  "testLogSha256": "3a67e1ace8a6dc1249c73a6ede5db41bcb6cdb7fdd798c2de00daab5a1566ed8",
+  "limits": [
+    "This headless run does not test the merged Qt viewer, DWG import, standalone codec, native GUI, or hosted platforms.",
+    "The PR is not yet integrated with PR 461 and no gate or support claim is promoted."
+  ]
+}
