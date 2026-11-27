@@ -149,10 +149,13 @@ evidence are recorded in `docs/research/` and Git history.
   connected to actual import or output and does not establish whole-drawing closure.
   The [memory reader](docs/research/p7-dxf-memory-snapshot-reader-2026-11-27.json)
   now consumes an immutable ASCII or binary snapshot using the existing callbacks,
-  budgets and whole-source checks, including R12 binary. Next connect the normalized
-  snapshot to the converter, preserve the original source/alias binding through
-  export and the existing 32-bit consumer API, and check staged DICTIONARY/XRECORD
-  roles and references. Require rooted
+  budgets and whole-source checks, including R12 binary. The [automatic graph
+  discovery](docs/research/p7-wide-dxf-automatic-graph-discovery-2026-11-27.json)
+  selects a unique bounded chain without sample-specific names and verifies the
+  normalized graph through the memory reader; ambiguous chains refuse. Next connect
+  the normalized snapshot to the converter, preserve the original source/alias
+  binding through export and the existing 32-bit consumer API, and check staged
+  DICTIONARY/XRECORD roles and references. Require rooted
   closure, atomic refusal, corrected retry and independent ASCII/Binary readback
   through the actual public route. The [AC1027 default MATERIAL raw replay](docs/research/p7-ac1027-ezdxf-default-material-2026-11-26.json)
   and [multi-layer plot graph](docs/research/p8-ac1027-audited-multilayer-plot-2026-11-26.json)
@@ -285,7 +288,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 0b42a6d927c8d203ccabc3557b48ff56d901a5f2bb36482b770dd59fe119d35a
+  digest: 257ad26563bcaff98a61b94fc7e95d2d2efa3330cae91fbbd38c665e98a523f3
   (782 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,

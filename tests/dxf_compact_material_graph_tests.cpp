@@ -270,7 +270,7 @@ static bool bufferReadTest(const std::filesystem::path& path) {
 }
 enum class WideSourceVariant { Wide, Narrow, WrongDictionaryOwner, WrongRecordOwner,
     WrongReference, UnknownReference, DuplicateSelf, DuplicateEntry, DuplicateNameCase, DuplicateTarget,
-    MissingEnd, InvalidHandle, AlternateRole, AliasCollision, ExternalWideReference, BadSeed, MissingSeed };
+    MissingEnd, InvalidHandle, AlternateRole, AliasCollision, ExternalWideReference, BadSeed, MissingSeed, MultipleWideGraphs };
 static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
     std::ostringstream out(std::ios::binary);
     if(binary)out.write("AutoCAD Binary DXF\r\n\x1a\0",22);
@@ -284,7 +284,8 @@ static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
     const char* record=narrow?"30":"100000011";
     if(!text(0,"SECTION")||!text(2,"HEADER")||!text(9,"$ACADVER")||!text(1,"AC1027")
         ||(variant!=WideSourceVariant::MissingSeed
-            &&(!text(9,"$HANDSEED")||!text(5,narrow?"100":variant==WideSourceVariant::BadSeed?"100000011":"100000012")))
+            &&(!text(9,"$HANDSEED")||!text(5,narrow?"100":variant==WideSourceVariant::BadSeed?"100000011":
+                variant==WideSourceVariant::MultipleWideGraphs?"100000022":"100000012")))
         ||!text(0,"ENDSEC")||!text(0,"SECTION")||!text(2,"OBJECTS")
         ||!text(0,"DICTIONARY")||!text(5,"000a")||!text(330,"0")
         ||!text(100,"AcDbDictionary")||!number(281,1)||!text(3,"CODEX_GRAPH")
@@ -292,6 +293,7 @@ static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
     if(variant==WideSourceVariant::DuplicateEntry&&(!text(3,"CODEX_GRAPH")||!text(350,dict)))return {};
     if(variant==WideSourceVariant::DuplicateNameCase&&(!text(3,"codex_graph")||!text(350,"B")))return {};
     if(variant==WideSourceVariant::DuplicateTarget&&(!text(3,"ALIAS")||!text(350,dict)))return {};
+    if(variant==WideSourceVariant::MultipleWideGraphs&&(!text(3,"OTHER_GRAPH")||!text(350,"100000020")))return {};
     if(!text(0,"DICTIONARY")||!text(5,dict)||!text(330,variant==WideSourceVariant::WrongDictionaryOwner?"B":"A")
         ||!text(100,"AcDbDictionary")||!number(280,1)||!number(281,1)
         ||!text(3,"CODEX_RECORD")||!text(350,record)
@@ -307,6 +309,11 @@ static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
     if(variant==WideSourceVariant::ExternalWideReference
         &&(!text(0,"XRECORD")||!text(5,"20")||!text(330,"A")
             ||!text(100,"AcDbXrecord")||!number(280,1)||!text(340,dict)))return {};
+    if(variant==WideSourceVariant::MultipleWideGraphs
+        &&(!text(0,"DICTIONARY")||!text(5,"100000020")||!text(330,"A")
+            ||!text(100,"AcDbDictionary")||!number(281,1)||!text(3,"OTHER_RECORD")||!text(350,"100000021")
+            ||!text(0,"XRECORD")||!text(5,"100000021")||!text(330,"100000020")
+            ||!text(100,"AcDbXrecord")||!number(280,1)||!text(340,"100000020")))return {};
     if(!text(0,"ENDSEC")||(variant!=WideSourceVariant::MissingEnd&&!text(0,"EOF"))||writer->hasWriteError())return {};
     return out.str();
 }
@@ -335,6 +342,23 @@ static bool runWideSourceCase(bool binary,WideSourceVariant variant,bool expecte
         &&graph.dictionarySelf.ordinal<graph.dictionaryEntry.ordinal&&graph.dictionaryEntry.ordinal<graph.recordSelf.ordinal
         &&graph.recordSelf.ordinal<graph.recordReference.ordinal&&graph.recordReference.begin<graph.recordReference.end;
 }
+struct WideBufferCapture : LC3CompatCheck {
+    std::uint32_t root{0},dictionary{0},record{0},reference{0};
+    unsigned roots{0},dictionaries{0},records{0};
+    void addNamedObjectDictionary(const DRW_Dictionary& value) override {
+        ++roots;root=value.handle;
+        for(const auto& entry:value.m_entries)if(entry.m_name=="CODEX_GRAPH")dictionary=entry.m_handle;
+    }
+    void addDictionary(const DRW_Dictionary& value) override {
+        if(value.handle!=dictionary||value.parentHandle!=root)return;
+        ++dictionaries;for(const auto& entry:value.m_entries)if(entry.m_name=="CODEX_RECORD")record=entry.m_handle;
+    }
+    void addXRecord(const DRW_XRecord& value) override {
+        if(value.handle!=record||value.parentHandle!=dictionary)return;
+        ++records;for(const auto& item:value.m_dataEntries)
+            if(item.code()==340&&item.type()==DRW_Variant::INTEGER64)reference=static_cast<std::uint32_t>(item.i64_val());
+    }
+};
 static bool wideSourceTest() {
     for(bool binary:{false,true}) {
         for(auto v:{WideSourceVariant::Wide,WideSourceVariant::Narrow,WideSourceVariant::AlternateRole})
@@ -370,6 +394,15 @@ static bool wideSourceTest() {
                 ||projected.root!=normalized.root||projected.dictionary!=normalized.dictionary
                 ||projected.record!=normalized.record||projected.recordReference.code!=340
                 ||projected.rootEntry.code!=(v==WideSourceVariant::AlternateRole?360:350))return false;
+            WideBufferCapture delivered;dxfRW memory("");
+            if(!memory.readBuffer(&delivered,false,normalized.bytes)||delivered.roots!=1u
+                ||delivered.dictionaries!=1u||delivered.records!=1u||delivered.root!=normalized.root
+                ||delivered.dictionary!=normalized.dictionary||delivered.record!=normalized.record
+                ||delivered.reference!=normalized.dictionary)return false;
+            dx_wide_dictionary_source::Normalized discovered;
+            if(!dx_wide_dictionary_source::normalize(original,"","",discovered)
+                ||discovered.bytes!=normalized.bytes||discovered.source.dictionaryKey!="CODEX_GRAPH"
+                ||discovered.source.recordKey!="CODEX_RECORD")return false;
         }
         dx_wide_dictionary_source::Normalized normalized;
         normalized.bytes="stale";
@@ -380,6 +413,8 @@ static bool wideSourceTest() {
                 ||!normalized.bytes.empty()||normalized.dictionary!=0u)return false;
         }
         const auto original=wideSourceBytes(binary,WideSourceVariant::Wide);
+        const auto ambiguous=wideSourceBytes(binary,WideSourceVariant::MultipleWideGraphs);
+        if(dx_wide_dictionary_source::normalize(ambiguous,"","",normalized)||!normalized.bytes.empty())return false;
         if(!dx_wide_dictionary_source::normalize(original,"CODEX_GRAPH","CODEX_RECORD",normalized))return false;
         const std::string_view aliasedInput(normalized.bytes);
         if(dx_wide_dictionary_source::normalize(aliasedInput,"CODEX_GRAPH","CODEX_RECORD",normalized)

@@ -17,6 +17,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -28,6 +29,7 @@ struct Field {
 };
 struct Graph {
     bool binary{false};
+    std::string dictionaryKey,recordKey;
     Field rootSelf,rootOwner,rootEntry,dictionarySelf,dictionaryOwner,
         dictionaryEntry,recordSelf,recordOwner,recordReference,handSeed;
     std::vector<Field> handleCandidates;
@@ -68,10 +70,11 @@ inline bool common(const Object& object,Field& self,Field& owner,std::size_t& bo
     }
     return identities==1u&&owners==1u&&body<object.fields.size();
 }
-inline bool dictionaryEntry(const Object& object,std::size_t body,
-        std::string_view wanted,Field& entry) {
+struct Entry {std::string name;Field target;std::uint64_t value{0};};
+inline bool dictionaryEntries(const Object& object,std::size_t body,
+        std::size_t limit,std::vector<Entry>& entries) {
     if(object.name!="DICTIONARY"||object.fields[body].text!="AcDbDictionary")return false;
-    std::string pending;unsigned matches=0u;
+    std::string pending;
     std::unordered_set<std::string> names;
     std::unordered_set<std::uint64_t> targets;
     for(std::size_t i=body+1u;i<object.fields.size();++i) {
@@ -86,11 +89,17 @@ inline bool dictionaryEntry(const Object& object,std::size_t body,
             std::string key;
             if(!dx_symbol_output::nameKey(pending,key)||key.empty()
                 ||!names.insert(std::move(key)).second||!targets.insert(value).second)return false;
-            if(pending==wanted){if(++matches!=1u)return false;entry=f;}
+            if(entries.size()>=limit)return false;
+            entries.push_back({pending,f,value});
             pending.clear();
         } else if(!pending.empty())return false;
     }
-    return pending.empty()&&matches==1u;
+    return pending.empty();
+}
+inline bool dictionaryEntry(const std::vector<Entry>& entries,
+        std::string_view wanted,Field& entry) {
+    for(const auto& item:entries)if(item.name==wanted){entry=item.target;return true;}
+    return false;
 }
 inline bool recordReference(const Object& object,std::size_t body,Field& reference) {
     if(object.name!="XRECORD"||object.fields[body].text!="AcDbXrecord")return false;
@@ -114,7 +123,7 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
     output=Graph{};
     try {
         constexpr std::size_t maxBytes=8u*1024u*1024u,maxFields=200000u,maxObjects=10000u;
-        if(dictionaryKey.empty()||recordKey.empty()||dictionaryKey.size()>255u||recordKey.size()>255u)return false;
+        if(dictionaryKey.empty()!=recordKey.empty()||dictionaryKey.size()>255u||recordKey.size()>255u)return false;
         char prefix[22]{};input.read(prefix,sizeof(prefix));
         if(input.gcount()!=sizeof(prefix))return false;
         const bool binary=std::string_view(prefix,sizeof(prefix))==std::string_view("AutoCAD Binary DXF\r\n\x1a\0",22);
@@ -181,23 +190,57 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
         candidate.handleCandidates=std::move(handles);std::size_t body=0u;
         const Object& root=rows.front();
         if(!common(root,candidate.rootSelf,candidate.rootOwner,body)
-            ||!dictionaryEntry(root,body,dictionaryKey,candidate.rootEntry)
             ||!hex(candidate.rootSelf.text,candidate.root)||!candidate.root)return false;
         std::uint64_t owner=0u;
-        if(!hex(candidate.rootOwner.text,owner)||owner||!hex(candidate.rootEntry.text,candidate.dictionary)||!candidate.dictionary)return false;
+        if(!hex(candidate.rootOwner.text,owner)||owner)return false;
+        std::vector<Entry> rootEntries;
+        if(!dictionaryEntries(root,body,16u,rootEntries))return false;
+        std::unordered_map<std::uint64_t,const Object*> objectIndex;
+        std::unordered_set<std::uint64_t> ambiguous;
+        for(const auto& row:rows){Field self,own;std::size_t start=0u;std::uint64_t value=0u;
+            if(common(row,self,own,start)&&hex(self.text,value)
+                &&!objectIndex.emplace(value,&row).second)ambiguous.insert(value);
+        }
         const auto findObject=[&](std::uint64_t handle)->const Object*{
-            const Object* result=nullptr;
-            for(const auto& row:rows){Field self,own;std::size_t start=0u;std::uint64_t value=0u;
-                if(!common(row,self,own,start)||!hex(self.text,value)||value!=handle)continue;
-                if(result)return nullptr;
-                result=&row;
-            }
-            return result;
+            const auto found=objectIndex.find(handle);
+            return ambiguous.count(handle)||found==objectIndex.end()?nullptr:found->second;
         };
+        std::string discoveredDictionary,discoveredRecord;
+        if(dictionaryKey.empty()) {
+            unsigned matches=0u;
+            for(const auto& rootEntry:rootEntries) {
+                const auto* possibleDictionary=findObject(rootEntry.value);
+                if(!possibleDictionary||possibleDictionary==&root)continue;
+                Field self,parent;std::size_t start=0u;std::uint64_t value=0u;
+                if(!common(*possibleDictionary,self,parent,start)||!hex(parent.text,value)
+                    ||value!=candidate.root)continue;
+                std::vector<Entry> entries;
+                if(!dictionaryEntries(*possibleDictionary,start,256u,entries))continue;
+                for(const auto& item:entries) {
+                    if(rootEntry.value<UINT64_C(0xffffffff)&&item.value<UINT64_C(0xffffffff))continue;
+                    const auto* possibleRecord=findObject(item.value);
+                    if(!possibleRecord||possibleRecord==possibleDictionary||possibleRecord==&root)continue;
+                    Field recordSelf,recordOwner,reference;std::size_t recordBody=0u;
+                    if(!common(*possibleRecord,recordSelf,recordOwner,recordBody)
+                        ||!hex(recordOwner.text,value)||value!=rootEntry.value
+                        ||!recordReference(*possibleRecord,recordBody,reference)
+                        ||!hex(reference.text,value)||value!=rootEntry.value)continue;
+                    if(rootEntry.name.size()>255u||item.name.size()>255u||++matches!=1u)return false;
+                    discoveredDictionary=rootEntry.name;discoveredRecord=item.name;
+                }
+            }
+            if(matches!=1u)return false;
+            dictionaryKey=discoveredDictionary;recordKey=discoveredRecord;
+        }
+        candidate.dictionaryKey=dictionaryKey;candidate.recordKey=recordKey;
+        if(!dictionaryEntry(rootEntries,dictionaryKey,candidate.rootEntry)
+            ||!hex(candidate.rootEntry.text,candidate.dictionary)||!candidate.dictionary)return false;
         const auto* dict=findObject(candidate.dictionary);if(!dict||dict==&root)return false;
+        std::vector<Entry> dictionaryEntriesFound;
         if(!common(*dict,candidate.dictionarySelf,candidate.dictionaryOwner,body)
             ||!hex(candidate.dictionaryOwner.text,owner)||owner!=candidate.root
-            ||!dictionaryEntry(*dict,body,recordKey,candidate.dictionaryEntry)
+            ||!dictionaryEntries(*dict,body,256u,dictionaryEntriesFound)
+            ||!dictionaryEntry(dictionaryEntriesFound,recordKey,candidate.dictionaryEntry)
             ||!hex(candidate.dictionaryEntry.text,candidate.record)||!candidate.record||candidate.record==candidate.root||candidate.record==candidate.dictionary)return false;
         const auto* record=findObject(candidate.record);if(!record||record==dict||record==&root)return false;
         if(!common(*record,candidate.recordSelf,candidate.recordOwner,body)
@@ -321,7 +364,7 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
             candidate.bytes.replace(edit.begin,edit.end-edit.begin,edit.text);prior=edit.begin;
         }
         Graph check;std::istringstream transformed(candidate.bytes,std::ios::binary);
-        if(!capture(transformed,dictionaryKey,recordKey,check)
+        if(!capture(transformed,source.dictionaryKey,source.recordKey,check)
             ||check.root!=candidate.root||check.dictionary!=candidate.dictionary||check.record!=candidate.record
             ||check.rootEntry.code!=source.rootEntry.code||check.dictionaryEntry.code!=source.dictionaryEntry.code
             ||check.recordReference.code!=source.recordReference.code)return false;
