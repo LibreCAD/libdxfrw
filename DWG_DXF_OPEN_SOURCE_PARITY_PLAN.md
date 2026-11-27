@@ -16,10 +16,11 @@ advisory, and excluded. Completed slice history and validation remain in
 
 The current test-inclusive implementation digest is
 `126f1bb73e76375868f719ed71165651a5651a4f7f2a8b7dc05bbc9ec7cb2cba`
-(783 inputs). Current-head hosted checks are pending. The previous
-[focused, package and FreeCAD matrix](docs/research/p8-native-freecad-f6c0-2026-11-27.json)
-and [fast lane](docs/research/p8-fast-lane-f6c0-2026-11-27.json) pass for the
-earlier f6c06139 digest; recheck profiles affected by the cross-encoding graph route.
+(783 inputs). The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
+passes on the current production code; the latest numeric tests and documentation
+postdate that hosted run. The earlier [FreeCAD matrix](docs/research/p8-native-freecad-f6c0-2026-11-27.json)
+passed at f6c06139.
+Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
 
 ## Ready work and cross-cutting dependencies
