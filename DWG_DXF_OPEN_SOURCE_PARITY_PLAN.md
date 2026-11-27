@@ -147,7 +147,8 @@ evidence are recorded in `docs/research/` and Git history.
   qualified chains and the bounded plot/material graph; whole-source or legacy
   identity observation keeps the original-stream path and refuses this wide input.
   The [two-chain follow-up](docs/research/p7-wide-dxf-multiple-graph-roundtrip-2026-11-27.json)
-  checks both emitted chains and independent readback, including refusal and retry.
+  checks two- and eight-chain generated examples and independent readback in both
+  encodings, plus nine-chain refusal, destination preservation and corrected retry.
   Extend to other graph shapes, 64-bit roles and producers, and bind original-stream
   observation before relaxing those limits. Qualify native consumers independently.
   The [reactor-link follow-up](docs/research/p8-ac1027-plot-graph-reactor-closure-2026-11-26.json)
@@ -276,7 +277,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 8c8e60dd9ad9a172474ebddb65c03c8c86bb446af998ee988ce624746d1f8725
+  digest: 89628cfa70ec5718265fa3bc6b127b92abcae2cd46827e57de6ce96a8212c251
   (782 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,

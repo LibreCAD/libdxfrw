@@ -1,7 +1,7 @@
 {
   "date": "2026-11-27",
   "scope": "Generated AC1027 ASCII and binary DXF with two independent NOD dictionary to XRECORD chains and wide handles, strict same-version same-encoding converter route.",
-  "implementationDigestSha256": "8c8e60dd9ad9a172474ebddb65c03c8c86bb446af998ee988ce624746d1f8725",
+  "implementationDigestSha256": "89628cfa70ec5718265fa3bc6b127b92abcae2cd46827e57de6ce96a8212c251",
   "converterSha256": "dbe44aafc439110b9db877141d99f8fb29e1df153654dd56c32dbc9d5acb4c39",
   "sourceAndOutputSha256": {
     "ascii": {
@@ -26,12 +26,23 @@
     "whole-source capture and existing plot/material regressions pass"
   ],
   "limits": [
-    "Up to eight independent chains with distinct dictionary and XRECORD identities; only two-chain generated example independently read back",
+    "Up to eight independent chains with distinct dictionary and XRECORD identities; two- and eight-chain locally generated examples independently read back.",
     "Only selected AC1027 same-encoding profile with audited plot/material graph",
     "Original-source observation modes do not opt into alias projection",
     "Direct dxfRW semantic callbacks and existing adapters retain 32-bit identity behavior",
     "No native producer or native LibreCAD/FreeCAD qualification is established",
     "No broad DWG/DXF support claim is promoted"
   ],
-  "fixtures": "Generated locally from scratch in temporary storage; no DWG or DXF fixture added to the repository."
+  "fixtures": "Generated locally from scratch in temporary storage; no DWG or DXF fixture added to the repository.",
+  "boundaryReadback": {
+    "description": "Locally generated eight-chain graph; ezdxf 1.4.5 verifies all dictionary and XRECORD owners and 340 references in source and output, with no audit errors or fixes. Nine chains are refused with destination preserved in both encodings; same-adapter corrected retry is covered by the focused regression.",
+    "ascii": {
+      "source": "e471e11c480a58985c63c475378388c4426a918c32fb5e23813822c99693f088",
+      "output": "78bc6dc4b8ecb79fae67e63b5e3aaf8fdd0cfab751ac043dc9fdd9dbc8570f90"
+    },
+    "binary": {
+      "source": "4b69a4f866c4d5ea37a1217c0b0cd0540e6a5b4017df1c3a538d08023d00e91c",
+      "output": "df4789e229c285021be54345c1bfaef948fb47a64c2c5032b71a08bdfc17ecc7"
+    }
+  }
 }

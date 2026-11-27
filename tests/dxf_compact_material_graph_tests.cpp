@@ -39,7 +39,7 @@ static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.
 
 // Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, bool multipleWide=false) {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u) {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -51,9 +51,11 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
  const auto d=[&](int c,double v){return w->writeDouble(c,v);};
  const char* blockHandle=collision?"1F":"69";
  const char* graphHandle=wideGraph?"100000010":"72";
+ const auto hex=[](std::uint64_t n){std::ostringstream out;out<<std::uppercase<<std::hex<<n;return out.str();};
+ const auto seed=hex(UINT64_C(0x100000020)+extraWide*16u);
  const char* recordHandle=wideGraph?"100000011":"73";
  if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,versionName)
-    ||(wideGraph&&(!s(9,"$HANDSEED")||!s(5,multipleWide?"100000022":"100000012")))
+    ||(wideGraph&&(!s(9,"$HANDSEED")||!s(5,extraWide?seed.c_str():"100000012")))
     ||!s(9,"$CMATERIAL")||!s(347,blockHandle)||!s(0,"ENDSEC")
     ||!s(0,"SECTION")||!s(2,"TABLES")||!s(0,"TABLE")||!s(2,"LAYER")
     ||(multiPlot&&(!s(5,"2")||!s(330,"0")||!s(100,"AcDbSymbolTable")))||!h(70,multiPlot?2:1)
@@ -68,8 +70,11 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||!h(280,0)||!h(281,1)||(multiPlot&&(!s(3,"ACAD_GROUP")||!s(350,"D")))
     ||!s(3,"ACAD_MATERIAL")||!s(350,"67")
     ||(multiPlot&&(!s(3,"ACAD_PLOTSTYLENAME")||!s(350,"70")
-                    ||!s(3,"CODEX_GRAPH")||!s(350,graphHandle)
-                    ||(multipleWide&&(!s(3,"CODEX_GRAPH_2")||!s(350,"100000020"))))))return false;
+                    ||!s(3,"CODEX_GRAPH")||!s(350,graphHandle))))return false;
+ for(unsigned n=0;n<extraWide;++n) {
+  const auto name="CODEX_GRAPH_"+std::to_string(n+2u), handle=hex(UINT64_C(0x100000020)+n*16u);
+  if(!s(3,name.c_str())||!s(350,handle.c_str()))return false;
+ }
  if(multiPlot&&(!s(0,"DICTIONARY")||!s(5,"D")||!s(330,"C")
     ||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)))return false;
  if(!s(0,"DICTIONARY")||!s(5,"67")
@@ -100,10 +105,11 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||!s(330,graphHandle)||!s(100,"AcDbXrecord")
     ||!h(280,1)||!s(1,"payload")||!s(340,graphHandle)
     ||(extraWideReference&&!s(341,extraWideReference))))return false;
- if(multipleWide&&(!s(0,"DICTIONARY")||!s(5,"100000020")||!s(330,"C")
-    ||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)||!s(3,"RECORD_2")||!s(350,"100000021")
-    ||!s(0,"XRECORD")||!s(5,"100000021")||!s(330,"100000020")||!s(100,"AcDbXrecord")
-    ||!h(280,1)||!s(1,"payload two")||!s(340,"100000020")))return false;
+ for(unsigned n=0;n<extraWide;++n) {
+  const auto name="RECORD_"+std::to_string(n+2u), handle=hex(UINT64_C(0x100000020)+n*16u), record=hex(UINT64_C(0x100000021)+n*16u);
+  if(!s(0,"DICTIONARY")||!s(5,handle.c_str())||!s(330,"C")||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)||!s(3,name.c_str())||!s(350,record.c_str())
+    ||!s(0,"XRECORD")||!s(5,record.c_str())||!s(330,handle.c_str())||!s(100,"AcDbXrecord")||!h(280,1)||!s(1,"payload")||!s(340,handle.c_str()))return false;
+ }
  return s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();
 }
 
@@ -329,6 +335,38 @@ static bool wideGraphTwoChains(const std::filesystem::path& in,const std::filesy
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
  const bool lateRefused=!write();io.late={};record=savedRecord;
  if(!lateRefused||bytes(out)!="sentinel"||!write()||!verify())return false;
+ return true;
+}
+
+static bool wideGraphChainBoundary(const std::filesystem::path& in,const std::filesystem::path& out,bool binary) {
+ Exporter io;if(!io.enableDxfWideGraphProjection())return false;
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,8u))return false;
+ dx_data rejected;std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+ if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,7u))return false;
+ dx_data accepted;
+ if(!io.fileImport(in.string(),&accepted,false)||accepted.xRecords.size()!=8u
+    ||!io.fileExport(out.string(),DRW::AC1027,binary,&accepted,false,true))return false;
+ dx_data decoded;dx_iface reader;
+ if(!reader.fileImport(out.string(),&decoded,false)||decoded.xRecords.size()!=8u)return false;
+ std::unordered_set<std::uint32_t> seen;
+ for(unsigned n=1u;n<=8u;++n) {
+  const auto suffix=n==1u?std::string():"_"+std::to_string(n);
+  std::uint32_t dictionary=0u,record=0u;
+  for(const auto& entry:decoded.namedObjectDictionary.m_entries)
+   if(entry.m_name=="CODEX_GRAPH"+suffix)dictionary=entry.m_handle;
+  for(const auto& item:decoded.dictionaries)if(item.handle==dictionary&&item.parentHandle==decoded.namedObjectDictionary.handle)
+   for(const auto& entry:item.m_entries)if(entry.m_name=="RECORD"+suffix)record=entry.m_handle;
+  if(!dictionary||!record||!seen.insert(dictionary).second||!seen.insert(record).second)return false;
+  const DRW_XRecord* found=nullptr;
+  for(const auto& item:decoded.xRecords)if(item.handle==record){if(found)return false;found=&item;}
+  if(!found||found->parentHandle!=dictionary)return false;
+  unsigned refs=0u;for(const auto& item:found->m_dataEntries)if(item.code()==340) {
+   if(item.type()!=DRW_Variant::INTEGER64||item.i64_val()!=static_cast<std::int64_t>(dictionary))return false;
+   ++refs;
+  }
+  if(refs!=1u)return false;
+ }
  return true;
 }
 
@@ -637,6 +675,7 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
   if(!wideGraphRoundTrip(in,out,binary,collision))return 38;
   if(!wideGraphTwoChains(in,out,binary,collision))return 39;
  }
+ if(argc==1)for(bool binary:{false,true})if(!wideGraphChainBoundary(in,out,binary))return 40;
  if(argc==1)for(bool binary:{false,true})
   if(!wideGraphImportRetry(in,out,binary))return 39;
  if(argc==1)for(bool binary:{false,true})
