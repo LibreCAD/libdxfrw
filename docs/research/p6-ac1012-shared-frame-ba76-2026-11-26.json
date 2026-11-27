@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-shared-frame-ba76-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateCommit": "c9d06a308",
+  "implementationDigestSha256": "ba76b71d87dcf9d42f81c820396f6f13afd99e0fe245cb8d93b94a0f41c3f317",
+  "sourceReceipt": "docs/research/p6-ac1012-user-request-generated-pair-2026-11-26.json",
+  "testExecutableSha256": "35a5a80c271569e2e8cafee118778a6883756da325d595f80b70a779bbac343b",
+  "frames": {
+    "destination": "0d005170285d2dbdc3887520bc5a018a708e58aff8568324818f1f918da95d07",
+    "source": "fbaf235e03a52ceacff32f57b3e0334dd4cb0a535b42e659eaa66bdd7c7a49c7"
+  },
+  "results": [
+    "PASS focused AC1012/AC1014/AC1015 dictionary version and transaction CTest.",
+    "PASS both previously generated physical AC1012 frames through shared dictionary and handle-role checks, malformed-role refusal and corrected retry."
+  ],
+  "limits": [
+    "These specification-directed locally generated sources do not establish native AutoCAD normal-open, absent-field defaults or duplicate-key merge behavior.",
+    "No new samples were generated or committed and no whole-source support claim was promoted."
+  ]
+}
