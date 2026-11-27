@@ -70,5 +70,17 @@
     "validation": "Version and NAVISWORKS selectors pass 268 standalone assertions in 14 cases and 267 bundled assertions in 13 cases, including matching, missing, conflicting and duplicate raw sources, live identity collision, destination-preserving invalid write and corrected same-filter retry. The adjacent handle selector passes 23 bundled cases; the standalone run passes 19/23 with the same four previously recorded sparse-MATERIAL failures. ezdxf 1.4.5 independently read the generated AC1021 matching output, found one LINE reactor targeting the emitted NAVISWORKSMODEL, and reported no audit errors or fixes.",
     "peerOutputSha256": "fefc8b7355c2558bce3c9c5139fcb819c733e43a32843781124068dc5a8daae0",
     "limits": "Only the selected NAVISWORKSMODEL cross-version raw-carrier and LINE-reactor profiles are qualified. Same-version raw/typed deduplication, fixed typed-entity aliases, additional types, graph roles, producer semantics, and native platforms remain open. The generated output stays outside the repository."
-  }
+  },
+  "fixedEntityStandInFollowup": {
+    "consumerCommit": "f88b3536",
+    "finding": "GEOPOSITIONMARKER and SECTIONOBJECT were missing from preallocated metadata-entity identities. Handle-only stand-in accounting could suppress omitted raw records and preserve dangling or ambiguous LINE reactors. Red-before controls exposed 24 assertions across two entity types and six source scenarios.",
+    "change": "Share metadata-entity identity planning and scope-aware raw-carrier checks. Canonicalize the existing POSITIONMARKER and SECTION_OBJECT aliases consistently; honor each typed writer minimum; preserve same-version raw precedence; mark conflicting or duplicated sources ambiguous.",
+    "validation": "Selected version, NAVISWORKS and SECTIONOBJECT controls pass 439 standalone assertions in 18 cases and 436 bundled assertions in 17 cases, including alias handling, same-version replay, live/source collisions, old-version behavior, destination preservation and retry. Adjacent handle selectors pass all 26 bundled cases; standalone passes 22/26 with the same four known sparse-MATERIAL failures. ezdxf 1.4.5 independently read generated AC1027 alias-projection outputs and verified each LINE reactor against its GEOPOSITIONMARKER or SECTIONOBJECT with zero audit errors and fixes.",
+    "peerOutputSha256": {
+      "GEOPOSITIONMARKER": "21499310fde4755090f728016d842d58a2e22dbf3f6f108e07a04a42c2d3c9ab",
+      "SECTIONOBJECT": "6e837c94c029d294a31c90e2e9d587b5e5b4896cb6af3c0db1191e9f294fc89b"
+    },
+    "limits": "These controls cover source/output identities and selected LINE reactors, not all graph roles or native meanings. Peer inputs/outputs are locally generated scratch files; no drawing fixture was committed. Other metadata entities, producer semantics and platforms remain open."
+  },
+  "hostedStatusNote": "LibreCAD_3 head b4be27ee passed hosted Linux ARM64, AppImage, Windows persistence, DWG sanitizer and plan sync checks; other jobs remain pending."
 }
