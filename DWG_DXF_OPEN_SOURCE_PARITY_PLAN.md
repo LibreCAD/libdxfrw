@@ -105,7 +105,7 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    replace a native witness. Qualify EED, the root empty-name/null
    entry, extension/XRECORD graph and ModelDocViewStyle bridge before guarded
    output. The [cadkit native readback](docs/research/p6-ac1012-cadkit-root-dictionary-peer-2026-11-27.json) independently confirms the observed empty/null entry and EED but does not establish native validity. Use the [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)
-   and P6-F; do not regenerate unchanged pairs without a discriminating question.
+   and P6-F; a [hash-checked populated-pair handoff](docs/research/p6-ac1012-populated-handoff-2026-11-27.json) is prepared for native testing. Do not regenerate unchanged pairs without a discriminating question.
 8. **Integration.** Recheck affected profiles on the final codec and consumer
    heads, including LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and FreeCAD.
    The [spline branch master merge](docs/research/p8d-librecad3-spline-master-merge-2026-11-27.json)

@@ -135,6 +135,18 @@ read by LibreDWG, but require native normal-open and style validation. Their
 merge observations distinguishable. The older LibreDWG-origin populated pair
 was rejected by ODA and is not an independently accepted input.
 
+Prepare a scratch handoff, including the ODA reopen DXFs, native procedure and
+a manifest, by running the command below. It verifies the recorded hashes and
+audits the copied physical frames before publishing the new directory. It
+refuses an existing destination or a modified input; it does not claim native
+acceptance or cloning semantics. The resulting drawings must not be committed.
+
+```sh
+python3 -B tools/research/package_ac1012_populated_pair.py \
+  /private/tmp/ac1012-linux-oda-20261125 \
+  /private/tmp/ac1012-native-populated-handoff
+```
+
 Before transfer, the bounded source audit can recheck both frames and their
 selected EED, APPID, extension-dictionary and XRECORD frames and links:
 
