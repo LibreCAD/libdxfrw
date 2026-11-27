@@ -128,7 +128,8 @@ evidence are recorded in `docs/research/` and Git history.
   models on/off state and tests rendering, selection, snapping, fit and nested
   inserts on generated controls. Frozen-layer semantics, color-name retention
   after replacement, color books, transparency, native toggling and other
-  platforms remain open.
+  platforms remain open. The [source callback guard fix](docs/research/p8d-librecad3-layout-callback-guard-ci-2026-11-26.json)
+  addresses the Linux CI failures; verify hosted checks on the updated head.
 - **LibreCAD_3 layouts:** the bounded ASCII three-layout implementation and
   its current evidence are recorded in the [consumer receipt](docs/research/p8d-librecad3-plain-layout-graph-2026-11-26.json).
   Extend imported-binary replay beyond the [checked canonical profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json),
