@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-main-477a704-patch-replay-2026-11-27",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "af4a471446225252575665aac37bb1bf24e7aaae",
+  "upstream": {
+    "repository": "https://github.com/FreeCAD/FreeCAD",
+    "branch": "main",
+    "sourceCommit": "477a7041803823a1fcae528133cb07ee5533b1b2",
+    "sourceCommitTime": "2026-11-27T16:08:37Z",
+    "snapshot": "git archive --format=tar --prefix=FreeCAD-<commit>/ <commit> -- <the five replay FILES> | gzip -n",
+    "snapshotScope": "The five importer files only, taken from the pinned Git commit; the archive is scratch-only.",
+    "snapshotSha256": "008c9834581375624d26a2b264995b65cb8b10bd7a3234e3771cce6bd3fc3225"
+  },
+  "candidate": {
+    "checkout": "/private/tmp/freecad-plan-current-20261127",
+    "state": "Twenty pre-existing downstream patches applied as uncommitted changes to five files in a disposable sparse checkout; no FreeCAD commit, branch push, or pull request was made.",
+    "diff": "1964 insertions and 19 deletions across five files; review and split the combined candidate into coherent contributions before submission.",
+    "lineEndings": "The source dxf.h has CRLF throughout; the replay restores CRLF after applying the historical normalized patches. Git diff is checked with core.whitespace=cr-at-eol."
+  },
+  "checks": [
+    "The 20 existing patches apply in order to the pinned current source. The replay validates the source archive digest, applies in temporary storage, checks the five-file inventory, and matches all prepared candidate file hashes.",
+    "A dirty-checkout reapplication and a corrupted source archive both refused while leaving all five prepared file hashes unchanged.",
+    "The new CTest libdxfrw_freecad_patch_replay passes three synthetic controls: preserve pure CRLF and LF, refuse mixed source endings before publication, and retain historical normalization for earlier baselines. The CTest uses git apply and generated text only.",
+    "The FreeCAD checkout passes a CRLF-aware git diff --check, and its patched Python test file compiles syntactically. No native build or runtime test was run on this source revision."
+  ],
+  "evidenceSha256": {
+    "replayTool": "7dc59272e5ac96344d051439edc169aba4e45c7787959270fb9226645de3c667",
+    "application": "8dd20e6bba849b798a916ff25f9a9aabf8fc36642d770952d79779c883cbc657",
+    "candidateComparison": "a0d6c773c7efda29b267e706121b33b011ebf86c360a74db9c1c4c4b02a39837",
+    "ctest": "bad1e4ca0f6f18c42aafdc2d98a79007fa10405822bbc937e5b11150576d95c6"
+  },
+  "limits": [
+    "Patch application and syntax are not a FreeCAD build, runtime, native GUI, interoperability, or source-wire qualification. The pinned source and candidate must be built and exercised before reuse of platform claims.",
+    "Existing patches still refuse or leave unqualified nonplanar faces, hidden edges, smoothing and other graph and visual profiles; they do not establish general FreeCAD mesh support.",
+    "FreeCAD AGENTS.md and AI_POLICY.md reserve repository communication and contributor attestations for the human contributor. No submission or human review is claimed."
+  ]
+}

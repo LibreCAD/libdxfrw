@@ -301,6 +301,7 @@ Additional P8 dependencies:
   nondefault fields, EED/reactors, remapping, edits, native semantics and
   platform behavior. Keep unqualified multi-image/orphan, clipping, source-size
   and cross-version profiles fail-closed.
+- The [FreeCAD patch replay](docs/research/p8-freecad-main-477a704-patch-replay-2026-11-27.json) prepares all 20 existing importer patches on source commit `477a7041803823a1fcae528133cb07ee5533b1b2`, preserving the upstream CRLF header. Split and review the large local candidate, build and run the affected importer tests on this exact source, and follow FreeCAD's contributor-authored submission policy; a source replay alone does not qualify native behavior.
 - Keep LibreCAD's R13 raw-carrier refusal until owner/remap namespace and all 65
   omitted records close. For FreeCAD, independently qualify nonplanar 3DFACE,
   hidden-edge, smoothing, mixed color/layer, nested blocks, persistence and
