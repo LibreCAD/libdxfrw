@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-staged-locked-group-preflight-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "7ee2778a",
+  "finding": "Compound preflight did not see a directly staged entity absent from the original document. A later locked-layer edit could be refused only after the entity insertion and layer replacement had already occurred. A single EntityBuilder could also stage two different new objects with the same ID on a locked layer and apply both.",
+  "change": "Track direct new-entity state through flat and nested compound preflight and subsequent layer replacements, preserving actual insertion order and conservatively invalidating object identity after operation stacks. Detect repeated new IDs within one EntityBuilder when a later record would edit the prior locked entity. Preserve explicit override and unchanged-object cases.",
+  "validation": "Red-before controls reproduce the partial group, stale-layer ordering, earlier forced-stack and repeated-new-ID failures. All 49 focused BuilderTest and EntityBuilderTest cases pass on macOS ARM64, including prior redo retention, atomic refusal, direct and stack retry, nested groups, unlocked edits and undo/redo. Python plan structural, worktree and actual GitHub base checks, 31 checker tests and whitespace checks pass.",
+  "limits": "The projected inventory covers entities directly staged by EntityBuilder operations without a pending stack. Entities produced by earlier operation stacks, arbitrary custom operations, other layer-state changes, repeated compound-stack semantics, native GUI and other platforms require separate qualification. Hosted checks on this commit remain pending."
+}

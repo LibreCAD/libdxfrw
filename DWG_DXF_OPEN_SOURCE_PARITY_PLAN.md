@@ -81,8 +81,11 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    does not qualify that peer. Keep unsupported graphs atomic and retryable.
 5. **LibreCAD_3 entity and layer behavior.** Extend true-color metadata,
    off/frozen/locked layer behavior and edit/undo semantics to other entities,
-   renamed layers, entities created earlier within a group, other lock-changing
-   operations, custom operations and repeated compound stacks. Cover viewport
+   renamed layers, entities created by operation stacks within a group, other
+   lock-changing operations, custom operations and repeated compound stacks.
+   The [directly staged group preflight](docs/research/p8d-librecad3-staged-locked-group-preflight-2026-11-27.json)
+   covers selected flat and nested create/lock/edit cases and repeated new IDs.
+   Cover viewport
    freeze and remaining layer flags; preserve warning/report behavior when older
    formats approximate or omit color. Reuse the [lock-transition preflight](docs/research/p8d-librecad3-layer-lock-transition-preflight-2026-11-26.json)
    and [stale-line metadata control](docs/research/p8d-librecad3-forced-line-current-layer-2026-11-26.json); the same-name forced-edit rebind also covers [circles and arcs](docs/research/p8d-librecad3-forced-curves-current-layer-2026-11-27.json), and [ellipses and splines](docs/research/p8d-librecad3-forced-ellipse-spline-current-layer-2026-11-27.json).
