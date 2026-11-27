@@ -23,6 +23,7 @@ TESTS = (
     "test_classic_polyline_header_flags_and_mesh_disposition",
     "test_bounded_polyface_geometry_and_rejections",
     "test_polyface_invalid_then_valid_same_file",
+    "test_polyface_display_invalid_then_valid_same_file",
     "test_bounded_polygon_mesh_grid_and_rejections",
     "test_polygon_mesh_invalid_then_valid_same_file",
     "test_closed_polygon_mesh_seams_and_refusals",

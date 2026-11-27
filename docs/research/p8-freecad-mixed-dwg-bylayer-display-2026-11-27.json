@@ -1,0 +1,289 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-mixed-dwg-bylayer-display-2026-11-27",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "21 replayed patches in disposable, uncommitted FreeCAD worktree",
+  "problem": "FreeCAD bounded mesh importer rejected emitted default group 6 and group 370 metadata on the POLYLINE and VERTEX records; libdxfrw formats numeric values with leading whitespace.",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+    "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDb__LineWeight.html"
+  ],
+  "fix": "Accept at most one explicit BYLAYER linetype and at most one numeric -1 BYLAYER lineweight on each mesh parent or vertex. Refuse duplicates, nondefault values, and malformed integers. Nondefault and SEQEND metadata remain guarded.",
+  "patch": "docs/patches/freecad-p8-mesh-bylayer-display-2026-11-27.patch",
+  "patchSha256": "406dbfce97d746e0cf7c3cbb879935815fc110db6609df3c59ab8281c3c6938d",
+  "replayReceiptSha256": "821984cf0261bd353363a36939a67b20f4257b098053978df85121e9f8fc9661",
+  "importModuleSha256": "3c9797fb0dc9acef2fe6f6ab9e57bad26bafe1d4413350ae59a1934886b0a48b",
+  "tests": [
+    "16 focused native FreeCADCmd importer tests pass without failures, errors, or skips, including malformed/nondefault/duplicate refusal and following-valid-polyface recovery.",
+    "Open and insert pass through the installed dwg2dxf and actual Draft.importDWG with locally generated mixed primitive files in AC1021, AC1024, and AC1032, including Unicode and spaces in source paths.",
+    "The candidate emits one valid quad face for the planar POLYFACE, while earlier candidate tests also accept two triangles; the shared assertion verifies exact quad vertices, boundary edges, and positive area. 3DFACE and SOLID shape bounds, edge/vertex/face counts and perimeters are independently checked against authored controls.",
+    "The line and quad predicates pass positive and corrupted-boundary self-controls; the 21-patch replay matches all five FreeCAD candidate files."
+  ],
+  "focusedTestLogSha256": "36264082d0f76105c096b2c56d17230ee2273504f0ec19d172673bcbbba4c087",
+  "runs": {
+    "AC1021": {
+      "open": {
+        "inputSha256": "995b7217d926f145428d81c1b63bd8d32ee16a4b4eb4ccfb9337faa311cde1a8",
+        "convertedDxfSha256": "f1e8050caa1971d7b14ac8581763a5f4d2c911595aade5f868eccd0c0eb4a395",
+        "logSha256": "f16cfccf4fde4ac231678b558a5b27529e3202828a47dbb34f67c29c082395f1",
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "polyfaceVertices": [
+          [
+            121.0,
+            122.0,
+            1.0
+          ],
+          [
+            121.0,
+            126.0,
+            5.0
+          ],
+          [
+            124.0,
+            122.0,
+            4.0
+          ],
+          [
+            124.0,
+            126.0,
+            8.0
+          ]
+        ],
+        "unsupportedFeatures": {},
+        "entityCounts": {
+          "3DFACE": 1,
+          "ARC": 1,
+          "CIRCLE": 1,
+          "ELLIPSE": 1,
+          "LINE": 1,
+          "LWPOLYLINE": 1,
+          "POINT": 1,
+          "POLYLINE": 3,
+          "SOLID": 1,
+          "SPLINE": 1
+        }
+      },
+      "insert": {
+        "inputSha256": "995b7217d926f145428d81c1b63bd8d32ee16a4b4eb4ccfb9337faa311cde1a8",
+        "convertedDxfSha256": "f1e8050caa1971d7b14ac8581763a5f4d2c911595aade5f868eccd0c0eb4a395",
+        "logSha256": "f8e607bd867b7a1c7efd6d8ba09ae38002d7324a08b752a9587f491a27a2e1a1",
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "polyfaceVertices": [
+          [
+            121.0,
+            122.0,
+            1.0
+          ],
+          [
+            121.0,
+            126.0,
+            5.0
+          ],
+          [
+            124.0,
+            122.0,
+            4.0
+          ],
+          [
+            124.0,
+            126.0,
+            8.0
+          ]
+        ],
+        "unsupportedFeatures": {},
+        "entityCounts": {
+          "3DFACE": 1,
+          "ARC": 1,
+          "CIRCLE": 1,
+          "ELLIPSE": 1,
+          "LINE": 1,
+          "LWPOLYLINE": 1,
+          "POINT": 1,
+          "POLYLINE": 3,
+          "SOLID": 1,
+          "SPLINE": 1
+        }
+      }
+    },
+    "AC1024": {
+      "open": {
+        "inputSha256": "271dad6302b3d537dacad68bead31952cc4dff74b9c1c6010f647d2b1385eaa3",
+        "convertedDxfSha256": "2577632fda22c47b960957707d4dd78749b5245e1eedf2470f681604fc72fd05",
+        "logSha256": "ae85c1187be19f982acf46c88d73422352e1b2c635c59ba0759023121458aba1",
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "polyfaceVertices": [
+          [
+            121.0,
+            122.0,
+            1.0
+          ],
+          [
+            121.0,
+            126.0,
+            5.0
+          ],
+          [
+            124.0,
+            122.0,
+            4.0
+          ],
+          [
+            124.0,
+            126.0,
+            8.0
+          ]
+        ],
+        "unsupportedFeatures": {},
+        "entityCounts": {
+          "3DFACE": 1,
+          "ARC": 1,
+          "CIRCLE": 1,
+          "ELLIPSE": 1,
+          "LINE": 1,
+          "LWPOLYLINE": 1,
+          "POINT": 1,
+          "POLYLINE": 3,
+          "SOLID": 1,
+          "SPLINE": 1
+        }
+      },
+      "insert": {
+        "inputSha256": "271dad6302b3d537dacad68bead31952cc4dff74b9c1c6010f647d2b1385eaa3",
+        "convertedDxfSha256": "2577632fda22c47b960957707d4dd78749b5245e1eedf2470f681604fc72fd05",
+        "logSha256": "d9ab50397f3fb2a0d8743bda9d6c7865ca83c095d2fb9d93c1a40e2a6177433a",
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "polyfaceVertices": [
+          [
+            121.0,
+            122.0,
+            1.0
+          ],
+          [
+            121.0,
+            126.0,
+            5.0
+          ],
+          [
+            124.0,
+            122.0,
+            4.0
+          ],
+          [
+            124.0,
+            126.0,
+            8.0
+          ]
+        ],
+        "unsupportedFeatures": {},
+        "entityCounts": {
+          "3DFACE": 1,
+          "ARC": 1,
+          "CIRCLE": 1,
+          "ELLIPSE": 1,
+          "LINE": 1,
+          "LWPOLYLINE": 1,
+          "POINT": 1,
+          "POLYLINE": 3,
+          "SOLID": 1,
+          "SPLINE": 1
+        }
+      }
+    },
+    "AC1032": {
+      "open": {
+        "inputSha256": "7df817c97a68064cf2df6823ca5b4a1b0b6c47b427d66de8d8fb5bc77fcd69f8",
+        "convertedDxfSha256": "7925e2205cdb8de4ad66962ea2f2d844493796122917574a14fc10fb0abc039b",
+        "logSha256": "f4c98bc1187ab4b6c18a1e7a25b6555bae3209e14196bb81a8134a1dbdc10ff9",
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "polyfaceVertices": [
+          [
+            121.0,
+            122.0,
+            1.0
+          ],
+          [
+            121.0,
+            126.0,
+            5.0
+          ],
+          [
+            124.0,
+            122.0,
+            4.0
+          ],
+          [
+            124.0,
+            126.0,
+            8.0
+          ]
+        ],
+        "unsupportedFeatures": {},
+        "entityCounts": {
+          "3DFACE": 1,
+          "ARC": 1,
+          "CIRCLE": 1,
+          "ELLIPSE": 1,
+          "LINE": 1,
+          "LWPOLYLINE": 1,
+          "POINT": 1,
+          "POLYLINE": 3,
+          "SOLID": 1,
+          "SPLINE": 1
+        }
+      },
+      "insert": {
+        "inputSha256": "7df817c97a68064cf2df6823ca5b4a1b0b6c47b427d66de8d8fb5bc77fcd69f8",
+        "convertedDxfSha256": "7925e2205cdb8de4ad66962ea2f2d844493796122917574a14fc10fb0abc039b",
+        "logSha256": "6201331fad73f2d7d2dc9dc444e44a85c88a2ad294d6af31402b33eeb01ab90c",
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "polyfaceOutcome": "quadrilateral_surface",
+        "polyfaceVertices": [
+          [
+            121.0,
+            122.0,
+            1.0
+          ],
+          [
+            121.0,
+            126.0,
+            5.0
+          ],
+          [
+            124.0,
+            122.0,
+            4.0
+          ],
+          [
+            124.0,
+            126.0,
+            8.0
+          ]
+        ],
+        "unsupportedFeatures": {},
+        "entityCounts": {
+          "3DFACE": 1,
+          "ARC": 1,
+          "CIRCLE": 1,
+          "ELLIPSE": 1,
+          "LINE": 1,
+          "LWPOLYLINE": 1,
+          "POINT": 1,
+          "POLYLINE": 3,
+          "SOLID": 1,
+          "SPLINE": 1
+        }
+      }
+    }
+  },
+  "limits": [
+    "FreeCAD changes are an uncommitted local candidate for human review under its repository instructions.",
+    "Generated DWGs use libdxfrw itself; this is not an independent producer, general version, GUI, other-platform, native rendering, or arbitrary mesh qualification.",
+    "Only explicit BYLAYER defaults are admitted; real custom linetype and lineweight preservation remain out of scope."
+  ]
+}

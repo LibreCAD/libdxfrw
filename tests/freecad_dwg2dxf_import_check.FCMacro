@@ -349,6 +349,27 @@ def assert_polyface_geometry(document, expected_mesh):
             "expected one supported POLYFACE or the pinned wireframe boundary; "
             "supported=%d, boundary=%d, inventory=%r"
             % (len(candidates), len(wireframe_candidates), shape_inventory))
+    # A consumer may retain the authored planar quad as one face instead of
+    # triangulating it. Verify its vertices and boundary edges in either case.
+    if shape.isValid() is True and len(shape.Faces) == 1 and len(expected_points) == 4:
+        face = shape.Faces[0]
+        points = sorted((float(vertex.Point.x), float(vertex.Point.y), float(vertex.Point.z))
+                        for vertex in face.Vertexes)
+        edges = sorted(tuple(sorted((float(vertex.Point.x), float(vertex.Point.y),
+                                     float(vertex.Point.z)) for vertex in edge.Vertexes))
+                       for edge in face.Edges)
+        expected_edges = sorted(tuple(sorted((expected_points[index], expected_points[(index + 1) % 4])))
+                                for index in range(4))
+        if (expected_mesh["triangles"] != 2 or len(points) != 4 or len(edges) != 4
+                or not math.isfinite(float(face.Area)) or face.Area <= 0
+                or any(not coordinates_match(a, b) for a, b in zip(points, sorted(expected_points)))
+                or any(len(edge) != 2 or any(not coordinates_match(a, b) for a, b in zip(edge, wanted))
+                       for edge, wanted in zip(edges, expected_edges))):
+            raise AssertionError("POLYFACE quad boundary differs from authored vertices")
+        return {"outcome": "quadrilateral_surface", "object_type": obj.TypeId,
+                "shape_type": shape.ShapeType, "face_count": 1,
+                "bounds": expected_bounds, "vertices": points,
+                "boundary_edges": edges, "object_name": obj.Name}
     if shape.isValid() is not True or len(shape.Faces) != 2:
         raise AssertionError(
             "POLYFACE must produce a valid two-triangle surface; object=%s, "
@@ -495,8 +516,35 @@ def line_predicate_self_test():
     print("FreeCAD LINE predicate controls: PASS (%d mocked checks; no native runtime)" % checks)
 
 
+def polyface_quad_self_test():
+    """Check the quad predicate with valid and corrupted boundary topology."""
+    from copy import deepcopy
+    from types import SimpleNamespace as Object
+
+    points = [(1, 2, 1), (4, 2, 4), (4, 6, 8), (1, 6, 5)]
+    vertices = [Object(Point=Object(x=x, y=y, z=z)) for x, y, z in points]
+    edges = [Object(Vertexes=[vertices[i], vertices[(i + 1) % 4]]) for i in range(4)]
+    face = Object(Vertexes=vertices, Edges=edges, Area=10.0)
+    box = Object(XMin=1, YMin=2, ZMin=1, XMax=4, YMax=6, ZMax=8)
+    shape = Object(Faces=[face], Edges=edges, Vertexes=vertices, BoundBox=box,
+                   ShapeType="Face", isNull=lambda: False, isValid=lambda: True)
+    doc = Object(Objects=[Object(Name="Polyface", TypeId="Part::Feature", Shape=shape)])
+    expected = {"points": points, "bounds": [1, 2, 1, 4, 6, 8], "triangles": 2}
+    assert assert_polyface_geometry(doc, expected)["outcome"] == "quadrilateral_surface"
+    broken = deepcopy(doc)
+    broken.Objects[0].Shape.Faces[0].Edges[0].Vertexes[1] = broken.Objects[0].Shape.Vertexes[2]
+    try:
+        assert_polyface_geometry(broken, expected)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("POLYFACE quad predicate accepted the wrong boundary")
+    print("FreeCAD POLYFACE quad predicate controls: PASS (no native runtime)")
+
+
 if __name__ == "__main__" and sys.argv[1:] == ["--self-test"]:
     line_predicate_self_test()
+    polyface_quad_self_test()
     sys.exit(0)
 
 import FreeCAD as App

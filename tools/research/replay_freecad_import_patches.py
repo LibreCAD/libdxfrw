@@ -6,7 +6,8 @@ reads five files from a hash-bound FreeCAD source archive into a disposable
 directory, applies the patches there and optionally compares the result with a
 local candidate checkout, or exports to an explicitly supplied empty directory.
 It never changes the archive or candidate checkout.
-Update PATCHES in order whenever the downstream chain changes.
+Update PATCHES or the source-specific EXTRA_PATCHES in application order
+whenever the downstream chain changes.
 """
 import argparse
 import hashlib
@@ -57,6 +58,13 @@ PATCHES = (
     "freecad-p8-layer-color-syntax-guard-2026-11-16.patch",
     "freecad-p8-layer-color-sign-whitespace-2026-11-16.patch",
 )
+# This profile was authored and validated against the newer pinned source;
+# keep older source baselines on their previously recorded patch chain.
+EXTRA_PATCHES = {
+    "477a7041803823a1fcae528133cb07ee5533b1b2": (
+        "freecad-p8-mesh-bylayer-display-2026-11-27.patch",
+    ),
+}
 
 
 def digest(path):
@@ -101,7 +109,8 @@ def main():
                         raise ValueError("mixed source line endings: " + relative)
                     crlf_files.append(relative)
                 target.write_bytes(data)
-        for name in PATCHES:
+        patches = PATCHES + EXTRA_PATCHES.get(source_commit, ())
+        for name in patches:
             patch = patch_dir / name
             patch_hashes[name] = digest(patch)
             # The upstream header contains CRLF bytes, while this patch chain
@@ -140,7 +149,7 @@ def main():
                 with target.open("xb") as stream:
                     stream.write((root / relative).read_bytes())
         print(json.dumps({"sourceCommit": source_commit, "archiveSha256": archive_hash,
-                          "patchCount": len(PATCHES), "patchSha256": patch_hashes,
+                          "patchCount": len(patches), "patchSha256": patch_hashes,
                           "outputSha256": output_hashes,
                           "candidateCompared": args.candidate_root is not None}, sort_keys=True))
 

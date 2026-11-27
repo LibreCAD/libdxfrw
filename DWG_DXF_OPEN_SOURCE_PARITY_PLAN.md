@@ -15,8 +15,8 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`40ec6265f985d04c16121ea32191409c46f28771bc54c741a0f124e43fbf031a`
-(783 inputs). The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
+`2d31f1ecabed6f2115d6d48335a0e9558af4b4d14723f85834ef029d4311518b`
+(784 inputs). The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
@@ -305,7 +305,7 @@ Additional P8 dependencies:
   nondefault fields, EED/reactors, remapping, edits, native semantics and
   platform behavior. Keep unqualified multi-image/orphan, clipping, source-size
   and cross-version profiles fail-closed.
-- The [FreeCAD patch replay](docs/research/p8-freecad-main-477a704-patch-replay-2026-11-27.json) prepares all 20 existing importer patches on source commit `477a7041803823a1fcae528133cb07ee5533b1b2`, preserving the upstream CRLF header. A [current-source headless macOS build](docs/research/p8-freecad-main-477a704-headless-2026-11-27.json) passes 15 focused generated-DXF importer tests with no skips. Its [DWG handoff check](docs/research/p8-freecad-main-477a704-dwg-handoff-2026-11-27.json) passes open and insert for locally generated AC1021, AC1024 and AC1032 3D lines with exact endpoints and installed-converter discovery; real Draft mesh layer grouping is separately exercised. Split and review the large local candidate, qualify native GUI, Linux/Windows, independent DWG producers and other handoff profiles, and follow FreeCAD's contributor-authored submission policy.
+- The [FreeCAD patch replay](docs/research/p8-freecad-main-477a704-patch-replay-2026-11-27.json) prepares the importer candidate on source commit `477a7041803823a1fcae528133cb07ee5533b1b2`, preserving the upstream CRLF header. The [21st patch](docs/research/p8-freecad-mixed-dwg-bylayer-display-2026-11-27.json) admits explicit default BYLAYER mesh display tags while refusing malformed, duplicate and nondefault metadata. On macOS, 16 focused headless importer tests pass; open and insert pass for generated AC1021, AC1024 and AC1032 mixed primitive DWGs, including planar 3DFACE, SOLID and polyface geometry. Real Draft mesh layer grouping is separately exercised. Split and review the local candidate, qualify native GUI, Linux/Windows, independent DWG producers, other metadata and handoff profiles, and follow FreeCAD's contributor-authored submission policy.
 - Keep LibreCAD's R13 raw-carrier refusal until owner/remap namespace and all 65
   omitted records close. For FreeCAD, independently qualify nonplanar 3DFACE,
   hidden-edge, smoothing, mixed color/layer, nested blocks, persistence and
