@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-current-candidate-mpolygon-move-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "bd725b68",
+  "codecCommit": "53784fff08a8904b509857e1d874da4d3057affd",
+  "implementationDigestSha256": "151623ec636cffc0b2a63dd8c2bb9f1f8014d2cc5c0953cce5cdc32d2c60d23a",
+  "platform": "macOS ARM64",
+  "build": "Isolated checkout of consumer and codec candidates; scratch-only CMake change removed the consumer warning-as-error suppression for the codec. A scratch-only startup hook opens the requested file in the initial window and sets a distinguishing title; import, editing, drawing and serialization code were unchanged. An ad-hoc signed bundle used a scratch-only settings directory and the candidate build libraries. lsof showed both app processes loading the listed kernel, viewer and persistence libraries.",
+  "procedure": "Opened locally authored AC1018 ASCII source and acknowledged the MPOLYGON-as-HATCH editing notice. Selected all, observed one item selected, moved from (0,0) to (10,0), and saved as DXF 2004 to a new scratch path. A fresh process reopened the output, displayed the same notice, and selected one model entity; the subsequent move tool was cancelled.",
+  "independentReadback": "ezdxf 1.4.5 reads one MPOLYGON in source and output; vertices (1,2), (4,2), (3,5), ACI fill 3 and BYLAYER common color remain unchanged while offset changes from (2,5,0) to (12,5,0). Both audits report zero errors and zero fixes.",
+  "artifacts": {
+    "sourceSha256": "f1399bfe05ef200685dd741c4956e21beaf2c7262345b5ec8ced155d9dd505ce",
+    "outputSha256": "c48971cb125bf98c4ac5bfa27651041039d645e838d4fb07c553b11518083cc0",
+    "applicationSha256": "00656bbf7ef0bdc6bbe34ef2ac711c7eb4db73e1e54d62ffbdf8ce23b0d3cb3e",
+    "kernelSha256": "bd1d91954330aadace47999d10463c4eae05729957eeedd59181d55f28fddd13",
+    "viewerSha256": "ef21294c78b951e3e01a25f44fee82e9b83b98d2c4d920e916754d5ccc481a6d",
+    "persistenceSha256": "4a8e59903811aa40177fa3779b50ffa72c07fb2246690b57922964cacf840266",
+    "staticCodecSha256": "4bc6bee9f9bb1094786fd42694df2c4620ef491ac4528aa7501b5939c01c0d03"
+  },
+  "limits": [
+    "Window capture remained black; visible rendering is not qualified.",
+    "One locally authored solid, explicit-ACI, default-normal AC1018 sample and one translation only; no independent producer or other platforms.",
+    "Proof startup was modified and the app is not a release package.",
+    "An earlier blank save came from the original window in a separate two-window test and is excluded; it does not establish a persistence defect.",
+    "No DXF or DWG fixture was committed."
+  ]
+}
