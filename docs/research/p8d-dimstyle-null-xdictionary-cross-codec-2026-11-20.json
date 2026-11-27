@@ -67,5 +67,17 @@
   "limits": [
     "This read compatibility observation does not prove general DIMSTYLE write parity, independent producer semantics, native GUI behavior or whole-file support.",
     "All DWG inputs were generated locally from scratch and remain outside the repository."
-  ]
+  ],
+  "currentRecheck": {
+    "date": "2026-11-27",
+    "implementationDigestSha256": "f5a373b6adbce3a1a181b62734b6223eadd3931fbbb265b41cb1913713640467",
+    "selectedTests": [
+      "libdxfrw_ac1015plus_dimstyle_body_handle_roles",
+      "libdxfrw_ac1018plus_layer_body_handle_roles"
+    ],
+    "result": "Both generated fast CTests pass on macOS ARM64, including DIMSTYLE null-soft-pointer acceptance, wrong role and non-null width refusal, reset and corrected retry, and continued LAYER rejection.",
+    "testExecutableSha256": "6a501f3dee4894a1236feec7cf18dc8cf76308143fff9102468eafb6f0450908",
+    "ctestLogSha256": "a3d2c826d2b8c67e431ab9d0757f0292ec2d1686e1ce2b642e51829a387678d3",
+    "limits": "This is a generated parser-vector recheck on the current implementation. The selected cross-codec ownerless replay is separately recorded; producer coverage, native GUI and final frozen inputs remain open."
+  }
 }
