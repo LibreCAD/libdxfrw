@@ -97590,64 +97590,74 @@ bool dx_iface::hasUnchangedDxfWideProjection(bool inspectOutput) const noexcept 
         if(proof.owner!=cData || proof.generation!=cData->importGeneration
             ||cData->sourceFormat!=dx_source_format::DXF || cData->sourceVersion!=DRW::AC1027
             ||!m_dxfLayerMaterialState.auditedDefaultPlotSource) return false;
+        if(frozen.chains.empty() || frozen.chains.size()!=frozen.source.chains.size())return false;
         if(!inspectOutput) {
             dx_wide_dictionary_source::Normalized rebuilt;
             if(!dx_wide_dictionary_source::normalize(proof.original,"","",rebuilt)
                 ||rebuilt.bytes!=frozen.bytes || rebuilt.root!=frozen.root
-                ||rebuilt.dictionary!=frozen.dictionary || rebuilt.record!=frozen.record
                 ||rebuilt.handSeed!=frozen.handSeed || rebuilt.source.binary!=frozen.source.binary
-                ||rebuilt.source.dictionaryKey!=frozen.source.dictionaryKey
-                ||rebuilt.source.recordKey!=frozen.source.recordKey
-                ||rebuilt.source.root!=frozen.source.root ||rebuilt.source.dictionary!=frozen.source.dictionary
-                ||rebuilt.source.record!=frozen.source.record) return false;
+                ||rebuilt.source.root!=frozen.source.root || rebuilt.chains.size()!=frozen.chains.size()
+                ||rebuilt.source.chains.size()!=frozen.source.chains.size())return false;
+            for(std::size_t i=0;i<frozen.chains.size();++i) {
+                const auto& a=rebuilt.source.chains[i];const auto& b=frozen.source.chains[i];
+                if(a.dictionaryKey!=b.dictionaryKey || a.recordKey!=b.recordKey
+                    ||a.dictionary!=b.dictionary || a.record!=b.record
+                    ||a.rootEntry.code!=b.rootEntry.code || a.dictionaryEntry.code!=b.dictionaryEntry.code
+                    ||a.recordReference.code!=b.recordReference.code
+                    ||rebuilt.chains[i].dictionary!=frozen.chains[i].dictionary
+                    ||rebuilt.chains[i].record!=frozen.chains[i].record)return false;
+            }
         }
         if(!cData->hasNamedObjectDictionary || cData->namedObjectDictionary.handle!=frozen.root)return false;
-        unsigned roots=0u;
-        for(const auto& entry:cData->namedObjectDictionary.m_entries)
-            if(entry.m_name==frozen.source.dictionaryKey) {
-                if(++roots!=1u || entry.m_handle!=frozen.dictionary
-                    ||static_cast<int>(entry.m_dxfHandleCode)!=frozen.source.rootEntry.code)return false;
+        if(inspectOutput && (!dxfW || !m_dxfLayerMaterialState.plotObjectsInspected))return false;
+        for(std::size_t i=0;i<frozen.chains.size();++i) {
+            const auto& source=frozen.source.chains[i];const auto& alias=frozen.chains[i];
+            unsigned roots=0u;
+            for(const auto& entry:cData->namedObjectDictionary.m_entries)
+                if(entry.m_name==source.dictionaryKey) {
+                    if(++roots!=1u || entry.m_handle!=alias.dictionary
+                        ||static_cast<int>(entry.m_dxfHandleCode)!=source.rootEntry.code)return false;
+                }
+            if(roots!=1u)return false;
+            const DRW_Dictionary* dictionary=nullptr;
+            for(const auto& item:cData->dictionaries)if(item.handle==alias.dictionary) {
+                if(dictionary)return false;
+                dictionary=&item;
             }
-        if(roots!=1u)return false;
-        const DRW_Dictionary* dictionary=nullptr;
-        for(const auto& item:cData->dictionaries)if(item.handle==frozen.dictionary) {
-            if(dictionary)return false;
-            dictionary=&item;
-        }
-        if(!dictionary || dictionary->parentHandle!=frozen.root)return false;
-        unsigned entries=0u;
-        for(const auto& entry:dictionary->m_entries)if(entry.m_name==frozen.source.recordKey) {
-            if(++entries!=1u || entry.m_handle!=frozen.record
-                ||static_cast<int>(entry.m_dxfHandleCode)!=frozen.source.dictionaryEntry.code)return false;
-        }
-        if(entries!=1u)return false;
-        const DRW_XRecord* record=nullptr;
-        for(const auto& item:cData->xRecords)if(item.handle==frozen.record) {
-            if(record)return false;
-            record=&item;
-        }
-        if(!record || record->parentHandle!=frozen.dictionary)return false;
-        unsigned references=0u;
-        for(const auto& item:record->m_dataEntries)if(item.code()==340) {
-            std::uint64_t value=0u;
-            if(++references!=1u || !dx_standard_output::handleValue(item,value)
-                ||value!=frozen.dictionary)return false;
-        }
-        if(references!=1u)return false;
-        if(inspectOutput) {
-            if(!dxfW || !m_dxfLayerMaterialState.plotObjectsInspected)return false;
-            const auto root=dxfW->remapHandle(frozen.root);
-            const auto child=dxfW->remapHandle(frozen.dictionary);
-            const auto xrecord=dxfW->remapHandle(frozen.record);
-            if(!root||!child||!xrecord
-                ||dxfW->dxfWriteRecordHandleCount(root)!=1u
-                ||dxfW->dxfWriteRecordHandleCount(child)!=1u
-                ||dxfW->dxfWriteRecordHandleCount(xrecord)!=1u
-                ||!dxfW->dxfWriteRecordHasIdentity(root,"DICTIONARY","OBJECTS")
-                ||!dxfW->dxfWriteRecordHasIdentity(child,"DICTIONARY","OBJECTS")
-                ||!dxfW->dxfWriteRecordHasOwner(child,root)
-                ||!dxfW->dxfWriteRecordHasIdentity(xrecord,"XRECORD","OBJECTS")
-                ||!dxfW->dxfWriteRecordHasOwner(xrecord,child))return false;
+            if(!dictionary || dictionary->parentHandle!=frozen.root)return false;
+            unsigned entries=0u;
+            for(const auto& entry:dictionary->m_entries)if(entry.m_name==source.recordKey) {
+                if(++entries!=1u || entry.m_handle!=alias.record
+                    ||static_cast<int>(entry.m_dxfHandleCode)!=source.dictionaryEntry.code)return false;
+            }
+            if(entries!=1u)return false;
+            const DRW_XRecord* record=nullptr;
+            for(const auto& item:cData->xRecords)if(item.handle==alias.record) {
+                if(record)return false;
+                record=&item;
+            }
+            if(!record || record->parentHandle!=alias.dictionary)return false;
+            unsigned references=0u;
+            for(const auto& item:record->m_dataEntries)if(item.code()==340) {
+                std::uint64_t value=0u;
+                if(++references!=1u || !dx_standard_output::handleValue(item,value)
+                    ||value!=alias.dictionary)return false;
+            }
+            if(references!=1u)return false;
+            if(inspectOutput) {
+                const auto root=dxfW->remapHandle(frozen.root);
+                const auto child=dxfW->remapHandle(alias.dictionary);
+                const auto xrecord=dxfW->remapHandle(alias.record);
+                if(!root||!child||!xrecord
+                    ||dxfW->dxfWriteRecordHandleCount(root)!=1u
+                    ||dxfW->dxfWriteRecordHandleCount(child)!=1u
+                    ||dxfW->dxfWriteRecordHandleCount(xrecord)!=1u
+                    ||!dxfW->dxfWriteRecordHasIdentity(root,"DICTIONARY","OBJECTS")
+                    ||!dxfW->dxfWriteRecordHasIdentity(child,"DICTIONARY","OBJECTS")
+                    ||!dxfW->dxfWriteRecordHasOwner(child,root)
+                    ||!dxfW->dxfWriteRecordHasIdentity(xrecord,"XRECORD","OBJECTS")
+                    ||!dxfW->dxfWriteRecordHasOwner(xrecord,child))return false;
+            }
         }
         return true;
     }catch(...){return false;}

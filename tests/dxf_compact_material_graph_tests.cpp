@@ -39,7 +39,7 @@ static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.
 
 // Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false) {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, bool multipleWide=false) {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -53,7 +53,7 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
  const char* graphHandle=wideGraph?"100000010":"72";
  const char* recordHandle=wideGraph?"100000011":"73";
  if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,versionName)
-    ||(wideGraph&&(!s(9,"$HANDSEED")||!s(5,"100000012")))
+    ||(wideGraph&&(!s(9,"$HANDSEED")||!s(5,multipleWide?"100000022":"100000012")))
     ||!s(9,"$CMATERIAL")||!s(347,blockHandle)||!s(0,"ENDSEC")
     ||!s(0,"SECTION")||!s(2,"TABLES")||!s(0,"TABLE")||!s(2,"LAYER")
     ||(multiPlot&&(!s(5,"2")||!s(330,"0")||!s(100,"AcDbSymbolTable")))||!h(70,multiPlot?2:1)
@@ -68,7 +68,8 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||!h(280,0)||!h(281,1)||(multiPlot&&(!s(3,"ACAD_GROUP")||!s(350,"D")))
     ||!s(3,"ACAD_MATERIAL")||!s(350,"67")
     ||(multiPlot&&(!s(3,"ACAD_PLOTSTYLENAME")||!s(350,"70")
-                    ||!s(3,"CODEX_GRAPH")||!s(350,graphHandle))))return false;
+                    ||!s(3,"CODEX_GRAPH")||!s(350,graphHandle)
+                    ||(multipleWide&&(!s(3,"CODEX_GRAPH_2")||!s(350,"100000020"))))))return false;
  if(multiPlot&&(!s(0,"DICTIONARY")||!s(5,"D")||!s(330,"C")
     ||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)))return false;
  if(!s(0,"DICTIONARY")||!s(5,"67")
@@ -99,6 +100,10 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||!s(330,graphHandle)||!s(100,"AcDbXrecord")
     ||!h(280,1)||!s(1,"payload")||!s(340,graphHandle)
     ||(extraWideReference&&!s(341,extraWideReference))))return false;
+ if(multipleWide&&(!s(0,"DICTIONARY")||!s(5,"100000020")||!s(330,"C")
+    ||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)||!s(3,"RECORD_2")||!s(350,"100000021")
+    ||!s(0,"XRECORD")||!s(5,"100000021")||!s(330,"100000020")||!s(100,"AcDbXrecord")
+    ||!h(280,1)||!s(1,"payload two")||!s(340,"100000020")))return false;
  return s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();
 }
 
@@ -282,6 +287,48 @@ static bool wideGraphRoundTrip(const std::filesystem::path& in,const std::filesy
   if(io.fileExport(out.string(),version,outputBinary,&data,false,strict)||bytes(out)!="sentinel"
       ||!write()||!verify())return false;
  }
+ return true;
+}
+
+static bool wideGraphTwoChains(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision) {
+ if(!defaultSource(in,binary,collision,DRW::AC1027,true,nullptr,true,nullptr,false,true))return false;
+ dx_data data;Exporter io;
+ if(!io.enableDxfWideGraphProjection()||!io.fileImport(in.string(),&data,false)||data.xRecords.size()!=2u)return false;
+ std::ofstream(in,std::ios::binary|std::ios::trunc)<<"changed after import";
+ const auto write=[&](){return io.fileExport(out.string(),DRW::AC1027,binary,&data,false,true);};
+ const auto verify=[&](){
+  dx_data decoded;dx_iface reader;
+  if(!reader.fileImport(out.string(),&decoded,false)||decoded.xRecords.size()!=2u)return false;
+  std::unordered_set<std::uint32_t> identities;
+  for(const auto& pair:std::vector<std::pair<const char*,const char*>>{{"CODEX_GRAPH","RECORD"},{"CODEX_GRAPH_2","RECORD_2"}}) {
+   std::uint32_t dictionary=0u,record=0u;
+   for(const auto& entry:decoded.namedObjectDictionary.m_entries)if(entry.m_name==pair.first)dictionary=entry.m_handle;
+   for(const auto& item:decoded.dictionaries)if(item.handle==dictionary&&item.parentHandle==decoded.namedObjectDictionary.handle)
+    for(const auto& entry:item.m_entries)if(entry.m_name==pair.second)record=entry.m_handle;
+   if(!dictionary||!record||!identities.insert(dictionary).second||!identities.insert(record).second)return false;
+   const DRW_XRecord* found=nullptr;
+   for(const auto& item:decoded.xRecords)if(item.handle==record){if(found)return false;found=&item;}
+   if(!found||found->parentHandle!=dictionary)return false;
+   unsigned refs=0u;for(const auto& item:found->m_dataEntries)if(item.code()==340) {
+    if(item.type()!=DRW_Variant::INTEGER64||item.i64_val()!=static_cast<std::int64_t>(dictionary))return false;
+    ++refs;
+   }
+   if(refs!=1u)return false;
+  }
+  return true;
+ };
+ if(!write()||!verify())return false;
+ auto& root=data.namedObjectDictionary;const auto savedEntries=root.m_entries;
+ auto second=std::find_if(root.m_entries.begin(),root.m_entries.end(),[](const auto& entry){return entry.m_name=="CODEX_GRAPH_2";});
+ if(second==root.m_entries.end())return false;
+ std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";second->m_handle=0x71u;
+ const bool refused=!write();root.m_entries=savedEntries;
+ if(!refused||bytes(out)!="sentinel"||!write()||!verify())return false;
+ auto& record=data.xRecords.back();const auto savedRecord=record;
+ io.late=[&](){record.m_dataEntries[0]=DRW_Variant(1,std::string("changed"));};
+ std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+ const bool lateRefused=!write();io.late={};record=savedRecord;
+ if(!lateRefused||bytes(out)!="sentinel"||!write()||!verify())return false;
  return true;
 }
 
@@ -534,8 +581,16 @@ static bool wideSourceTest() {
                 ||!normalized.bytes.empty()||normalized.dictionary!=0u)return false;
         }
         const auto original=wideSourceBytes(binary,WideSourceVariant::Wide);
-        const auto ambiguous=wideSourceBytes(binary,WideSourceVariant::MultipleWideGraphs);
-        if(dx_wide_dictionary_source::normalize(ambiguous,"","",normalized)||!normalized.bytes.empty())return false;
+        const auto multiple=wideSourceBytes(binary,WideSourceVariant::MultipleWideGraphs);
+        if(!dx_wide_dictionary_source::normalize(multiple,"","",normalized)
+            ||normalized.chains.size()!=2u||normalized.source.chains.size()!=2u
+            ||normalized.chains[0].dictionary==normalized.chains[1].dictionary
+            ||normalized.chains[0].record==normalized.chains[1].record
+            ||normalized.source.chains[1].dictionaryKey!="OTHER_GRAPH"
+            ||normalized.source.chains[1].recordKey!="OTHER_RECORD")return false;
+        // Explicitly selecting only one chain must not silently lose the other.
+        if(dx_wide_dictionary_source::normalize(multiple,"CODEX_GRAPH","CODEX_RECORD",normalized)
+            ||!normalized.bytes.empty())return false;
         if(!dx_wide_dictionary_source::normalize(original,"CODEX_GRAPH","CODEX_RECORD",normalized))return false;
         const std::string_view aliasedInput(normalized.bytes);
         if(dx_wide_dictionary_source::normalize(aliasedInput,"CODEX_GRAPH","CODEX_RECORD",normalized)
@@ -578,8 +633,10 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
   if(!multiPlotRoundTrip(in,out,binary,collision))return 34;
  if(argc==1)for(bool binary:{false,true})
   if(!multiPlotReactorRefusal(in,out,binary))return 35;
- if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true})
+ if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true}) {
   if(!wideGraphRoundTrip(in,out,binary,collision))return 38;
+  if(!wideGraphTwoChains(in,out,binary,collision))return 39;
+ }
  if(argc==1)for(bool binary:{false,true})
   if(!wideGraphImportRetry(in,out,binary))return 39;
  if(argc==1)for(bool binary:{false,true})

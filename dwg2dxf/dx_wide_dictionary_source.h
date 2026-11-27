@@ -27,17 +27,26 @@ struct Field {
     std::string text, raw;
     std::size_t ordinal{0}, begin{0}, end{0};
 };
+struct Chain {
+    std::string dictionaryKey,recordKey;
+    Field rootEntry,dictionarySelf,dictionaryOwner,dictionaryEntry,
+        recordSelf,recordOwner,recordReference;
+    std::uint64_t dictionary{0},record{0};
+};
 struct Graph {
     bool binary{false};
     std::string dictionaryKey,recordKey;
     Field rootSelf,rootOwner,rootEntry,dictionarySelf,dictionaryOwner,
         dictionaryEntry,recordSelf,recordOwner,recordReference,handSeed;
     std::vector<Field> handleCandidates;
+    std::vector<Chain> chains;
     std::uint64_t root{0},dictionary{0},record{0};
 };
+struct ChainAlias {std::uint32_t dictionary{0},record{0};};
 struct Normalized {
     std::string bytes;
     Graph source;
+    std::vector<ChainAlias> chains;
     std::uint32_t root{0},dictionary{0},record{0},handSeed{0};
 };
 namespace detail {
@@ -205,9 +214,8 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
             const auto found=objectIndex.find(handle);
             return ambiguous.count(handle)||found==objectIndex.end()?nullptr:found->second;
         };
-        std::string discoveredDictionary,discoveredRecord;
+        std::vector<std::pair<std::string,std::string>> selections;
         if(dictionaryKey.empty()) {
-            unsigned matches=0u;
             for(const auto& rootEntry:rootEntries) {
                 const auto* possibleDictionary=findObject(rootEntry.value);
                 if(!possibleDictionary||possibleDictionary==&root)continue;
@@ -225,37 +233,53 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
                         ||!hex(recordOwner.text,value)||value!=rootEntry.value
                         ||!recordReference(*possibleRecord,recordBody,reference)
                         ||!hex(reference.text,value)||value!=rootEntry.value)continue;
-                    if(rootEntry.name.size()>255u||item.name.size()>255u||++matches!=1u)return false;
-                    discoveredDictionary=rootEntry.name;discoveredRecord=item.name;
+                    if(rootEntry.name.size()>255u||item.name.size()>255u||selections.size()>=8u)return false;
+                    selections.emplace_back(rootEntry.name,item.name);
                 }
             }
-            if(matches!=1u)return false;
-            dictionaryKey=discoveredDictionary;recordKey=discoveredRecord;
+            if(selections.empty())return false;
+        } else selections.emplace_back(dictionaryKey,recordKey);
+        std::unordered_set<std::uint64_t> selectedValues{candidate.root};
+        std::vector<std::pair<const Object*,std::uint64_t>> selectedObjects{{&root,candidate.root}};
+        for(const auto& selection:selections) {
+            Chain chain;chain.dictionaryKey=selection.first;chain.recordKey=selection.second;
+            if(!dictionaryEntry(rootEntries,chain.dictionaryKey,chain.rootEntry)
+                ||!hex(chain.rootEntry.text,chain.dictionary)||!chain.dictionary
+                ||!selectedValues.insert(chain.dictionary).second)return false;
+            const auto* dict=findObject(chain.dictionary);if(!dict||dict==&root)return false;
+            std::vector<Entry> dictionaryEntriesFound;
+            if(!common(*dict,chain.dictionarySelf,chain.dictionaryOwner,body)
+                ||!hex(chain.dictionaryOwner.text,owner)||owner!=candidate.root
+                ||!dictionaryEntries(*dict,body,256u,dictionaryEntriesFound)
+                ||!dictionaryEntry(dictionaryEntriesFound,chain.recordKey,chain.dictionaryEntry)
+                ||!hex(chain.dictionaryEntry.text,chain.record)||!chain.record
+                ||!selectedValues.insert(chain.record).second)return false;
+            const auto* record=findObject(chain.record);if(!record||record==dict||record==&root)return false;
+            if(!common(*record,chain.recordSelf,chain.recordOwner,body)
+                ||!hex(chain.recordOwner.text,owner)||owner!=chain.dictionary
+                ||!recordReference(*record,body,chain.recordReference)
+                ||!hex(chain.recordReference.text,owner)||owner!=chain.dictionary)return false;
+            selectedObjects.emplace_back(dict,chain.dictionary);
+            selectedObjects.emplace_back(record,chain.record);
+            candidate.chains.push_back(std::move(chain));
         }
-        candidate.dictionaryKey=dictionaryKey;candidate.recordKey=recordKey;
-        if(!dictionaryEntry(rootEntries,dictionaryKey,candidate.rootEntry)
-            ||!hex(candidate.rootEntry.text,candidate.dictionary)||!candidate.dictionary)return false;
-        const auto* dict=findObject(candidate.dictionary);if(!dict||dict==&root)return false;
-        std::vector<Entry> dictionaryEntriesFound;
-        if(!common(*dict,candidate.dictionarySelf,candidate.dictionaryOwner,body)
-            ||!hex(candidate.dictionaryOwner.text,owner)||owner!=candidate.root
-            ||!dictionaryEntries(*dict,body,256u,dictionaryEntriesFound)
-            ||!dictionaryEntry(dictionaryEntriesFound,recordKey,candidate.dictionaryEntry)
-            ||!hex(candidate.dictionaryEntry.text,candidate.record)||!candidate.record||candidate.record==candidate.root||candidate.record==candidate.dictionary)return false;
-        const auto* record=findObject(candidate.record);if(!record||record==dict||record==&root)return false;
-        if(!common(*record,candidate.recordSelf,candidate.recordOwner,body)
-            ||!hex(candidate.recordOwner.text,owner)||owner!=candidate.dictionary
-            ||!recordReference(*record,body,candidate.recordReference)
-            ||!hex(candidate.recordReference.text,owner)||owner!=candidate.dictionary)return false;
-        const Object* selected[]{&root,dict,record};const std::uint64_t values[]{candidate.root,candidate.dictionary,candidate.record};
-        for(std::size_t n=0;n<3u;++n){const auto index=physical(*selected[n]);if(index==DRW_DxfIdentitySource::NoIndex)return false;
+        // Each selected identity must correspond to exactly one physical object,
+        // including collisions with records outside the OBJECTS section.
+        for(const auto& selected:selectedObjects) {
+            const auto index=physical(*selected.first);if(index==DRW_DxfIdentitySource::NoIndex)return false;
             std::size_t global=0u,local=0u;
             for(const auto& c:census.candidates){std::uint64_t value=0u;
-                if(c.scope!=DRW_DxfIdentitySource::Scope::Outer||!hex(c.lexeme,value)||value!=values[n])continue;
+                if(c.scope!=DRW_DxfIdentitySource::Scope::Outer||!hex(c.lexeme,value)||value!=selected.second)continue;
                 ++global;if(c.record==index&&c.code==5)++local;
             }
             if(global!=1u||local!=1u)return false;
         }
+        const auto& first=candidate.chains.front();
+        candidate.dictionaryKey=first.dictionaryKey;candidate.recordKey=first.recordKey;
+        candidate.rootEntry=first.rootEntry;candidate.dictionarySelf=first.dictionarySelf;
+        candidate.dictionaryOwner=first.dictionaryOwner;candidate.dictionaryEntry=first.dictionaryEntry;
+        candidate.recordSelf=first.recordSelf;candidate.recordOwner=first.recordOwner;
+        candidate.recordReference=first.recordReference;candidate.dictionary=first.dictionary;candidate.record=first.record;
         output=std::move(candidate);return true;
     }catch(...){output=Graph{};return false;}
 }
@@ -281,11 +305,13 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
         auto& source=candidate.source;
         if(source.handSeed.code!=5)return false;
         std::uint64_t sourceSeed=0u;
-        if(!hex(source.handSeed.text,sourceSeed)||sourceSeed<=source.root
-            ||sourceSeed<=source.dictionary||sourceSeed<=source.record)return false;
-
+        if(!hex(source.handSeed.text,sourceSeed)||sourceSeed<=source.root)return false;
+        std::vector<std::uint64_t> graphHandles{source.root};
+        for(const auto& chain:source.chains) {
+            if(sourceSeed<=chain.dictionary||sourceSeed<=chain.record)return false;
+            graphHandles.push_back(chain.dictionary);graphHandles.push_back(chain.record);
+        }
         struct Binding {std::uint64_t source;std::uint32_t target;};
-        const std::uint64_t graphHandles[]{source.root,source.dictionary,source.record};
         std::unordered_set<std::uint32_t> occupied;
         std::uint32_t maxUsed=0u;
         for(const auto& field:source.handleCandidates) {
@@ -310,13 +336,19 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
             for(const auto& binding:bindings)if(binding.source==value)return binding.target;
             return value<reserved?static_cast<std::uint32_t>(value):0u;
         };
-        candidate.root=mapped(source.root);candidate.dictionary=mapped(source.dictionary);
-        candidate.record=mapped(source.record);candidate.handSeed=maxUsed+1u;
-        if(!candidate.root||!candidate.dictionary||!candidate.record||!candidate.handSeed)return false;
-
-        const Field* selected[]{&source.rootSelf,&source.rootEntry,&source.dictionarySelf,
-            &source.dictionaryOwner,&source.dictionaryEntry,&source.recordSelf,
-            &source.recordOwner,&source.recordReference};
+        candidate.root=mapped(source.root);candidate.handSeed=maxUsed+1u;
+        if(!candidate.root||!candidate.handSeed)return false;
+        std::vector<const Field*> selected{&source.rootSelf};
+        for(const auto& chain:source.chains) {
+            const ChainAlias alias{mapped(chain.dictionary),mapped(chain.record)};
+            if(!alias.dictionary||!alias.record)return false;
+            candidate.chains.push_back(alias);
+            for(const auto* field:{&chain.rootEntry,&chain.dictionarySelf,&chain.dictionaryOwner,
+                    &chain.dictionaryEntry,&chain.recordSelf,&chain.recordOwner,&chain.recordReference})
+                selected.push_back(field);
+        }
+        candidate.dictionary=candidate.chains.front().dictionary;
+        candidate.record=candidate.chains.front().record;
         for(const auto& field:source.handleCandidates) {
             std::uint64_t value=0u;
             if(!hex(field.text,value)||value<reserved)continue;
@@ -363,12 +395,15 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
             if(edit.end>prior||edit.begin>edit.end)return false;
             candidate.bytes.replace(edit.begin,edit.end-edit.begin,edit.text);prior=edit.begin;
         }
-        Graph check;std::istringstream transformed(candidate.bytes,std::ios::binary);
-        if(!capture(transformed,source.dictionaryKey,source.recordKey,check)
-            ||check.root!=candidate.root||check.dictionary!=candidate.dictionary||check.record!=candidate.record
-            ||check.rootEntry.code!=source.rootEntry.code||check.dictionaryEntry.code!=source.dictionaryEntry.code
-            ||check.recordReference.code!=source.recordReference.code)return false;
-        std::uint64_t seed=0u;if(!hex(check.handSeed.text,seed)||seed!=candidate.handSeed)return false;
+        for(std::size_t i=0;i<source.chains.size();++i) {
+            const auto& chain=source.chains[i];const auto& alias=candidate.chains[i];
+            Graph check;std::istringstream transformed(candidate.bytes,std::ios::binary);
+            if(!capture(transformed,chain.dictionaryKey,chain.recordKey,check)
+                ||check.root!=candidate.root||check.dictionary!=alias.dictionary||check.record!=alias.record
+                ||check.rootEntry.code!=chain.rootEntry.code||check.dictionaryEntry.code!=chain.dictionaryEntry.code
+                ||check.recordReference.code!=chain.recordReference.code)return false;
+            std::uint64_t seed=0u;if(!hex(check.handSeed.text,seed)||seed!=candidate.handSeed)return false;
+        }
         output=std::move(candidate);return true;
     }catch(...){output=Normalized{};return false;}
 }

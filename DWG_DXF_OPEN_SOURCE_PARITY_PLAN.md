@@ -143,11 +143,13 @@ evidence are recorded in `docs/research/` and Git history.
   snapshot and validating staged output. Independent ezdxf readback and a
   LibreDWG dictionary/XRECORD comparison pass for that graph. Existing adapters
   remain opt-in; direct 32-bit-only reader callbacks are unchanged. The route
-  requires strict same-version, same-encoding output, one qualified chain and the
-  bounded plot/material graph; whole-source or legacy identity observation keeps
-  the original-stream path and refuses this wide input. Extend to multiple chains,
-  other qualified 64-bit roles and producers, and bind original-stream observation
-  before relaxing those limits. Qualify native consumers independently.
+  requires strict same-version, same-encoding output, up to eight independent
+  qualified chains and the bounded plot/material graph; whole-source or legacy
+  identity observation keeps the original-stream path and refuses this wide input.
+  The [two-chain follow-up](docs/research/p7-wide-dxf-multiple-graph-roundtrip-2026-11-27.json)
+  checks both emitted chains and independent readback, including refusal and retry.
+  Extend to other graph shapes, 64-bit roles and producers, and bind original-stream
+  observation before relaxing those limits. Qualify native consumers independently.
   The [reactor-link follow-up](docs/research/p8-ac1027-plot-graph-reactor-closure-2026-11-26.json)
   also checks selected emitted reactor links and rejects unknown application groups.
   The [bad-source controls](docs/research/p8-ac1027-plot-graph-reactor-bad-source-2026-11-26.json)
@@ -274,7 +276,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 90bbd26d34fdb5e35d1b80f4bb89a2e6903a4d44b0e1cfeca4fcdbc40980190f
+  digest: 8c8e60dd9ad9a172474ebddb65c03c8c86bb446af998ee988ce624746d1f8725
   (782 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,
