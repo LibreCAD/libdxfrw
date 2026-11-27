@@ -22,12 +22,24 @@
     "Linux x86_64 Xvfb, selected generated DXF candidate only.",
     "No hardware-rendering, cross-platform or DWG support claim."
   ],
-  "next": "Use a matching release and source-generated scene to distinguish candidate import/layer behavior from platform or asynchronous rendering. Property-state checks now reject coupled visibility before each capture; do not weaken the independent-line guard.",
+  "next": "Check the new candidate run: the added property guard distinguishes coupled object visibility from a framebuffer mismatch. Continue source-specific diagnostics if it fails.",
   "localControls": {
     "macOS": "Installed FreeCAD 1.1.4 Cocoa with generated triangular Part face and line in separate Draft layers: 2440 face pixels and 80 line pixels change independently; restoration difference zero.",
     "linux": "Debian bookworm ARM64 container, FreeCAD 0.20.2 Xvfb/Mesa, same constructed scene and separate layers: 423 face pixels and 80 line pixels change independently; restoration difference zero.",
     "scope": "Neither control runs the pinned patched importer; the older Linux control does not establish behavior of the candidate build.",
     "macLogSha256": "2b60743502f374f3970179c6b23c4441d34ae1a8f072dbf24ec476728d14a079",
-    "linuxLogSha256": "80904bd36c9a70d96c772327af5111b7628d98db6314ec9a41dc2e24d6a35c72"
-  }
+    "linuxLogSha256": "80904bd36c9a70d96c772327af5111b7628d98db6314ec9a41dc2e24d6a35c72",
+    "linuxOfficial114": {
+      "release": "FreeCAD 1.1.4 Linux aarch64 official AppImage, sha256 verified against release checksum",
+      "appImageSha256": "675d1a4295b2183e0e1d816a4b5557dcb63aeced4e60aaa28d6c3686f4c71dc9",
+      "applicationCommit": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+      "platform": "Debian container ARM64, Xvfb and Mesa",
+      "separateLayerConstructedScene": "2440 face pixels, 80 line pixels, 0 restoration differences after layer toggle",
+      "importedLineAndConstructedFace": "2217 face pixels, 78 line pixels, 0 restoration differences; generated DXF also imports a polyline",
+      "importedPolylineAndLine": "423 polyline pixels, 80 line pixels, 0 restoration differences; this release imports the polyface as a polyline rather than the candidate face",
+      "logSha256": "3895bd00ad3894dec46c254cb0953d1329ae7439344879ec1450432de302636e",
+      "limits": "Different release, architecture and importer behavior from the FreeCAD 27.1.0 x86_64 candidate. These controls do not qualify that candidate."
+    }
+  },
+  "newCandidateRun": "https://github.com/dxli/libdxfrw/actions/runs/46067129908"
 }
