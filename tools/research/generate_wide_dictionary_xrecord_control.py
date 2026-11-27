@@ -77,7 +77,11 @@ def main():
                 destination = output / ('candidate-' + profile + '-' + encoding + '.dxf')
                 sentinel = b'WIDE-GRAPH-DESTINATION-SENTINEL\n'
                 destination.write_bytes(sentinel)
-                run = subprocess.run([str(candidate), str(source), '-d', '-y', '-v2013', str(destination)],
+                command = [str(candidate), str(source), '-d', '-y', '-v2013']
+                if encoding == 'bin':
+                    command.append('-b')
+                command.append(str(destination))
+                run = subprocess.run(command,
                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                      timeout=120, check=False)
                 log = output / ('candidate-' + profile + '-' + encoding + '.log')

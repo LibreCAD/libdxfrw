@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-ac1027-ezdxf-default-material-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "baseCommit": "083e6246e",
+  "implementationDigestSha256": "ba76b71d87dcf9d42f81c820396f6f13afd99e0fe245cb8d93b94a0f41c3f317",
+  "inputCount": 781,
+  "authority": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+  "observation": "Locally generated ezdxf 1.4.5 AC1027 files contain three default MATERIAL objects with the same 61-group shape previously bounded for AC1024. Their second group 73 follows specular gloss; Autodesk documents group 76 there. No new typed meaning is assigned.",
+  "change": "Allow this exact complete default shape in AC1027 under the existing opt-in raw policy and same-version, same-encoding immutable source/graph reconciliation. Existing malformed, legacy-consumer, cross-version and cross-encoding refusals remain; raw and typed edits still fail atomically.",
+  "validation": {
+    "focused": "PASS 2/2: libdxfrw_dxf_sparse_material_raw and libdxfrw_dxf_compact_material_graph. Their loops cover AC1024/AC1027, ASCII/Binary, owner/handle collision, malformed shapes and targets, independent raw/typed mutations, late mutation, sentinel preservation and corrected retry. AC1018 and AC1032 shape controls remain refused.",
+    "qualification": "Official implementation digest and qualified-format support checks pass in a clean staged checkout: 15 claims, 2 candidate routes, 0 advertised.",
+    "peer": "A scratch-only copy of the existing graph harness retained its final AC1027 outputs. ezdxf 1.4.5 read both outputs, found three MATERIAL entries with matching owner 67 and zero audit errors/fixes. Its tagger found all 55 post-subclass groups identical for each source/output material body, in each encoding. ByBlock 1F was remapped to 6B; ByLayer and Global remained 68 and 6A.",
+    "scratchHarnessSourceSha256": "ca7e748a7ad696bcf6fa86965dbcbb6480df5f756930708f88d8b33703abc74d",
+    "scratchHarnessBinarySha256": "ca4d3f96a80900d3916518fdeb0e4de1b4e5357fd3264984c42194b23b17bad6",
+    "peerFiles": {
+      "asciiInputSha256": "b31740fbe5ff0ab7724869d255555002e8761917bcca01329eabc7f0f17c3758",
+      "asciiOutputSha256": "86056924b4d00d9a1e879cf4ba3b41644e549aae886ef1fdeeeb5865fe8de35e",
+      "binaryInputSha256": "610f303550b3f52c08603cfc7a35ae41151412bb3962ade693471b47702afdb0",
+      "binaryOutputSha256": "73e2653f3c7763003f0a03caae864137408da0b6da7995142f4fedaf2d25ad85"
+    },
+    "generatedPeerControl": {
+      "generator": "tools/research/generate_wide_dictionary_xrecord_control.py",
+      "generatorSha256": "bee0b0b5443c4420f8e49c10f3920da1be442815e73e7b120c125c8e3d49998b",
+      "scratchReceiptSha256": "3b28175a79d060334d9a86b74a562ebf0c2b63f3f97ae44e6511a2aa0c4ea7d9",
+      "scratchDirectory": "/private/tmp/libdxfrw-wide-after-material-graph-20261126",
+      "probe": {
+        "ezdxfVersion": "1.4.5",
+        "candidateSha256": "1e79fbbed8807c18b6e227ecc23595b7c97482498a7e06837f5bb92f5b9246e7",
+        "controls": [
+          {
+            "profile": "narrow",
+            "encoding": "asc",
+            "sourceSha256": "d2127764444c5c07e20d4cb1845f723555d71807b534a495437434ff3e0b71e0",
+            "dictionaryHandle": "2F",
+            "dictionaryOwner": "A",
+            "recordHandle": "30",
+            "recordOwner": "2F",
+            "reference340": "2F",
+            "handseed": "34",
+            "peerAuditErrors": 0,
+            "peerAuditFixes": 0,
+            "candidate": {
+              "exitCode": 1,
+              "destinationPreserved": true,
+              "logSha256": "b2c0f7410a62ae76e08a4ae7f209c6c53d8bd43a4976d6e9a95636ef29ac9fe2"
+            }
+          },
+          {
+            "profile": "narrow",
+            "encoding": "bin",
+            "sourceSha256": "d4d5e7298a27e6685095c7a094fb1db21791df81d2417d16d3de8ff355661a09",
+            "dictionaryHandle": "2F",
+            "dictionaryOwner": "A",
+            "recordHandle": "30",
+            "recordOwner": "2F",
+            "reference340": "2F",
+            "handseed": "34",
+            "peerAuditErrors": 0,
+            "peerAuditFixes": 0,
+            "candidate": {
+              "exitCode": 1,
+              "destinationPreserved": true,
+              "logSha256": "a3a8b0a666064995f812332cc5f92a79194691a8db4161793f04269ae3e624ae"
+            }
+          },
+          {
+            "profile": "wide",
+            "encoding": "asc",
+            "sourceSha256": "c61fd63323e2af7de01911f004813abfb1b22455bb53c0705448dfee94703d80",
+            "dictionaryHandle": "100000010",
+            "dictionaryOwner": "A",
+            "recordHandle": "100000011",
+            "recordOwner": "100000010",
+            "reference340": "100000010",
+            "handseed": "100000012",
+            "peerAuditErrors": 0,
+            "peerAuditFixes": 0,
+            "candidate": {
+              "exitCode": 1,
+              "destinationPreserved": true,
+              "logSha256": "44b2c885454a3ace8360216301219198a1e4e2f7f01871c90bebfc2298b56d9b"
+            }
+          },
+          {
+            "profile": "wide",
+            "encoding": "bin",
+            "sourceSha256": "783e54832f2d031e5bee7416cfe8ee8bd15bbcd442941ad961ba4fcabc6f6ce5",
+            "dictionaryHandle": "100000010",
+            "dictionaryOwner": "A",
+            "recordHandle": "100000011",
+            "recordOwner": "100000010",
+            "reference340": "100000010",
+            "handseed": "100000012",
+            "peerAuditErrors": 0,
+            "peerAuditFixes": 0,
+            "candidate": {
+              "exitCode": 1,
+              "destinationPreserved": true,
+              "logSha256": "c34a10d55f60b45353a8459c3c832809b4e571919566e842a476b54ffcc590dc"
+            }
+          }
+        ]
+      },
+      "result": "Narrow source reaches output preflight and refuses on LAYER plot-style carrier capture; wide source still refuses at root dictionary group 350. All preexisting output sentinels remain intact."
+    }
+  },
+  "limits": [
+    "The raw-only behavior is limited to the exact checked shape and existing opted-in consumer policy. It is not a typed MATERIAL semantic mapping or native renderer proof.",
+    "The independent raw-body comparison uses a locally authored source; it does not qualify the full peer-generated file or general MATERIAL support.",
+    "The complete narrow control is still refused by a separate LAYER plot-style gate. Wide source/owner/reference output remains unsupported. No drawings are committed."
+  ]
+}

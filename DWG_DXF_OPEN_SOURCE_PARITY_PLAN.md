@@ -143,8 +143,11 @@ evidence are recorded in `docs/research/` and Git history.
   lexemes in a bounded side channel without narrowing the 32-bit semantic API;
   bind the selected DICTIONARY/XRECORD roles and mappings to staged records,
   then require rooted closure, atomic refusal, corrected retry and independent
-  ASCII/Binary readback. Resolve the narrow control's separate MATERIAL read
-  failure before using it as a complete retry. Qualify consumers independently.
+  ASCII/Binary readback. The [AC1027 default MATERIAL raw replay](docs/research/p7-ac1027-ezdxf-default-material-2026-11-26.json)
+  resolves the narrow control's earlier MATERIAL boundary; its complete file
+  now reaches a separate LAYER plot-style preflight refusal. Resolve that graph
+  or use another qualified narrow control before claiming complete retry.
+  Qualify consumers independently.
 - **LibreCAD_3 entity true color:** the [shared color and model-only binary fixes](docs/research/p8d-librecad3-truecolor-and-model-only-binary-2026-11-26.json)
   preserve selected imported RGB and color names through edits and R2004+ output,
   report indexed approximation for older versions, and avoid an orphaned synthetic
@@ -263,7 +266,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: a935ef97828c05bebd4a3028036022304a853c986520be7d70829ac8543e6c1f
+  digest: ba76b71d87dcf9d42f81c820396f6f13afd99e0fe245cb8d93b94a0f41c3f317
   (781 inputs); the official digest and support checks pass in a clean staged
   checkout. Revalidate affected platform profiles on this candidate. The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;

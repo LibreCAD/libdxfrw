@@ -29,19 +29,20 @@ static bool source(const std::filesystem::path& p,bool binary,int mode=0){
  return s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();}
 static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.size()!=3||d.rawMaterialObjects.size()!=3)return false;const auto root=d.namedObjectDictionary.handle;const DRW_Dictionary* dict=nullptr;for(const auto& x:d.dictionaries)if(x.handle==0x67)dict=&x;if(!dict||dict->parentHandle!=root||dict->m_entries.size()!=3)return false;for(const auto& m:d.materials){if(!m.requiresRawDxfMaterialReplay()||m.m_hasDiffuseMapSource||m.m_channelFlags!=127||m.parentHandle!=dict->handle||m.reactorHandles.size()!=1||m.reactorHandles[0]!=dict->handle)return false;bool found=false;for(const auto& e:dict->m_entries)if(e.m_handle==m.handle&&e.m_name==m.m_name)found=true;if(!found)return false;}for(const auto& r:d.rawMaterialObjects){if(r.groups.size()!=9||r.groups[7].code()!=72||r.groups[7].i_val()!=1||r.groups[8].code()!=94||r.groups[8].i_val()!=127||r.parentHandle!=dict->handle)return false;}return true;}
 
-// Locally authored AC1024 default-material carriers. No drawing fixture is
+// Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision) {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version) {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
- w->setVersion("AC1024",true);
+ const char* versionName=version==DRW::AC1024?"AC1024":"AC1027";
+ w->setVersion(versionName,true);
  const auto s=[&](int c,const char* v){return w->writeString(c,v);};
  const auto h=[&](int c,int v){return w->writeInt16(c,v);};
  const auto i=[&](int c,int v){return w->writeInt32(c,v);};
  const auto d=[&](int c,double v){return w->writeDouble(c,v);};
  const char* blockHandle=collision?"1F":"69";
- if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,"AC1024")
+ if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,versionName)
     ||!s(9,"$CMATERIAL")||!s(347,blockHandle)||!s(0,"ENDSEC")
     ||!s(0,"SECTION")||!s(2,"TABLES")||!s(0,"TABLE")||!s(2,"LAYER")||!h(70,1)
     ||!s(0,"LAYER")||!s(5,"90")||!s(100,"AcDbSymbolTableRecord")||!s(100,"AcDbLayerTableRecord")
@@ -68,23 +69,23 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
  return s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();
 }
 
-static bool defaultGraph(const dx_data& data) {
+static bool defaultGraph(const dx_data& data, DRW::Version version) {
  if(!data.hasNamedObjectDictionary||data.materials.size()!=3||data.rawMaterialObjects.size()!=3)return false;
  for(const auto& material:data.materials)
   if(!material.requiresRawDxfMaterialReplay()||material.parentHandle!=0x67u)return false;
  for(const auto& raw:data.rawMaterialObjects)
-  if(raw.m_version!=DRW::AC1024||raw.groups.size()!=61u||raw.groups.back().code()!=94||raw.groups.back().i_val()!=63)return false;
+  if(raw.m_version!=version||raw.groups.size()!=61u||raw.groups.back().code()!=94||raw.groups.back().i_val()!=63)return false;
  return true;
 }
 
-static bool defaultRoundTrip(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision) {
- if(!defaultSource(in,binary,collision))return false;
+static bool defaultRoundTrip(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision,DRW::Version version) {
+ if(!defaultSource(in,binary,collision,version))return false;
  dx_data data;Exporter io;
- if(!io.fileImport(in.string(),&data,false)||!defaultGraph(data))return false;
- const auto write=[&](){return io.fileExport(out.string(),DRW::AC1024,binary,&data,false,true);};
+ if(!io.fileImport(in.string(),&data,false)||!defaultGraph(data,version))return false;
+ const auto write=[&](){return io.fileExport(out.string(),version,binary,&data,false,true);};
  const auto verify=[&](){
   dx_data check;dx_iface reader;
-  if(!reader.fileImport(out.string(),&check,false)||!defaultGraph(check))return false;
+  if(!reader.fileImport(out.string(),&check,false)||!defaultGraph(check,version))return false;
   std::uint32_t header=0,layerHandle=0;bool headerPresent=false,layerPresent=false;
   if(!check.headerC.getDxfMaterialReferenceHandle(header,headerPresent)||!headerPresent||!header)return false;
   const auto material=std::find_if(check.materials.begin(),check.materials.end(),
@@ -116,9 +117,9 @@ static bool defaultRoundTrip(const std::filesystem::path& in,const std::filesyst
  const bool lateRefused=!write();io.late={};raw=original;
  if(!lateRefused||bytes(out)!="sentinel"||!write()||!verify())return false;
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
- if(io.fileExport(out.string(),DRW::AC1027,binary,&data,false,true)||bytes(out)!="sentinel")return false;
+ if(io.fileExport(out.string(),version==DRW::AC1024?DRW::AC1027:DRW::AC1024,binary,&data,false,true)||bytes(out)!="sentinel")return false;
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
- if(io.fileExport(out.string(),DRW::AC1024,!binary,&data,false,true)||bytes(out)!="sentinel")return false;
+ if(io.fileExport(out.string(),version,!binary,&data,false,true)||bytes(out)!="sentinel")return false;
  return write()&&verify();
 }
 int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("compact-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directories(dir);struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};auto in=dir/"in.dxf",out=dir/"out.dxf";
@@ -146,5 +147,6 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
   if(argc==1){if(!source(in,binary,8))return 28;dx_data prior;Exporter priorIo;if(!priorIo.fileImport(in.string(),&prior,false)||prior.materials.size()!=3)return 29;std::ofstream(out,std::ios::trunc)<<"sentinel";if(priorIo.fileExport(out.string(),DRW::AC1027,binary,&prior,false,true)||bytes(out)!="sentinel")return 30;for(int mode:{1,2,3,4,5,6,7}){if(!source(in,binary,mode))return 15;dx_data rejected;dx_iface rd;if(rd.fileImport(in.string(),&rejected,false))return 16;}}
  }
  if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true})
-  if(!defaultRoundTrip(in,out,binary,collision))return 33;
+  for(const auto version:{DRW::AC1024,DRW::AC1027})
+   if(!defaultRoundTrip(in,out,binary,collision,version))return 33;
  return 0;}

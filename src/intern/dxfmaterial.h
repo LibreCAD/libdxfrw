@@ -10,7 +10,7 @@
 #include "../drw_objects.h"
 #include "dxfwriter.h"
 namespace dxfMaterial {
-// Bounded AC1024 raw-only default shape. The second group 73 has no assigned
+// Bounded AC1024/AC1027 raw-only default shape. The second group 73 has no assigned
 // typed meaning; the complete source must remain opaque and unchanged.
 constexpr int ezdxfDefaultCodes[] = {5,102,330,102,330,100,1,2,70,40,
     71,41,91,42,72,3,73,74,75,44,73,45,46,77,4,78,79,170,

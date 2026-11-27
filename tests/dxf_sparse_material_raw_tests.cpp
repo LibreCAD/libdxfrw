@@ -198,7 +198,7 @@ bool minimalChannelSource(const std::filesystem::path& path,bool binary,bool ver
 }
 // A locally generated ezdxf default-material shape. Mode 1 truncates its tail;
 // mode 2 changes the final mask; mode 3 adds a group beyond the bounded shape.
-bool ezdxfDefaultSource(const std::filesystem::path& path,bool binary,int mode,const char* handle="1F"){
+bool ezdxfDefaultSource(const std::filesystem::path& path,bool binary,int mode,const char* handle="1F",const char* version="AC1024"){
  std::ofstream f(path,std::ios::binary|std::ios::trunc);if(!f)return false;
  if(binary){const char signature[]="AutoCAD Binary DXF\r\n\x1a";f.write(signature,sizeof(signature));}
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -206,7 +206,7 @@ bool ezdxfDefaultSource(const std::filesystem::path& path,bool binary,int mode,c
  const auto h=[&](int c,int v){return w->writeInt16(c,v);};
  const auto i=[&](int c,int v){return w->writeInt32(c,v);};
  const auto d=[&](int c,double v){return w->writeDouble(c,v);};
- if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,mode==4?"AC1027":"AC1024")||!s(0,"ENDSEC")
+ if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,mode==4?"AC1018":mode==10?"AC1032":version)||!s(0,"ENDSEC")
   ||!s(0,"SECTION")||!s(2,"OBJECTS")||!s(0,"MATERIAL")||!s(5,handle)
   ||!s(102,"{ACAD_REACTORS")||!s(330,"E")||!s(102,"}")||!s(330,mode==5?"D":"E")
   ||!s(100,"AcDbMaterial")||!s(1,mode==6?"Other":mode==8?"ByLayer":mode==9?"Global":"ByBlock")||!s(2,"")||!h(70,0)||!d(40,1)
@@ -395,13 +395,13 @@ int main(){
   if(!minimalChannelSource(inputPath,binary,false))return 121;
   if(!input.read(&malformed,false)||malformed.materials.size()!=1u||malformed.raw.size()!=1u)return 122;
  }
- for(bool binary:{false,true}){
+ for(bool binary:{false,true})for(const auto version:{DRW::AC1024,DRW::AC1027}){
   const auto inputPath=dir/(binary?"ezdxf-binary.dxf":"ezdxf-ascii.dxf");
   const auto inputName=inputPath.string();dxfRW input(inputName.c_str());Reader sink;
-  for(int mode:{1,2,3,4,5,6,7,8,9,0}){
-   if(!ezdxfDefaultSource(inputPath,binary,mode))return 45;
+  for(int mode:{1,2,3,4,5,6,10,7,8,9,0}){
+   if(!ezdxfDefaultSource(inputPath,binary,mode,"1F",version==DRW::AC1024?"AC1024":"AC1027"))return 45;
    sink.materials.clear();sink.raw.clear();const bool ok=input.read(&sink,false);
-   if(mode>=1&&mode<=6){if(ok||!sink.materials.empty()||!sink.raw.empty())return 46;continue;}
+   if((mode>=1&&mode<=6)||mode==10){if(ok||!sink.materials.empty()||!sink.raw.empty())return 46;continue;}
    if(!ok||sink.materials.size()!=1u||sink.raw.size()!=1u
       ||!sink.materials[0].requiresRawDxfMaterialReplay()
       ||sink.materials[0].m_hasSpecularColorMethod
@@ -422,12 +422,12 @@ int main(){
   // 1F is the source material's handle but the writer reserves it for the
   // model-space BLOCK_RECORD; move the source identity before raw replay.
   writer.setHandleRemap({{0x1Fu,0xF000u}});
-  if(writer.write(&adapter,DRW::AC1024,binary)||adapter.ok||bytes(dest)!="prior")return 51;
+  if(writer.write(&adapter,version,binary)||adapter.ok||bytes(dest)!="prior")return 51;
   const auto sourceFrame=adapter.raw;
   const std::vector<const DRW_RawDxfObject*> selected{&sourceFrame};
   if(!writer.setDxfObjectsWriteInspector([&](const auto& view){return writer.inspectDxfRawMaterialRecords(view,selected);}))return 76;
   adapter.useRaw=true;adapter.ok=false;
-  if(!writer.write(&adapter,DRW::AC1024,binary)||!adapter.ok){
+  if(!writer.write(&adapter,version,binary)||!adapter.ok){
    const auto diagnostic=writer.getLastDiagnostic();
    std::cerr<<"raw retry: "<<diagnostic.code<<": "<<diagnostic.message<<'\n';return 52;
   }
@@ -445,9 +445,9 @@ int main(){
   }
   {std::ofstream f(dest);f<<"prior version";}
   adapter.ok=false;
-  if(writer.write(&adapter,DRW::AC1027,binary)||adapter.ok||bytes(dest)!="prior version")return 59;
+  if(writer.write(&adapter,version==DRW::AC1024?DRW::AC1027:DRW::AC1024,binary)||adapter.ok||bytes(dest)!="prior version")return 59;
   adapter.ok=false;
-  if(!writer.write(&adapter,DRW::AC1024,binary)||!adapter.ok)return 60;
+  if(!writer.write(&adapter,version,binary)||!adapter.ok)return 60;
  }
  // A selected graph with three raw-only materials and colliding source
  // handles. This verifies emitted references, not general graph admission.

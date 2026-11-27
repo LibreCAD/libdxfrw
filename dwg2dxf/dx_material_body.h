@@ -338,10 +338,11 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
         const CommonEqual& commonEqual) {
     const bool sourceBinary=!baseline.hasRawValues;
     if (typed.requiresRawDxfMaterialReplay()) {
-        // The AC1024 default shape has an ambiguous second group 73. Replay
+        // The AC1024/AC1027 default shape has an ambiguous second group 73. Replay
         // only its unchanged source, in the same encoding, after matching the
         // modeled prefix; staged OBJECTS inspection still verifies output.
-        if (baseline.m_version==DRW::AC1024 && dxfMaterial::hasEzdxfDefaultShape(baseline.groups)) {
+        if ((baseline.m_version==DRW::AC1024 || baseline.m_version==DRW::AC1027)
+            && dxfMaterial::hasEzdxfDefaultShape(baseline.groups)) {
             if (binary!=sourceBinary || raw.name!=baseline.name || raw.handle!=baseline.handle
                 || raw.parentHandle!=baseline.parentHandle || raw.m_version!=baseline.m_version
                 || raw.hasRawValues!=baseline.hasRawValues || raw.rawValues!=baseline.rawValues

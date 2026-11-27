@@ -29903,11 +29903,12 @@ bool dxfRW::processMaterial() {
     bool pendingCompactTail = false;
     bool pendingMinimalChannelTail = false;
     bool pendingEzdxfDefaultMaterial = false;
-    // ezdxf's default AC1024 MATERIAL profile emits a second group 73 after
+    // ezdxf's default AC1024/AC1027 MATERIAL profile emits a second group 73 after
     // specular gloss, where Autodesk documents group 76. Treat only this
     // bounded shape as opaque; never assign either meaning to the second 73.
     const auto isEzdxfDefaultPrefix = [&]() {
-        if (reader->getSourceVersion() != DRW::AC1024
+        if ((reader->getSourceVersion() != DRW::AC1024
+             && reader->getSourceVersion() != DRW::AC1027)
             || raw.groups.size() != dxfMaterial::ezdxfDefaultPrefixSize
             || raw.handle == 0u || raw.handle == DRW::NoHandle
             || raw.parentHandle == 0u || raw.parentHandle == DRW::NoHandle
