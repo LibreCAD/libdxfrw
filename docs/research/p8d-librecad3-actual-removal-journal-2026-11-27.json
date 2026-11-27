@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-actual-removal-journal-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "5f5e797f",
+  "finding": "An EntityBuilder removal journal included requested entities absent from the document, so undo could create them. A stale same-ID snapshot in another block could also remove from the wrong block and restore the obsolete object.",
+  "change": "Before mutating the document, resolve requested IDs to the current document objects, remove those actual objects once, and retain only real removals in the undo journal. Preserve earlier committed removals across repeated execution of the same builder.",
+  "validation": "Both absent-entity and stale cross-block regressions fail before the change and pass after it. The repeated-execution journal control and all 54 focused BuilderTest and EntityBuilderTest cases pass on macOS ARM64. Python plan structural, worktree, actual GitHub base and 31 checker tests plus git diff --check pass.",
+  "limits": "This does not establish arbitrary custom operation atomicity, stack-produced identity projection, native GUI behavior or other platforms. Hosted checks on this commit remain pending."
+}

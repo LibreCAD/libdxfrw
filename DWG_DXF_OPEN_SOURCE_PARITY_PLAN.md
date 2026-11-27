@@ -87,6 +87,8 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    covers selected flat and nested create/lock/edit cases and repeated new IDs;
    the [shared shadow probe](docs/research/p8d-librecad3-new-stack-group-preflight-2026-11-27.json)
    also projects five tested source entity types from selected built-in stacks.
+   The [removal journal repair](docs/research/p8d-librecad3-actual-removal-journal-2026-11-27.json)
+   restores current entities and blocks rather than stale or absent snapshots.
    Cover viewport
    freeze and remaining layer flags; preserve warning/report behavior when older
    formats approximate or omit color. Reuse the [lock-transition preflight](docs/research/p8d-librecad3-layer-lock-transition-preflight-2026-11-26.json)
