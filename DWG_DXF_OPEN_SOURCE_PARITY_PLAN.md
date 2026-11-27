@@ -52,7 +52,10 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    without producer evidence. See the [authority comparison](docs/research/p8d-r14-display-header-authority-2026-11-26.json).
 4. **Graph editing and 64-bit identities.** Complete associative HATCH edits,
    reverse links, copy behavior and collision handling with an explicit loss
-   report where deassociation is required. Extend the bounded AC1027 wide-handle
+   report where deassociation is required. The [empty HATCH export control](docs/research/p8d-librecad-hatch-loss-r12-2026-11-27.json)
+   now reports DXF/R12 omissions, removes the omitted boundary reactor, and
+   refuses an incomplete DWG while preserving the destination and retrying;
+   other association, pattern and producer profiles remain open. Extend the bounded AC1027 wide-handle
    dictionary/XRECORD profile to additional graph shapes, roles, versions,
    encodings and producers only after source/target closure and output proof.
    The existing opt-in route is strict and same-version, with at most eight selected
@@ -89,7 +92,8 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    heads, including LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and FreeCAD.
    Selected macOS headless [LibreCAD](docs/research/p8d-librecad-current-codec-219b-2026-11-27.json)
    and [LibreCAD_3](docs/research/p8d-librecad3-current-codec-219b-2026-11-27.json)
-   checks do not qualify native GUI or other platforms. Preserve the FreeCAD
+   checks do not qualify native GUI or other platforms. The [Windows test link repair](docs/research/p8d-librecad3-windows-link-2026-11-27.json)
+   still needs its hosted Windows rerun. Preserve the FreeCAD
    3DFACE, SOLID and polyface limitations until their independent gates close.
    Freeze the candidate before broad suites and release claims.
 
