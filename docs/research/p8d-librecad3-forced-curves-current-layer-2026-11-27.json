@@ -17,5 +17,11 @@
   "limits": [
     "This covers same-named layers for the exact built-in Line, Circle and Arc types; renamed layers, other entity types and unqualified custom operations remain open.",
     "The test is offscreen and local; it does not qualify native GUI or Linux/Windows behavior."
-  ]
+  ],
+  "hostedFollowup": {
+    "consumerCommit": "b4be27ee",
+    "failure": "Hosted Linux ARM64 run 45965811535 failed the Python all-writable-variants test: R12 export correctly reported one explicit layer-lineweight loss, while the test required no loss.",
+    "change": "Require exactly one layer-lineweight omission and its warning for R12/R14, retaining zero-loss expectations for newer formats.",
+    "validation": "The local macOS ARM64 14-variant Python round trip and legacy layer-width regression pass, as do plan structure, candidate and actual-base checks plus 31 checker regressions. Hosted rerun is pending."
+  }
 }
