@@ -1,0 +1,15 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-paper-dictionary-limit-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "81cbfabe7e92ee19b158c58cd2464f62568f5a4e",
+  "validation": [
+    "The focused IMAGE dictionary control passes at 512 source groups and falls back conservatively at 514 source groups.",
+    "Independent ezdxf 1.4.5 reads 253 and 254 retained XRECORD entries with matching owners. The 512-group output has no synthetic paper block and zero audit repairs; the 514-group output retains one synthetic block that the audit removes."
+  ],
+  "testLogSha256": "e9a3183dd24b74d5395a6113460b98792c367b7dd3115b23185a09ac13fe9a2d",
+  "peerResultSha256": "5d7a76b4af4161d37e7288e106e08e47fcef3df20b2fd88c6fd00f931edebe8b",
+  "limits": [
+    "The source IMAGE entries are still omitted and reported. This establishes only the stated generated same-revision graph and size boundary; producer, binary and broader graph qualification remain open."
+  ]
+}
