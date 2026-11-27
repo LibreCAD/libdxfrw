@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-imagedef-oda-r2000-roundtrip-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "a01e5ade9d5494a1145a5f18c5afb147619d5511",
+  "converter": "ODA File Converter 27.1.0.0 macOS ARM64",
+  "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+  "inputSha256": "ec53c5e650b30ebe1f7f69edb09fdc434a3315a29c085a391dd946b210c2f72d",
+  "dwgSha256": "bb5b6ddd41494001ac28b6c56603e3484129273691033eb7cde260927620f896",
+  "outputSha256": "21b561638658ced061941739dafa957298a32d6ccf7a1fabd9778e86981bf313",
+  "peerResultSha256": "f4e71bd5ae0403f3b58861e95e49393e476caa2cf2aadad81445c2e4c001f415",
+  "checks": [
+    "The selected generated R2000 ASCII DXF converted to DWG and back to R2000 DXF with successful ODA process exits.",
+    "Independent ezdxf reads two IMAGEs and distinct IMAGEDEF handles before and after conversion; selected dimensions, pixel sizes, path, loaded state and resolution units agree.",
+    "The input audits with zero errors or fixes. The ODA-converted DXF audits with zero errors and one repair removing an orphan paper-space block."
+  ],
+  "limits": [
+    "The two definitions deliberately share a filename but have different declared sizes; no actual raster file was supplied. This checks selected stored values and links, not image loading or visible rendering.",
+    "ODA conversion can normalize or repair source data and is not AutoCAD/ObjectARX semantic evidence or proof of source graph identity. No generated drawing was committed."
+  ]
+}

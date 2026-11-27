@@ -138,6 +138,8 @@ usable host is available, and continue independent work in the meantime.
 
 The [replay CI repair](docs/research/p8-freecad-replay-ci-inventory-digest-2026-11-27.json) refreshes the source-release and 1,407-test inventories and the implementation digest after adding the FreeCAD replay regression. All 15 format claims remain EXPERIMENTAL; previous digest-bound platform qualification must be reassessed and the new hosted checks must finish.
 
+The [ODA R2000 round-trip control](docs/research/p8d-librecad3-imagedef-oda-r2000-roundtrip-2026-11-27.json) retains selected fields and distinct references for two same-path IMAGEDEFs. Its converted DXF needs one orphan paper-space-block repair; the control does not establish raster loading, rendering or native AutoCAD semantics.
+
 ## Execution and evidence rules
 
 1. Batch compatible producer captures in one host session, but keep a distinct
