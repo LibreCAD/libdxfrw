@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-ci-source-inventory-repair-2026-11-27",
+  "supportClaimEffect": "none",
+  "failedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/46058410325",
+  "failedJob": "https://github.com/LibreCAD/libdxfrw/actions/runs/46058410325/job/140706458707",
+  "failedHead": "261ae5cef",
+  "failure": "The source-release inventory lacked four tracked research tools.",
+  "failedLogSha256": "ddd50e89853ae7a7923de730289dbfb3779c7d983e0c166c4073e7654b56db87",
+  "repairs": [
+    "7bd376f67 updates source-release-files.am",
+    "6303a205b updates source-release-files.txt"
+  ],
+  "verification": [
+    "PASS clean detached checkout at 6303a205b: source release inventory lists 1427 files, and inventory self-test passes 18 refusal controls.",
+    "PASS clean detached qualification digest f5a373b6adbce3a1a181b62734b6223eadd3931fbbb265b41cb1913713640467 with 784 inputs; qualification workflow contract passes.",
+    "PASS workflow contract self-test on the main checkout.",
+    "Updated-head hosted checks pending."
+  ],
+  "limits": [
+    "This repairs release bookkeeping only; it does not promote DWG/DXF, platform or native-consumer support claims."
+  ]
+}

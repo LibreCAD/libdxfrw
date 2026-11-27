@@ -16,7 +16,7 @@ advisory, and excluded. Completed slice history and validation remain in
 
 The current test-inclusive implementation digest is
 `f5a373b6adbce3a1a181b62734b6223eadd3931fbbb265b41cb1913713640467`
-(784 inputs). The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
+(784 inputs). The [source-release inventory repair](docs/research/p8-ci-source-inventory-repair-2026-11-27.json) fixes a hosted fast-lane failure and passes clean-checkout inventory and digest checks; updated hosted results remain pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
