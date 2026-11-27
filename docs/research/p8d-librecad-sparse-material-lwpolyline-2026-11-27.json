@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-lwpolyline-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "a5bf8d0dc085884afb7f77d6405e6c941569c765",
+  "parent": "bb3eb7b3e7796455fd1df4e5411260232ccc70d3",
+  "change": "Admit selected AC1021 ASCII model-space open straight LWPOLYLINEs in ordinary sparse-MATERIAL replay, with 2\u2013128 finite planar vertices, default appearance and no unsupported segment state. Bind physical source and delivered identity/type/geometry, preserve existing material graph and staged output checks. Accept the writer-generated zero constant-width group 43, while rejecting nonzero width and other unqualified fields.",
+  "validation": [
+    "Generated sparse-material open LWPOLYLINE imported but ordinary export refused before this change.",
+    "Focused test passes 75 assertions covering initial save, moved coordinates, reopen and resave, 128/129 vertex boundaries, closed/bulged/elevated/width/malformed controls, material-bearing and material-free callback suppression, typed and physical mutation, child-segment material refusal, preserved destination and corrected retries.",
+    "System-codec MATERIAL selector passes 2846 assertions in 15 cases on macOS ARM64; bundled-codec filter translation unit compiles.",
+    "ezdxf 1.4.5 independently checks the moved AC1021 polyline vertices, open state and MATERIAL entity/header/layer/dictionary references; the output audit has zero errors and fixes."
+  ],
+  "hashes": {
+    "redLog": "08b9602a66b7b64e0de52c0844373bbe27d7516fe3e1aed3fab45b320320126e",
+    "focusedLog": "7274bf1d2630ed33bd86cf2e5061cedcc60780621e7efeea61353d2910648735",
+    "materialSuiteLog": "9998f44fc4451f0f1dac7a96974c6063587b330cf686f262188412100dc6e743",
+    "peerOutput": "0d590f7234c7c57445938204eccd69e5196345127933b705794390419b65c6bf",
+    "bundledCompileLog": "237f61753d122b588ef9829dfc779f941a02acf062648cddfdb08b0cecd72324"
+  },
+  "limits": [
+    "Only generated, open, straight, default-appearance AC1021 ASCII model-space polylines are admitted; closed, curved, nonzero width/elevation, extra metadata, 129+ vertices and other versions remain guarded.",
+    "Native GUI and external-producer, hosted-platform and broader entity qualification remain open. No DWG/DXF fixture was committed and no package gate or broad support claim is promoted."
+  ]
+}
