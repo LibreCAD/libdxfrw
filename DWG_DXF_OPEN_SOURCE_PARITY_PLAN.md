@@ -16,8 +16,8 @@ advisory, and excluded. Completed slice history and validation remain in
 
 The current test-inclusive implementation digest is
 `40ec6265f985d04c16121ea32191409c46f28771bc54c741a0f124e43fbf031a`
-(783 inputs). The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
-and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs; the current dwg2dxf text-safety change requires affected checks to be repeated. FreeCAD covered specified CLI and legacy importer profiles, not GUI or general 3D parity.
+(783 inputs). The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
+and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
 

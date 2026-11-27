@@ -2,7 +2,7 @@
 
 CMake and Autotools use the same library and converter source inventories.
 The installed public header set includes its four required internal headers.
-Both builds require C++17 and use ABI major 2. CMake also installs its exported
+Both builds require C++17 and use ABI major 3. CMake also installs its exported
 package; Autotools installs the headers and `libdxfrw.pc` for pkg-config.
 The narrow GCC warning policy for the frozen entity parser matches CMake;
 `-Werror` remains enabled throughout the build.
@@ -39,7 +39,7 @@ The committed release file list contains only tracked project files and the
 explicitly managed inventory files. Untracked local drawings, editor state and
 build directories are excluded. The active append-only parity execution plan
 and historical research receipts are omitted to avoid an archive/hash cycle;
-the two research reports used by CMake tests are included. No new drawing bytes
+the explicitly listed research inputs used by tests and tools are included. No new drawing bytes
 or derivatives are admitted by generating a release.
 
 Maintainers can check every listed archive file against its source bytes:

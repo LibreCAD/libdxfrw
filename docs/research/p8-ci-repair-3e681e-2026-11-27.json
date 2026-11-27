@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-ci-repair-3e681e-2026-11-27",
+  "date": "2026-11-27",
+  "candidateCommit": "3e681e6940a52b00e83c1487b4661ef98ec5befd",
+  "implementationDigestSha256": "40ec6265f985d04c16121ea32191409c46f28771bc54c741a0f124e43fbf031a",
+  "scope": "Focused hosted qualification only; no support claim promoted.",
+  "repair": [
+    "Regenerated source-release inventories for two tracked research inputs.",
+    "Refreshed the experimental-only status overlay to the selected implementation digest without promoting a claim."
+  ],
+  "runs": {
+    "fast": {
+      "url": "https://github.com/dxli/libdxfrw/actions/runs/46016803835",
+      "status": "success",
+      "job": 140565896821,
+      "checks": "Seven executables plus 58 required CTests passed; source-release job intentionally skipped.",
+      "logSha256": "84478a42f58a39a82f149587778ade4313dc284018f7adebd790f2f70abf81b6"
+    },
+    "native": {
+      "url": "https://github.com/dxli/libdxfrw/actions/runs/46016803877",
+      "status": "success on attempt 2",
+      "linux": "success",
+      "linuxJob": 140566044744,
+      "linuxLogSha256": "d2f14333264c2bc125ca07a6fa462c51667c21198f5682d7dcb2808b3a39ad9b",
+      "windows": "success",
+      "macos": "success on attempt 2 after attempt 1 ARM64 runner-capacity cancellation",
+      "windowsJob": 140566044651,
+      "windowsLogSha256": "34d67c0cafa2a90cb81f3fe7175b768e59f12e4f57715e912f53ef66cc39558e",
+      "macosJob": 140574196440,
+      "macosLogSha256": "cdf7099db0a15554f3943f8000d4a57d2202e0d50e6b905b8c7d2bcf40e6fed7"
+    },
+    "freecad": {
+      "url": "https://github.com/dxli/libdxfrw/actions/runs/46016838520",
+      "status": "success",
+      "linux": "16/16 passed",
+      "linuxJob": 140566020643,
+      "linuxLogSha256": "65b787ff9e00d64ee99fb53d72597b1609d5d71e0c99dbe9530daa7da2322c84",
+      "windows": "17/17 passed",
+      "windowsJob": 140566020055,
+      "windowsLogSha256": "826135036ff605d72af57ab2d1765ab7fa0d35378841e61a589471b853643d30"
+    },
+    "package": {
+      "url": "https://github.com/dxli/libdxfrw/actions/runs/46016838703",
+      "status": "success on attempt 2",
+      "linux": "success",
+      "linuxJob": 140566021182,
+      "linuxLogSha256": "aebfdfcee8283f97199486a9ef69b5eea784d74b057e28516a6144e2e74b4afc",
+      "windows": "success",
+      "macos": "success on attempt 2 after attempt 1 ARM64 runner-capacity cancellation",
+      "windowsJob": 140566020778,
+      "windowsLogSha256": "4f398ff00ed1f5e71029ec0476f21b02738cad31014beb8d6b0640056cd8d54c",
+      "macosJob": 140574195257,
+      "macosLogSha256": "16515229caf359047d068a98e19b7bdf9ed65abca5f67f64cdcd2168c71334ce"
+    }
+  },
+  "limits": [
+    "Earlier CI failures were stale inventory and digest metadata. Passing focused jobs do not establish broad, fuzz, GUI or release qualification.",
+    "Later selected production inputs require matching reruns."
+  ],
+  "localMacos": {
+    "result": "7/7 focused CTests passed on macOS ARM64",
+    "build": "/private/tmp/libdxfrw-backslash-build-20261127",
+    "buildLogSha256": "57a00d5e80daa802b302d9d4fc3e54fff70c2e3d24c9da2a790babdf5f44706b",
+    "testLogSha256": "1fe736b0e969f56411c1d17f0a2a9e8881b283ed06d207089296ac179c038912",
+    "limits": "Local build and focused tests; not a hosted runner receipt, package qualification, GUI or independent semantic evidence."
+  },
+  "laterSourceReleaseFix": {
+    "commit": "96aff1630",
+    "change": "Include the existing AC1012 root-case source receipt required by the shipped populated-pair packager; regenerate both release inventories.",
+    "validation": "The inventory checker and its 18 refusal controls pass with 1420 files. A tree materialized from source-release-files.txt runs the packager against the local ODA pair and verifies discriminating source/destination angles.",
+    "implementationDigestEffect": "none; only release inventory generator and lists changed.",
+    "hostedFastRun": "https://github.com/dxli/libdxfrw/actions/runs/46019905316",
+    "hostedNativeRun": "https://github.com/dxli/libdxfrw/actions/runs/46019905300",
+    "hostedNativeResult": "success on Linux GCC, macOS clang and Windows MSVC",
+    "hostedFastResult": "success",
+    "actualAutotoolsArchive": {
+      "sha256": "c5a2c8b732df7c2d9889d9ebe6598f7d289ad554a9d7c6bff4f4864df579bdcb",
+      "logSha256": "dbdd888029fe42c8f651a377cd64be9b28323af78a19d557079cc4dd5ddd9701",
+      "result": "make dist and exact 1420-file source inventory/byte check pass; the extracted tar runs the populated AC1012 packager and verifies both collision values. The archive includes the accompanying source-release documentation correction."
+    }
+  },
+  "localMacosPackage": {
+    "result": "shared and static installed package relocation probes passed on macOS ARM64",
+    "sharedSourceTree": "c66890b488981d6addcbf5a1198cb385f264452e (identical to 96aff1630)",
+    "staticBuild": "/private/tmp/libdxfrw-backslash-build-20261127, same selected production sources",
+    "sharedReceiptSha256": "7d3d413ff1822fdbb183a64376ad47790f1f1245231152449c2c311bf05b723e",
+    "staticReceiptSha256": "be1419f727a979867baed65c4a91693e0b8a79208b061d0009384507bbceb2c0",
+    "sharedLogSha256": "a3d210c58dcc23077ab4bb1088d2e3e4848b7912d31da0d12261f696d636e168",
+    "staticLogSha256": "d3d5604af774a1c34f20345695c5279940c6cfd9329f17feabbc722e05be1053",
+    "limits": "Local fallback, not the hosted macOS package job or GUI qualification."
+  }
+}
