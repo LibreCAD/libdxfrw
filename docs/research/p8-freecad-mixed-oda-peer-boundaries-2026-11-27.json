@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-mixed-oda-peer-boundaries-2026-11-27",
+  "supportClaimEffect": "none",
+  "sourceProfile": "Locally authored mixed primitive DXF generated from a libdxfrw scratch DWG; ODA File Converter 27.10 produces independently encoded AC1015, AC1021 and AC1024 DWGs.",
+  "sourceDxfSha256": "f1e8050caa1971d7b14ac8581763a5f4d2c911595aade5f868eccd0c0eb4a395",
+  "odaExecutableSha256": "bda7c79a901be17d4e0a76ea6e9dfddb24b83601e98cf41d66c158a9c428ca24",
+  "odaRuntime": "Linux x86_64 container on macOS ARM64, Xvfb; targets ACAD2000, ACAD2007, ACAD2010; ODA emitted each DWG with no per-file error.",
+  "peer": "GNU LibreDWG 0.14; all three files read successfully.",
+  "profiles": {
+    "AC1015": {
+      "dwgSha256": "f3a48eb74e7a1c6b910d2519699a0fd8df15d12bf98a5213343e9bbe5cdc64a2",
+      "libredwgJsonSha256": "c05b4d44b6bd3388974831f40341387846adb2b378702062a070a68bd10dbecf",
+      "authoredGeometry": "LINE endpoints, 3DFACE corners, SOLID OCS corners/elevation, POLYFACE vertices and facet indices match"
+    },
+    "AC1021": {
+      "dwgSha256": "696de7be44c5b5de89fa552986b41637f3e184f9a23206b1e56c046570a09afe",
+      "libredwgJsonSha256": "498bece2cb6865320bbb99b72d8786275b169191eef80b603ab46ca35ec0633f",
+      "authoredGeometry": "LINE endpoints, 3DFACE corners, SOLID OCS corners/elevation, POLYFACE vertices and facet indices match"
+    },
+    "AC1024": {
+      "dwgSha256": "14bb3d7caa3bd07aaeffccc10471146933c881ee7e2870505833cb3724f2c84a",
+      "libredwgJsonSha256": "480e1502716a45a0cb2f928e4f57206bb027edb72984fae8bdf095d88bbe7ab9",
+      "authoredGeometry": "LINE endpoints, 3DFACE corners, SOLID OCS corners/elevation, POLYFACE vertices and facet indices match"
+    }
+  },
+  "strictRefusals": {
+    "AC1015": "Read reports an unsupported CELLSTYLEMAP class; strict-complete conversion refuses.",
+    "AC1021": "Header integrity reports an unclassified post-sentinel suffix; strict-complete conversion refuses.",
+    "AC1024": "Header integrity reports unclassified data and a post-sentinel suffix; strict-complete conversion refuses."
+  },
+  "explicitPartialRefusals": {
+    "AC1015": "extension-object graph validation",
+    "AC1021": "extension-object graph validation",
+    "AC1024": "TABLESTYLE unsupported profile during staged serialization"
+  },
+  "safety": "For each source, strict and explicit-partial modes, and both ASCII and binary output, the existing destination was unchanged on refusal. A later conversion in a new CLI process, using the original locally generated DWG and the same destination, succeeded; this is not a same-adapter retry.",
+  "refusalRetryControlsSha256": "09d865dd50426d01bdc0bc3b775861485c1688ab0fc7d4cf53dccf36036bcfe6",
+  "limits": [
+    "These ODA-generated source files and all DXF/DWG derivatives remain scratch-only.",
+    "Independent readback confirms only the listed authored fields, not complete source graph, native AutoCAD acceptance, or FreeCAD handoff.",
+    "Retain strict and partial guards until the source-specific header and object-graph barriers are resolved."
+  ]
+}
