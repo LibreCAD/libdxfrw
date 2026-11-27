@@ -309,6 +309,8 @@ evidence are recorded in `docs/research/` and Git history.
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head
   187a1ee5 has [12 passing hosted checks and one skipped scan](docs/research/p8d-librecad-pr3289-hosted-checks-2026-11-26.json);
+  its later head `4418f427` passes 19 headless IMAGE/MATERIAL cases against the
+  [current shared codec](docs/research/p8d-librecad-current-codec-219b-2026-11-27.json).
   its [current-codec macOS headless IMAGE/MATERIAL check](docs/research/p8d-librecad-current-codec-compatibility-2026-11-26.json)
   passes 18 cases. Qualify remaining profiles, platforms and native consumers.
   Prior platform receipts apply only

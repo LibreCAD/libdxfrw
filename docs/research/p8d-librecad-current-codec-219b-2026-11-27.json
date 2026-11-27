@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-27",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "4418f427a7e64e6b923b6beceeb80c64eece21f1",
+  "consumerSource": "Clean checked-out PR worktree; focused test target was up-to-date under its existing CMake build.",
+  "codecCommit": "219b5164a41650dc834ab96d499cba8cf6030764",
+  "implementationDigestSha256": "defe1f69008aa5109d960a443628fdf050f2932e37ce46328a9dd9010cd007d0",
+  "platform": "macOS ARM64, Qt offscreen",
+  "sharedLibrarySha256": "a18e2367e0bc5727c7e8021ef7694230446c52972e0a7ae1856700c58bb1a099",
+  "testExecutableSha256": "e89673f597bd433d8d063e368a6ab25fde8c07d70757311bfbbcb2a14f701c03",
+  "loader": "DYLD_PRINT_LIBRARIES confirms /private/tmp/libdxfrw-current-consumer-shared-20261126/libdxfrw.3.0.0.dylib was loaded.",
+  "selector": "[system-codec][dxf][image],[system-codec][dxf][material]",
+  "result": "PASS: 9435 assertions in 19 test cases",
+  "limits": [
+    "Generated focused profiles and headless macOS only; no broad LibreCAD, external producer or native rendering qualification.",
+    "Linux/Windows current-codec consumer integration and final native GUI remain open.",
+    "No support claim or package gate promoted."
+  ]
+}
