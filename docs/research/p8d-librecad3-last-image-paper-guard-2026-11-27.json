@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-last-image-paper-guard-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "ce83d889196f053eb5aabe92042cf8878c002a97",
+  "problem": "After deletion of the last imported IMAGE, the existing bounded graph check refused to omit a synthetic paper-space block, leaving an orphan block in the selected output.",
+  "implementation": "Reuse the source-object omission predicate in the existing graph guard when no IMAGE remains. Keep the same root, owner, object, source-paper, paper-content and reference restrictions.",
+  "validation": [
+    "A focused last-image output assertion failed before the change. Thirteen image, dictionary and paper-space tests and eighteen layout tests pass afterward, including source-paper retention, unrelated-reactor retention, deletion losses and image restoration retry.",
+    "ezdxf 1.4.5 independently reads the selected generated R2000 last-image deletion output with no IMAGE, IMAGEDEF or IMAGEDEF_REACTOR and no extra paper block; its audit reports zero errors and zero repairs."
+  ],
+  "redLogSha256": "746264c7ddbb6cc010fc7e88d46a1870c3320b26ce51e12ed84b78bcad4bb460",
+  "testLogSha256": "5383d2f6ecc42ed52d5487782b97bbb6cbf57dff971f7a067a152cb324b94356",
+  "layoutLogSha256": "a2c6c233e2b5334c14d5093e37d551ed758d2786ffed4ec462aa99b0b46539a0",
+  "outputSha256": "0b439024718d42d4e389bae8185cfdcace29084d1d0f3c9263664dea2e025b2f",
+  "limits": [
+    "This proves only the selected locally generated source and deletion output; independently useful unused IMAGEDEF preservation, arbitrary inbound references, native producer semantics, binary cross-encoding and other graph shapes remain unqualified.",
+    "The output was captured locally during the test and is not committed. The checks do not establish native rendering or whole-drawing parity."
+  ]
+}
