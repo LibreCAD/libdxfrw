@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "65dd851f83ffde94d5ff73140960ab324b34e739",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "finding": "Before the fix, an outer group adding a layer and an inner group adding a block applied both before a deepest stacked locked edit was refused; parent refusal flags remained false and redo was lost. The red control failed six assertions.",
+  "change": [
+    "Recursively preflight nested Builder groups against the initial document lock state, propagate locked refusal to each parent and leave all pending work available for explicit retry.",
+    "Reject null operations and cyclic group graphs on append; reject a null document when constructing a document operation.",
+    "Retain committed journals for undo/redo and expose nested refusal and cycle errors through existing Lua and Python bindings."
+  ],
+  "validation": [
+    "A red-before three-level group control now preserves both parent changes and redo, then succeeds on the same group with explicit override and passes undo/redo. A reused outer group retains its prior undo journal after a later nested refusal.",
+    "C++, Lua and Python controls exercise nested refusal, direct/indirect cycles, null operations and null documents.",
+    "A macOS ARM64 fast compatibility run passed 184 kernel, builder, layer, selection, canvas, DXF/DWG and Lua/Python tests. Full binding-plan, actual PR-base and worktree checks plus 31 checker tests passed."
+  ],
+  "limits": [
+    "Preflight uses lock state at the start of the group. Operations that change lock state before a later edit, or custom operations that fetch other entities, are not guaranteed atomic. Complex repeated successful stacks remain open.",
+    "Native GUI, other platforms and full format parity remain open. No support claim or generated fixture was added."
+  ],
+  "supportClaimEffect": "none"
+}

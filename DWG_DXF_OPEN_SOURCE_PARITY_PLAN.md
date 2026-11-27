@@ -161,8 +161,10 @@ evidence are recorded in `docs/research/` and Git history.
   prevents partial grouped direct replacements, preserves undo/redo and permits
   an in-place explicit retry. The [stacked compound preflight](docs/research/p8d-librecad3-locked-stacked-compound-2026-11-26.json)
   covers built-in move/remove/rotate/scale/copy/filter/loop stacks without
-  invoking source transforms or consuming IDs. Nested and lock-changing groups,
-  unqualified custom operations and complex repeated successful stacks remain open.
+  invoking source transforms or consuming IDs. The [nested-group preflight](docs/research/p8d-librecad3-locked-nested-compound-2026-11-26.json)
+  propagates refusal through tested parent groups, preserves undo/redo, and
+  rejects cyclic/null graphs. Lock-changing groups, unqualified custom
+  operations and complex repeated successful stacks remain open.
   The [script document guard](docs/research/p8d-librecad3-locked-script-document-2026-11-26.json)
   also protects direct Document bindings, offers checked and force methods, and
   fixes a null-storage constructor crash. Low-level StorageManager and entity
