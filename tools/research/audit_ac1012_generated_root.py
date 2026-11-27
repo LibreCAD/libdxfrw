@@ -87,6 +87,7 @@ def audit(path: Path, side: str, expected: dict, dwgread: str) -> dict:
         require(style_frame["parent"]["value"] == model["rootHandle"]
                 and len(style_frame["reactors"]) == 1
                 and style_frame["reactors"][0]["value"] == model["rootHandle"]
+                and style_frame["xdictionary"]["role"] == 3
                 and style_frame["xdictionary"]["value"] == 0
                 and not style_frame["eed"], "style dictionary graph differs")
         for name, angle in expected["styles"].items():
