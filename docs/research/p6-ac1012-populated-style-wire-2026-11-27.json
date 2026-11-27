@@ -523,5 +523,19 @@
     "limits": [
       "LibreDWG also helped generate these samples; this is a same-family decoder check, not independent producer evidence or native AutoCAD clone semantics."
     ]
+  },
+  "macOdaCrossReleaseReadback": {
+    "converter": "ODA File Converter 27.1.0.0, macOS ARM64",
+    "binarySha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "sourceDxfSha256": "6a644e02a7ab584e7231ae13ea78937a39c6cfe915c4995e4e0cd924ee25ff3a",
+    "destinationDxfSha256": "7fa27b545979179002b87717ffe0837081e34323dd4ae174f426877a99da33ea",
+    "auditSha256": "095aadd18d156b6a43233ed534c3033b1b02395050f638faa69a1dce64652b8a",
+    "checks": [
+      "Both generated AC1012 drawings converted successfully. ezdxf 1.4.5 reports zero audit errors and fixes for both macOS outputs.",
+      "The selected SAME_KEY and side-specific styles match the Linux ODA 27.10 outputs in angles, two elements, handles and owners; selected model-space LINE handles and geometry also match."
+    ],
+    "limits": [
+      "ODA releases are related producers; their agreement does not prove native AutoCAD normal-open or cloning semantics, or whole-file preservation. No fixture is committed."
+    ]
   }
 }
