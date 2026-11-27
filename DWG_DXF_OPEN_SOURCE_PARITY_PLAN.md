@@ -253,7 +253,8 @@ evidence are recorded in `docs/research/` and Git history.
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
   digest: 151623ec636cffc0b2a63dd8c2bb9f1f8014d2cc5c0953cce5cdc32d2c60d23a
-  (781 inputs). The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
+  (781 inputs), verified with the official digest and support checks in a clean
+  checkout of `83ac5c65`. The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;
   its [GCC allocator follow-up](docs/research/p8-sat-gcc-allocator-harness-2026-11-26.json)
   preserves warning-clean allocation fault injection. Hosted results for the

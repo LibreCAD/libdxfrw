@@ -16,7 +16,8 @@
       "Write error and post-publication query expiration",
       "Existing destination-preserving wide-reference refusal and corrected retry remain exercised"
     ],
-    "independent": "ezdxf 1.4.5 reopened the generated ASCII and binary outputs, retaining XRECORD handle 100000000, owner C and HANDSEED 100000001 with zero audit errors or fixes. ASCII SHA256 fc29e961ee129a0eb21675905aca00b8df30525b8a8d8d1d5c5bb449eb5d7eb3; binary SHA256 499df6ad7ff2c43ca17018dbce9af71ab76b7fdce018dd7179c14a1dc3457b26."
+    "independent": "ezdxf 1.4.5 reopened the generated ASCII and binary outputs, retaining XRECORD handle 100000000, owner C and HANDSEED 100000001 with zero audit errors or fixes. ASCII SHA256 fc29e961ee129a0eb21675905aca00b8df30525b8a8d8d1d5c5bb449eb5d7eb3; binary SHA256 499df6ad7ff2c43ca17018dbce9af71ab76b7fdce018dd7179c14a1dc3457b26.",
+    "cleanCandidate": "At committed candidate 83ac5c65, the official qualification digest check passed with 151623ec636cffc0b2a63dd8c2bb9f1f8014d2cc5c0953cce5cdc32d2c60d23a and 781 inputs; qualified format support check passed with 15 claims, 2 candidate routes, and 0 advertised."
   },
   "digestMethod": "Computed from the staged tracked Git index using the qualification manifest selection and digest_records algorithm. The ordinary worktree checker refuses user-owned untracked files in selected paths; they were neither removed nor incorporated. Recheck from a clean final candidate.",
   "limits": [
