@@ -12,8 +12,14 @@
     "For the generated imported polyface and separate line, hiding the face changes 2440 pixels, then hiding the line changes 80 pixels; restoring both changes zero pixels relative to the original. Visibility properties match each requested state before capture."
   ],
   "limits": [
-    "A prior Linux run failed the line pixel transition. This successful state-guarded rerun does not identify the cause of that failure or establish repeatability.",
+    "A prior Linux run failed the line pixel transition. Two subsequent state-guarded runs pass, but the cause of the earlier failure is not established.",
     "One generated profile and virtual-display environment do not establish native-desktop, other-version, producer or Windows behavior. Windows candidate pixel run 46070632893 is pending."
   ],
-  "repeatabilityRun": "https://github.com/dxli/libdxfrw/actions/runs/46070754237"
+  "repeatabilityRun": "https://github.com/dxli/libdxfrw/actions/runs/46070754237",
+  "repeatability": {
+    "run": "https://github.com/dxli/libdxfrw/actions/runs/46070754237",
+    "guiReceiptSha256": "41a553584256998c5601717f70940387d7fe39ddf64707ae49bb36c94542d1d7",
+    "headlessReceiptSha256": "bd7c0e1344173e71edca030d6a14c63aa3de436f4330dd7d4e9ec1521fce14c7",
+    "result": "Second state-guarded Linux run passed 16 headless and 10 GUI cases, with 2440 mesh pixels, 80 line pixels and zero restoration differences."
+  }
 }
