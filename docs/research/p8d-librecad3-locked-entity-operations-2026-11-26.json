@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "8f465854c05feead2b8f2df797a087d392738426",
+  "test_build_fix_commit": "4d057b7671ac7b30533c4f99b9259f1bcb4a5176",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "authority": [
+    "https://help.autodesk.com/view/ACD/2026/ENU/?caas=caas%2Fdocumentation%2FACDLT%2F2014%2FENU%2Ffiles%2FGUID-415798D2-818A-42CE-A052-B1C80B650575-htm.html",
+    "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Transaction_GetObject_ObjectId_OpenMode__MarshalAsUnmanagedType_U1__bool__MarshalAsUnmanagedType_U1__bool.html"
+  ],
+  "finding": "Normal canvas selection excluded locked layers, but EntityBuilder edits and removals invoked directly by scripts could still modify their entities, including block children.",
+  "change": [
+    "EntityBuilder checks current document entities by ID, refuses the whole batch if it would update or remove an existing locked-layer object, and exposes a refusal flag. It permits creation on a locked layer and leaves an unchanged locked original untouched during copy.",
+    "An explicit per-operation override permits intentional edits. Lua and Python expose both the override and refusal flag. Undo and redo of a rejected operation do not modify the document.",
+    "The lcunittest target now links the codec public usage requirements because its DWG import test includes the adapter header."
+  ],
+  "validation": [
+    "A fresh macOS ARM64 persistence- and DWG-enabled build passes 11 EntityBuilder and three layer-operation tests, including atomic mixed-layer update and remove, blocked-operation undo/redo, block children, creation/copy, stale unlocked snapshots and explicit override with undo/redo.",
+    "Three DXF export, 76 DXF round-trip and 17 DWG import tests pass; nine canvas and eight selection tests pass.",
+    "Focused runtime tests pass in both Lua and Python, checking refusal status and explicit override. The test configuration selected matching installed Lua 5.4 headers and library after the default local search paired 5.3 headers with 5.5."
+  ],
+  "limits": [
+    "The guard covers EntityBuilder operations; direct low-level Document and StorageManager mutation APIs and other operations do not yet uniformly enforce locked-layer policy.",
+    "This does not establish native GUI behavior, other platforms, external-producer fidelity, or support for all layer semantics. No generated drawing fixture was committed."
+  ],
+  "supportClaimEffect": "none"
+}
