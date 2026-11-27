@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-windows-line-endings-2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "LibreCAD PR #3289 test control portability; not a Windows qualification result.",
+  "failure": {
+    "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/46053097977/job/140689016967",
+    "platform": "windows-11-arm",
+    "consumerHead": "a5c8b3e5",
+    "summary": "16/17 CTests passed; librecad_dxf_fast_tests had three failing cases and four failing assertions. Binary sentinel comparisons saw text-mode CRLF translation and a fixture token replacement assumed LF checkout."
+  },
+  "fix": {
+    "consumerCommit": "bc2a523c",
+    "description": "Write supplied test text bytes in binary mode; normalize CRLF record boundaries before neutral fixture substitutions while preserving isolated carriage returns."
+  },
+  "verification": [
+    "Focused bundled-codec fast-test target rebuilt on macOS ARM64.",
+    "Three affected cases passed with 111 assertions, including CRLF and isolated-carriage-return control, failure/retry and destination checks.",
+    "Windows platform rerun is pending; these local controls do not establish Windows behavior."
+  ],
+  "limits": [
+    "No format, hardware or native consumer support claim follows."
+  ]
+}
