@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-27",
+  "scope": "Focused selected AC1027 wide-handle dictionary/XRECORD projection, source-span rewriting, graph binding and transaction controls.",
+  "codeCommit": "8b310c729",
+  "testCommit": "e4c9c858",
+  "implementationDigestSha256": "31042294e6ebc544fdb2894e8fff382256052a47f0b3382c6bce7bba63193e71",
+  "platform": "macOS ARM64; Clang Debug AddressSanitizer with -fno-omit-frame-pointer",
+  "test": "libdxfrw_dxf_compact_material_graph",
+  "result": "PASS: 1/1 CTest, including both encodings, 16/17 pointer bounds, mixed pointer roles, source snapshots, alias collisions, mutation, rollback and retry.",
+  "durationSeconds": 11.89,
+  "sanitizerOptions": "ASAN_OPTIONS=detect_leaks=0; leak detection was disabled, address bounds and lifetime instrumentation remained enabled.",
+  "fixturePolicy": "Generated temporary controls; no external drawing fixture committed.",
+  "supportClaimEffect": "none",
+  "testExecutableSha256": "d0d360da262cd705dfc090c31bbe5177d1c17ac4aa859740d7df412a085ecabe"
+}
