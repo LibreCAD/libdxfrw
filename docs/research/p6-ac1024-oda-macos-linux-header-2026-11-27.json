@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-oda-macos-linux-header-2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "Same locally authored R2010 DXF converted by macOS ARM64 and Linux x86_64 ODA File Converter; scratch files only.",
+  "inputSha256": "96619352f6ce9888506c8ec0de70c278a4975d7e07c06df3601c75c0ce8ff4fe",
+  "macConverter": {
+    "version": "27.1.0.0",
+    "binarySha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "exitCode": 0,
+    "dwgSha256": "9ce4f3620e9dd703a6444154d87509b4f991c403fdf5910123ef06655fedeabb",
+    "libredwgJsonSha256": "b39216a153782582fb6d9ebf88b0e1040c76dc4092f0158bb349d162693038f1"
+  },
+  "linuxConverter": {
+    "version": "27.10.0.0",
+    "dwgSha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "libredwgJsonSha256": "47f9477c3d66af9d7de27f20ce92087f6be58b91d6b1a5eee9ed3699884cbd11"
+  },
+  "checks": [
+    "Both AC1024 files pass the pinned dwg-verifier container check and validated header-envelope sentinel and CRC checks. Each has a 1626-byte logical header with a trailer ending at offset 887 and a 739-byte unclassified suffix; suffix hashes differ.",
+    "LibreDWG 0.14 reads both. Its selected INSBASE and decoded 3DFACE and TEXT records agree between the two outputs.",
+    "The current implementation digest f5a373b6adbce3a1a181b62734b6223eadd3931fbbb265b41cb1913713640467 was built from clean checkout 05215fb5b1564cf78bc3ff8204cab4d4af62ef60. Strict and explicit-partial output both fail while preserving preexisting destination bytes for both files. Strict reports the unclaimed header range; partial continues and fails during LAYER serialization."
+  ],
+  "codecBinarySha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+  "strictLogSha256": "f36a210d2122c13064c7e752e45a83c8bf245ab7512b91e501c92b3f17523ebc",
+  "partialLogSha256": "b6a67cd26ed0f1fc3c46db57e2605c9aec5ecb6037e08bac504bb77e0498463c",
+  "suffixSha256": {
+    "mac": "3c2c565546f80d4ce7eb1d46f9ef4e637d07bb0cc09a4da07868e50414ed3311",
+    "linux": "3f841c402344cc07c25ede3d7284824b68ad3e463316adad4b456d80beb9ecdd"
+  },
+  "limits": [
+    "ODA converters are related products: this does not provide an independent producer semantics witness. Neither the valid envelope, differing suffix bytes, nor peer output agreement establishes the suffix meaning.",
+    "The partial failure occurs later in LAYER serialization; do not attribute that failure to the suffix guard. No native AutoCAD acceptance or complete conversion claim follows.",
+    "No generated DWG or DXF fixture was committed."
+  ]
+}
