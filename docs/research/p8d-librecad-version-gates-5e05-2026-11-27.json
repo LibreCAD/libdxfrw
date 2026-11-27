@@ -62,5 +62,13 @@
     "change": "Use the same unique, case-insensitive type-and-handle stand-in helper for fixed and class-based typed objects; keep existing typed-entity behavior unchanged.",
     "validation": "The selected version, LAYOUT, and MLINESTYLE linetype controls pass: 308 assertions in 14 standalone cases and 305 assertions in 13 bundled cases. The red-before MLINESTYLE control covered matching and case-variant types, different types, duplicate objects, object/entity collisions, reports, and selected LINE reactor references.",
     "limits": "The collision profile directly exercises MLINESTYLE and SCALE. LAYOUT is covered by adjacent behavior tests rather than a dedicated collision witness. Typed entities, other graph roles, live-identity ambiguity, and same-type semantic equivalence remain open."
+  },
+  "typedEntityStandInFollowup": {
+    "consumerCommit": "8efe498e",
+    "finding": "A typed NAVISWORKSMODEL was omitted from source-to-output entity handle planning. An earlier LINE reactor could retain its old source handle, and the raw-entity stand-in check accepted unrelated or duplicate carriers. The red-before bundled test showed a dangling reference and incorrect omission reports.",
+    "change": "Apply unique, case-insensitive type-and-scope checks to the selected class-based typed entity stand-in and preallocate NAVISWORKSMODEL source identities before entity output. Mark conflicting skipped identities ambiguous so references do not guess.",
+    "validation": "Version and NAVISWORKS selectors pass 268 standalone assertions in 14 cases and 267 bundled assertions in 13 cases, including matching, missing, conflicting and duplicate raw sources, live identity collision, destination-preserving invalid write and corrected same-filter retry. The adjacent handle selector passes 23 bundled cases; the standalone run passes 19/23 with the same four previously recorded sparse-MATERIAL failures. ezdxf 1.4.5 independently read the generated AC1021 matching output, found one LINE reactor targeting the emitted NAVISWORKSMODEL, and reported no audit errors or fixes.",
+    "peerOutputSha256": "fefc8b7355c2558bce3c9c5139fcb819c733e43a32843781124068dc5a8daae0",
+    "limits": "Only the selected NAVISWORKSMODEL cross-version raw-carrier and LINE-reactor profiles are qualified. Same-version raw/typed deduplication, fixed typed-entity aliases, additional types, graph roles, producer semantics, and native platforms remain open. The generated output stays outside the repository."
   }
 }
