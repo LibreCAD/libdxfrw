@@ -14,6 +14,7 @@
 #include <streambuf>
 #include <string>
 #include <vector>
+#include "dx_dxf_text_safety.h"
 #include "dx_standard_output.h"
 #include "intern/dxfmaterial.h"
 namespace dx_material_body {
@@ -334,8 +335,7 @@ inline bool spelling(const DRW_Variant& value,std::string& result) {
 inline bool safeOpaqueTranscode(const std::vector<DRW_Variant>& groups) {
     for (const auto& group : groups) {
         if (group.type()!=DRW_Variant::STRING || !group.content.s) continue;
-        for (const unsigned char c : *group.content.s)
-            if (c<0x20u || c>0x7eu || c=='^' || c=='\\') return false;
+        if (!dx_dxf_text_safety::safeOpaqueTranscode(*group.content.s)) return false;
     }
     return true;
 }

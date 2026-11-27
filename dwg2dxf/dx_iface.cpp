@@ -89948,8 +89948,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (cData->m_dxfWideProjectionRequired
         && (!cData->m_dxfWideProjection || !requireResolvedOwners || v!=DRW::AC1027
-            || binary!=cData->m_dxfWideProjection->normalized.source.binary)) {
-        reportPreflightFailure("wide DXF graph requires strict, same-version and same-encoding output");
+            || (binary!=cData->m_dxfWideProjection->normalized.source.binary
+                && !cData->m_dxfWideProjection->normalized.source.crossEncodingSafe))) {
+        reportPreflightFailure("wide DXF graph requires strict, same-version output and safe text for encoding changes");
         return false;
     }
     if (cData->sourceFormat == dx_source_format::DWG
@@ -97596,6 +97597,7 @@ bool dx_iface::hasUnchangedDxfWideProjection(bool inspectOutput) const noexcept 
             if(!dx_wide_dictionary_source::normalize(proof.original,"","",rebuilt)
                 ||rebuilt.bytes!=frozen.bytes || rebuilt.root!=frozen.root
                 ||rebuilt.handSeed!=frozen.handSeed || rebuilt.source.binary!=frozen.source.binary
+                ||rebuilt.source.crossEncodingSafe!=frozen.source.crossEncodingSafe
                 ||rebuilt.source.root!=frozen.source.root || rebuilt.chains.size()!=frozen.chains.size()
                 ||rebuilt.source.chains.size()!=frozen.source.chains.size())return false;
             for(std::size_t i=0;i<frozen.chains.size();++i) {

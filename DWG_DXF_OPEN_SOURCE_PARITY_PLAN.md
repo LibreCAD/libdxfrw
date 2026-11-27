@@ -15,11 +15,11 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current implementation digest is
-`2c95d9eaf9ca292ecaf2ed204c0d03716ecbb4e814d235da6511ba9127aaa498`
-(782 inputs). Current-head hosted checks are pending. The previous
+`63651edc1dad5da5c8ffa9913800c56487c7f2d00c6e642aaa2b04c961d371fb`
+(783 inputs). Current-head hosted checks are pending. The previous
 [focused, package and FreeCAD matrix](docs/research/p8-native-freecad-f6c0-2026-11-27.json)
 and [fast lane](docs/research/p8-fast-lane-f6c0-2026-11-27.json) pass for the
-preceding digest; recheck profiles affected by the default MATERIAL transcode.
+earlier f6c06139 digest; recheck profiles affected by the cross-encoding graph route.
 All support claims remain experimental.
 
 ## Ready work and cross-cutting dependencies
@@ -54,8 +54,10 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    report where deassociation is required. Extend the bounded AC1027 wide-handle
    dictionary/XRECORD profile to additional graph shapes, roles, versions,
    encodings and producers only after source/target closure and output proof.
-   The existing opt-in route is strict, same-version and same-encoding, with at
-   most eight selected chains and 16 proven pointers per XRECORD. Targets are
+   The existing opt-in route is strict and same-version, with at most eight selected
+   chains and 16 proven pointers per XRECORD. Cross-encoding transport is limited
+   to the [safe-text source profile](docs/research/p7-wide-dxf-cross-encoding-2026-11-27.json);
+   qualify escaped/non-ASCII text and other graph types separately. Targets are
    restricted to the verified root, selected dictionaries and selected XRECORDs;
    see the [root-reference control](docs/research/p7-wide-dxf-xrecord-root-target-2026-11-27.json).
    The public semantic API remains 32-bit; bind original-stream observation

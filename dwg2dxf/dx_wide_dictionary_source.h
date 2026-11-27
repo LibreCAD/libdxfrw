@@ -7,6 +7,7 @@
 // remaining drawing is lossless. Existing 32-bit consumer callbacks are not
 // invoked. It retains original spellings and never narrows handle values.
 #include "intern/dxfidentitysource.h"
+#include "dx_dxf_text_safety.h"
 #include "dx_symbol_name_key.h"
 #include <algorithm>
 #include <charconv>
@@ -37,6 +38,7 @@ struct Chain {
 };
 struct Graph {
     bool binary{false};
+    bool crossEncodingSafe{true};
     std::string dictionaryKey,recordKey;
     Field rootSelf,rootOwner,rootEntry,dictionarySelf,dictionaryOwner,
         dictionaryEntry,recordSelf,recordOwner,recordReference,handSeed;
@@ -155,9 +157,13 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
         bool sectionName=false,objects=false,header=false,eof=false,versionNext=false;
         std::size_t headerSections=0u,objectSections=0u,versions=0u;
         std::string version,headerVariable;Field handSeed;unsigned seeds=0u;
+        bool crossEncodingSafe=true;
         std::vector<Field> handles;std::vector<Object> rows;std::size_t retained=0u;int code=0;
         while(reader->readRec(&code)){
             DxfReadRecordView v;if(!reader->currentRecordView(v))return false;
+            if(v.kind==DxfReadRecordView::Text
+                &&(!dx_dxf_text_safety::safeOpaqueTranscode(v.text)
+                    ||!dx_dxf_text_safety::safeOpaqueTranscode(v.raw)))crossEncodingSafe=false;
             if(handleCandidate(code)) {
                 if(v.kind!=DxfReadRecordView::Text||sizeof(Field)>maxBytes-retained)return false;
                 retained+=sizeof(Field);if(v.text.size()>maxBytes-retained)return false;
@@ -202,7 +208,7 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
             }
             return found;
         };
-        Graph candidate;candidate.binary=binary;candidate.handSeed=std::move(handSeed);
+        Graph candidate;candidate.binary=binary;candidate.crossEncodingSafe=crossEncodingSafe;candidate.handSeed=std::move(handSeed);
         candidate.handleCandidates=std::move(handles);std::size_t body=0u;
         const Object& root=rows.front();
         if(!common(root,candidate.rootSelf,candidate.rootOwner,body)

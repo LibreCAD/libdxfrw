@@ -36,6 +36,7 @@ dist_noinst_HEADERS = \
     dx_current_tablestyle_reference.h \
     dx_data.h \
     dx_dependency_audit.h \
+    dx_dxf_text_safety.h \
     dx_dwg_class_evidence.h \
     dx_dwg_class_section_wire.h \
     dx_dwg_class_wire.h \

@@ -39,7 +39,7 @@ static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.
 
 // Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u, bool sharedRecord=false, unsigned crossReference=0u, int sharedReferenceCode=340, unsigned extraSelectedPointers=0u, const char* description="") {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u, bool sharedRecord=false, unsigned crossReference=0u, int sharedReferenceCode=340, unsigned extraSelectedPointers=0u, const char* description="", const char* payload="payload") {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -104,7 +104,7 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||!s(0,"XRECORD")||!s(5,recordHandle)
     ||(xrecordReactor&&(!s(102,"{ACAD_REACTORS")||!s(330,xrecordReactor)||!s(102,"}")))
     ||!s(330,graphHandle)||!s(100,"AcDbXrecord")
-    ||!h(280,1)||!s(1,"payload")||!s(340,graphHandle)
+    ||!h(280,1)||!s(1,payload)||!s(340,graphHandle)
     ||(extraWideReference&&!s(341,extraWideReference))))return false;
  if(sharedRecord&&(!s(0,"XRECORD")||!s(5,"100000013")||!s(330,graphHandle)
     ||!s(100,"AcDbXrecord")||!h(280,1)||!s(1,"shared payload")
@@ -318,13 +318,27 @@ static bool wideGraphRoundTrip(const std::filesystem::path& in,const std::filesy
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
  const bool lateRefused=!write();io.late={};xrecord=savedRecord;
  if(!lateRefused||bytes(out)!="sentinel"||!write()||!verify())return false;
- for(const auto mode:{0,1,2}) {
+ if(!io.fileExport(out.string(),DRW::AC1027,!binary,&data,false,true)||!verify())return false;
+ for(const auto mode:{0,2}) {
   std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
   const auto version=mode==0?DRW::AC1024:DRW::AC1027;
-  const bool outputBinary=mode==1?!binary:binary;
   const bool strict=mode!=2;
-  if(io.fileExport(out.string(),version,outputBinary,&data,false,strict)||bytes(out)!="sentinel"
+  if(io.fileExport(out.string(),version,binary,&data,false,strict)||bytes(out)!="sentinel"
       ||!write()||!verify())return false;
+ }
+ return true;
+}
+
+static bool wideGraphUnsafeTranscode(const std::filesystem::path& in,const std::filesystem::path& out,bool binary) {
+ for(bool material:{false,true}) {
+  if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,0u,false,0u,340,0u,
+      material?"unsafe^text":"",material?"payload":"unsafe^text"))return false;
+  dx_data data;Exporter io;
+  if(!io.enableDxfWideGraphProjection()||!io.fileImport(in.string(),&data,false))return false;
+  const auto same=[&](){return io.fileExport(out.string(),DRW::AC1027,binary,&data,false,true);};
+  if(!same())return false;
+  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+  if(io.fileExport(out.string(),DRW::AC1027,!binary,&data,false,true)||bytes(out)!="sentinel"||!same())return false;
  }
  return true;
 }
@@ -415,7 +429,14 @@ static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std:
   return true;
  };
  if(!write()||!verify())return false;
+ if(!io.fileExport(out.string(),DRW::AC1027,!binary,&data,false,true)||!verify())return false;
  auto& record=*std::next(data.xRecords.begin());const auto saved=record;
+ io.late=[&](){record.m_dataEntries[0]=DRW_Variant(1,std::string("changed"));};
+ std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+ const bool crossRefused=!io.fileExport(out.string(),DRW::AC1027,!binary,&data,false,true);
+ io.late={};record=saved;
+ if(!crossRefused||bytes(out)!="sentinel"
+     ||!io.fileExport(out.string(),DRW::AC1027,!binary,&data,false,true)||!verify())return false;
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";record.parentHandle=0x71u;
  const bool refused=!write();record=saved;
  if(!refused||bytes(out)!="sentinel"||!write()||!verify())return false;
@@ -811,6 +832,7 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
  if(argc==1)for(bool binary:{false,true}) {
   if(!wideGraphChainBoundary(in,out,binary))return 40;
   if(!wideGraphCrossReferenceRetry(in,out,binary))return 42;
+  if(!wideGraphUnsafeTranscode(in,out,binary))return 44;
  }
  if(argc==1)for(bool binary:{false,true})
   if(!wideGraphImportRetry(in,out,binary))return 39;

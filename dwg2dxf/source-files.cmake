@@ -38,6 +38,7 @@ set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_current_tablestyle_reference.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_data.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_dependency_audit.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_dxf_text_safety.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_dwg_class_evidence.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_dwg_class_section_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_dwg_class_wire.h"
