@@ -1,0 +1,14 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-ac1027-plot-graph-reactor-bad-source-2026-11-26",
+  "date": "2026-11-26",
+  "baseCommit": "0f7ef55cc",
+  "implementationDigestSha256": "2b9dfe13b2ce552f2c5dd498a9a7454cd08b11544e4a5d6ab21f012b999fbe11",
+  "inputCount": 781,
+  "supportClaimEffect": "none",
+  "change": "Add generated ASCII and binary source controls with either a valid but wrong root reactor or a dangling reactor on the selected XRECORD. The existing writer must refuse and preserve a prior destination, then accept a corrected reimport and retry on the same adapter.",
+  "validation": "PASS libdxfrw_dxf_compact_material_graph in both encodings; this includes independent handle-collision and output-readback controls for the accepted profile. A separate locally generated ezdxf graph with wrong existing and dangling reactor targets also refused and preserved the destination in both encodings; the wrong-existing cases reached the staged plot-graph inspector, while dangling targets were rejected earlier by extension-graph preflight.",
+  "limits": [
+    "No drawing fixtures were added. Locally generated source and output controls do not qualify native producers, wider graph types or unsupported application metadata."
+  ]
+}

@@ -150,6 +150,8 @@ evidence are recorded in `docs/research/` and Git history.
   root dictionary reference. Preserve this distinction and qualify consumers
   independently. The [reactor-link follow-up](docs/research/p8-ac1027-plot-graph-reactor-closure-2026-11-26.json)
   also checks selected emitted reactor links and rejects unknown application groups.
+  The [bad-source controls](docs/research/p8-ac1027-plot-graph-reactor-bad-source-2026-11-26.json)
+  test wrong but existing and dangling reactors, rollback and corrected retry.
   Extend other plot-style shapes only with equivalent immutable
   source, staged output and graph-closure proof; cross-version conversion and
   unverified nested extensions remain refused.
@@ -260,7 +262,7 @@ evidence are recorded in `docs/research/` and Git history.
   validates strict refusal and bounded partial output. The [shared-check rerun](docs/research/p6-ac1012-generated-pair-shared-checks-2026-11-26.json)
   passes both existing generated frames and the AC1012/AC1014/AC1015 controls
   on the current implementation. A [freshly generated pair](docs/research/p6-ac1012-user-request-generated-pair-2026-11-26.json)
-  exercises both strict refusals and partial encodings; the [current-candidate recheck](docs/research/p6-ac1012-spec-pair-current-993262-2026-11-26.json)
+  exercises both strict refusals and partial encodings; the [code-equivalent recheck](docs/research/p6-ac1012-spec-pair-current-993262-2026-11-26.json)
   passes both source frames, strict refusal and independently audited partial output
   after the later codec changes. It does not prove native
   duplicate-key semantics. Continue P6-F with the existing
@@ -272,7 +274,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 993262664a93937c103ca3b53046b0bdd4a5328b949507bb63e27f76f156bdc1
+  digest: 2b9dfe13b2ce552f2c5dd498a9a7454cd08b11544e4a5d6ab21f012b999fbe11
   (781 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,

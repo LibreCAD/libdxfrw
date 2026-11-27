@@ -31,7 +31,7 @@ static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.
 
 // Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false) {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr) {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -83,7 +83,9 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
     ||!s(0,"ACDBPLACEHOLDER")||!s(5,"71")||!s(330,"70")
     ||!s(0,"DICTIONARY")||!s(5,"72")||!s(330,"C")||!s(100,"AcDbDictionary")
     ||!h(280,0)||!h(281,1)||!s(3,"RECORD")||!s(350,"73")
-    ||!s(0,"XRECORD")||!s(5,"73")||!s(330,"72")||!s(100,"AcDbXrecord")
+    ||!s(0,"XRECORD")||!s(5,"73")
+    ||(xrecordReactor&&(!s(102,"{ACAD_REACTORS")||!s(330,xrecordReactor)||!s(102,"}")))
+    ||!s(330,"72")||!s(100,"AcDbXrecord")
     ||!h(280,1)||!s(1,"payload")||!s(340,"72")))return false;
  return s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();
 }
@@ -199,6 +201,22 @@ static bool multiPlotRoundTrip(const std::filesystem::path& in,const std::filesy
  if(io.fileExport(out.string(),DRW::AC1024,binary,&data,false,true)||bytes(out)!="sentinel")return false;
  return write()&&verify();
 }
+
+static bool multiPlotReactorRefusal(const std::filesystem::path& in,const std::filesystem::path& out,bool binary) {
+ Exporter io;
+ for(const char* target:{"C","DEAD"}) {
+  if(!defaultSource(in,binary,false,DRW::AC1027,true,target))return false;
+  dx_data data;
+  if(!io.fileImport(in.string(),&data,false))return false;
+  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+  if(io.fileExport(out.string(),DRW::AC1027,binary,&data,false,true)||bytes(out)!="sentinel")return false;
+  if(!defaultSource(in,binary,false,DRW::AC1027,true))return false;
+  dx_data corrected;
+  if(!io.fileImport(in.string(),&corrected,false)
+     ||!io.fileExport(out.string(),DRW::AC1027,binary,&corrected,false,true))return false;
+ }
+ return true;
+}
 int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("compact-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directories(dir);struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};auto in=dir/"in.dxf",out=dir/"out.dxf";
  for(bool binary:{false,true}){if(argc==2){std::filesystem::copy_file(argv[1],in,std::filesystem::copy_options::overwrite_existing);}else if(argc!=1||!source(in,binary))return 1;
   dxfRW direct(in.string().c_str());Old old;if(direct.read(&old,false)||old.typed||old.raw)return 2;Facet f;f.enabled=false;if(direct.read(&f,false)||f.typed||f.raw)return 3;f.enabled=true;if(!direct.read(&f,false)||f.typed!=3||f.raw!=3)return 4;
@@ -228,4 +246,6 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
    if(!defaultRoundTrip(in,out,binary,collision,version))return 33;
  if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true})
   if(!multiPlotRoundTrip(in,out,binary,collision))return 34;
+ if(argc==1)for(bool binary:{false,true})
+  if(!multiPlotReactorRefusal(in,out,binary))return 35;
  return 0;}
