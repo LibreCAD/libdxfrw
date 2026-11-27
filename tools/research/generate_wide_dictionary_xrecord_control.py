@@ -87,7 +87,8 @@ def main():
                 log = output / ('candidate-' + profile + '-' + encoding + '.log')
                 log.write_bytes(run.stdout)
                 row['candidate'] = {'exitCode': run.returncode,
-                                    'destinationPreserved': destination.read_bytes() == sentinel,
+                                    'destinationPreserved': destination.is_file()
+                                        and destination.read_bytes() == sentinel,
                                     'logSha256': sha256(log)}
             rows.append(row)
     result = {'ezdxfVersion': ezdxf.__version__, 'candidateSha256': sha256(candidate) if candidate else None,
