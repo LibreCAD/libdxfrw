@@ -19,5 +19,13 @@
   "limits": [
     "Generated source and focused fields only; no general IMAGE or native rendering qualification.",
     "Neither DWG nor DXF fixture is committed."
-  ]
+  ],
+  "graphTrace": {
+    "scope": "Temporary local instrumented adapter; diagnostic logging removed and clean target rebuilt afterward.",
+    "traceSha256": "fd3fdc09132031660ec03b8869817bc9f16a655f6f0def1fc74a00878b254507",
+    "observed": "The source ACAD_IMAGE_DICT target is handle 0x59 and fails subtree closure because its IMAGEDEF child 0x56 is delivered typed, not in the raw-object set. The raw dictionary is nevertheless emitted; the typed image writer regenerates a separate image dictionary, definition and reactor.",
+    "independentAudit": "ezdxf removes the old dictionary\u2019s dangling scratch entry on the partial ASCII resave.",
+    "requiredGuard": "Before omitting or remapping any source object, prove all inbound references, image/definition/reactor identities, dictionary membership and metadata, and emitted graph completeness. A generic name-only drop is not safe."
+  },
+  "cleanRecheckLogSha256": "8abf8c8f1e96a0c0eba945c54ad85cba922666f869f9b8a039b91699084adc4d"
 }
