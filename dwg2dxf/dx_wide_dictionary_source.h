@@ -119,9 +119,9 @@ inline bool recordReference(const Object& object,std::size_t body,Field& referen
         // roles need separate closure proof. Do not treat them as harmless.
         if(f.code==102||f.code==101||f.code==1001||f.code==100
             ||f.code==5||f.code==105||f.code==1005
-            ||(f.code>=320&&f.code<=369&&!(f.code>=340&&f.code<=349))
+            ||(f.code>=320&&f.code<=369&&!(f.code>=332&&f.code<=349))
             ||(f.code>=390&&f.code<=399)||(f.code>=480&&f.code<=481))return false;
-        if(f.code>=340&&f.code<=349){if(++references!=1u)return false;reference=f;}
+        if(f.code>=332&&f.code<=349){if(++references!=1u)return false;reference=f;}
     }
     return references==1u;
 }

@@ -406,7 +406,12 @@ static bool wideGraphCrossReferenceRetry(const std::filesystem::path& in,const s
  if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,0u,true,true))return false;
  dx_data rejected;std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
  if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
- if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true))return false;
+ // Some independent readers consume an XRECORD body group 330 as an owner.
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true,330))return false;
+ if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true,331))return false;
+ if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true,332))return false;
  dx_data accepted;
  return io.fileImport(in.string(),&accepted,false)
      &&io.fileExport(out.string(),DRW::AC1027,binary,&accepted,false,true);
@@ -752,7 +757,9 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
      ||!wideGraphSharedDictionary(in,out,binary,collision,1u)
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u)
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u,341)
-     ||!wideGraphSharedDictionary(in,out,binary,collision,1u,349))return 41;
+     ||!wideGraphSharedDictionary(in,out,binary,collision,1u,349)
+     ||!wideGraphSharedDictionary(in,out,binary,collision,2u,332)
+     ||!wideGraphSharedDictionary(in,out,binary,collision,1u,339))return 41;
  }
  if(argc==1)for(bool binary:{false,true}) {
   if(!wideGraphChainBoundary(in,out,binary))return 40;
