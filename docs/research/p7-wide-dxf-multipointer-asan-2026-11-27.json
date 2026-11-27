@@ -11,5 +11,10 @@
   "sanitizerOptions": "ASAN_OPTIONS=detect_leaks=0; leak detection was disabled, address bounds and lifetime instrumentation remained enabled.",
   "fixturePolicy": "Generated temporary controls; no external drawing fixture committed.",
   "supportClaimEffect": "none",
-  "testExecutableSha256": "d0d360da262cd705dfc090c31bbe5177d1c17ac4aa859740d7df412a085ecabe"
+  "testExecutableSha256": "d0d360da262cd705dfc090c31bbe5177d1c17ac4aa859740d7df412a085ecabe",
+  "wholeSourceCapture": {
+    "result": "PASS: 1/1 focused CTest under AddressSanitizer, including the in-memory DXF reader.",
+    "durationSeconds": 1.25,
+    "testExecutableSha256": "bf7c2fdcd80cfbd366e5f93a322cc15311dd98e288d52a0bcd88364154a394b9"
+  }
 }
