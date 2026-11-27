@@ -22,6 +22,9 @@ def capture(view, mesh, line, directory, process_events):
             mesh.Visibility = mesh_visible
             line.Visibility = line_visible
             process_events()
+            if bool(mesh.Visibility) != mesh_visible or bool(line.Visibility) != line_visible:
+                raise RuntimeError(f"visibility changed before {name}: "
+                                   f"mesh={bool(mesh.Visibility)}, line={bool(line.Visibility)}")
             view.saveImage(str(root / name), 320, 240, "White")
     finally:
         mesh.Visibility = True

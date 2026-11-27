@@ -116,6 +116,35 @@ class GuiDiagnosticTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 capture(view, mesh, line, temporary, lambda: None)
 
+    def test_capture_rejects_coupled_visibility(self):
+        class Item:
+            Visibility = True
+
+        line = Item()
+
+        class Mesh:
+            _visible = True
+            @property
+            def Visibility(self): return self._visible
+            @Visibility.setter
+            def Visibility(self, value):
+                self._visible = value
+                if not value: line.Visibility = False
+
+        class View:
+            def viewTop(self): pass
+            def fitAll(self): pass
+            def saveImage(self, path, width, height, color): Path(path).write_bytes(b"scratch")
+
+        mesh = Mesh()
+        def propagate():
+            if not mesh.Visibility: line.Visibility = False
+        with tempfile.TemporaryDirectory() as temporary:
+            with self.assertRaisesRegex(RuntimeError, "line=False"):
+                capture(View(), mesh, line, temporary, propagate)
+            self.assertTrue(mesh.Visibility)
+            self.assertTrue(line.Visibility)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -22,5 +22,12 @@
     "Linux x86_64 Xvfb, selected generated DXF candidate only.",
     "No hardware-rendering, cross-platform or DWG support claim."
   ],
-  "next": "Determine why the independent line disappears; keep the guard intact and retry only after a discriminating correction."
+  "next": "Use a matching release and source-generated scene to distinguish candidate import/layer behavior from platform or asynchronous rendering. Property-state checks now reject coupled visibility before each capture; do not weaken the independent-line guard.",
+  "localControls": {
+    "macOS": "Installed FreeCAD 1.1.4 Cocoa with generated triangular Part face and line in separate Draft layers: 2440 face pixels and 80 line pixels change independently; restoration difference zero.",
+    "linux": "Debian bookworm ARM64 container, FreeCAD 0.20.2 Xvfb/Mesa, same constructed scene and separate layers: 423 face pixels and 80 line pixels change independently; restoration difference zero.",
+    "scope": "Neither control runs the pinned patched importer; the older Linux control does not establish behavior of the candidate build.",
+    "macLogSha256": "2b60743502f374f3970179c6b23c4441d34ae1a8f072dbf24ec476728d14a079",
+    "linuxLogSha256": "80904bd36c9a70d96c772327af5111b7628d98db6314ec9a41dc2e24d6a35c72"
+  }
 }
