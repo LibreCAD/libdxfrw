@@ -34,5 +34,11 @@
     "The scratch app is not byte-identical to an unmodified candidate executable. This local source and one edited line do not establish whole-drawing preservation or broad platform support.",
     "The earlier native receipt identifies the two skipped raw carriers in a separate diagnostic run and verifies matching output records; that does not prove general graph equivalence.",
     "No input or output drawing was committed."
-  ]
+  ],
+  "bundledFollowup": {
+    "consumerTestCommit": "68fa64d3",
+    "finding": "The original test incorrectly expected the bundled codec to regenerate the two omitted plot-style records; it reported three failures. The standalone codec regenerates them in the selected profile, whereas the bundled codec omits them and reports skipped raw replay.",
+    "validation": "The corrected bundled version selector passed 146 assertions across eight cases. It checks both omissions, the report, and absence of dangling references. A rebuilt standalone selector is still running; its pre-correction equivalent passed 147 assertions across nine cases.",
+    "limits": "Test correction only; it neither adds bundled plot-style regeneration nor qualifies a general cross-version profile."
+  }
 }
