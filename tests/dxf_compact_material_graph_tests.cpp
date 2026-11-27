@@ -39,7 +39,7 @@ static bool graph(const dx_data& d){if(!d.hasNamedObjectDictionary||d.materials.
 
 // Locally authored AC1024/AC1027 default-material carriers. No drawing fixture is
 // stored in the repository; the ambiguous second group 73 stays opaque.
-static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u, bool sharedRecord=false, unsigned crossReference=0u, int sharedReferenceCode=340) {
+static bool defaultSource(const std::filesystem::path& path, bool binary, bool collision, DRW::Version version, bool multiPlot=false, const char* xrecordReactor=nullptr, bool wideGraph=false, const char* extraWideReference=nullptr, bool duplicateLayerHandle=false, unsigned extraWide=0u, bool sharedRecord=false, unsigned crossReference=0u, int sharedReferenceCode=340, unsigned extraSelectedPointers=0u) {
  std::ofstream f(path,std::ios::binary|std::ios::trunc);
  if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -109,6 +109,8 @@ static bool defaultSource(const std::filesystem::path& path, bool binary, bool c
  if(sharedRecord&&(!s(0,"XRECORD")||!s(5,"100000013")||!s(330,graphHandle)
     ||!s(100,"AcDbXrecord")||!h(280,1)||!s(1,"shared payload")
     ||!s(sharedReferenceCode,crossReference==2u?"100000021":crossReference?"100000020":graphHandle)))return false;
+ for(unsigned n=0;n<extraSelectedPointers;++n)
+  if(!s(332+static_cast<int>(n%18u),n%2u?"100000021":"100000020"))return false;
  for(unsigned n=0;n<extraWide;++n) {
   const auto name="RECORD_"+std::to_string(n+2u), handle=hex(UINT64_C(0x100000020)+n*16u), record=hex(UINT64_C(0x100000021)+n*16u);
   if(!s(0,"DICTIONARY")||!s(5,handle.c_str())||!s(330,"C")||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)||!s(3,name.c_str())||!s(350,record.c_str())
@@ -342,8 +344,8 @@ static bool wideGraphTwoChains(const std::filesystem::path& in,const std::filesy
  return true;
 }
 
-static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision,unsigned crossReference,int sharedReferenceCode=340) {
- if(!defaultSource(in,binary,collision,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,crossReference,sharedReferenceCode))return false;
+static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std::filesystem::path& out,bool binary,bool collision,unsigned crossReference,int sharedReferenceCode=340,unsigned extraSelectedPointers=0u) {
+ if(!defaultSource(in,binary,collision,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,crossReference,sharedReferenceCode,extraSelectedPointers))return false;
  dx_data data;Exporter io;
  if(!io.enableDxfWideGraphProjection()||!io.fileImport(in.string(),&data,false)||data.xRecords.size()!=3u)return false;
  const auto write=[&](){return io.fileExport(out.string(),DRW::AC1027,binary,&data,false,true);};
@@ -371,14 +373,16 @@ static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std:
    const DRW_XRecord* record=nullptr;
    for(const auto& item:decoded.xRecords)if(item.handle==id){if(record)return false;record=&item;}
    if(!record||record->parentHandle!=dictionary)return false;
-   const auto code=std::string(name)=="SHARED_RECORD"?sharedReferenceCode:340;
-   unsigned refs=0u;for(const auto& item:record->m_dataEntries)if(item.code()==code) {
-    const auto expected=std::string(name)=="SHARED_RECORD"&&crossReference
-        ?(crossReference==2u?otherRecord:otherDictionary):dictionary;
-    if(item.type()!=DRW_Variant::INTEGER64||item.i64_val()!=static_cast<std::int64_t>(expected))return false;
+   const bool shared=std::string(name)=="SHARED_RECORD";
+   unsigned refs=0u;for(const auto& item:record->m_dataEntries)if(item.code()>=320&&item.code()<=369) {
+    const auto expectedCode=shared&&refs?332+static_cast<int>((refs-1u)%18u):shared?sharedReferenceCode:340;
+    const auto expected=shared&&refs?((refs-1u)%2u?otherRecord:otherDictionary)
+        :shared&&crossReference?(crossReference==2u?otherRecord:otherDictionary):dictionary;
+    if(item.code()!=expectedCode||item.type()!=DRW_Variant::INTEGER64
+        ||item.i64_val()!=static_cast<std::int64_t>(expected))return false;
     ++refs;
    }
-   if(refs!=1u)return false;
+   if(refs!=(shared?1u+extraSelectedPointers:1u))return false;
   }
   return true;
  };
@@ -395,6 +399,17 @@ static bool wideGraphSharedDictionary(const std::filesystem::path& in,const std:
  *pointer=DRW_Variant(sharedReferenceCode==340?341:340,target);
  const bool roleRefused=!write();record=saved;
  if(!roleRefused||bytes(out)!="sentinel"||!write()||!verify())return false;
+ if(extraSelectedPointers) {
+  auto first=std::find_if(record.m_dataEntries.begin(),record.m_dataEntries.end(),
+      [](const auto& value){return value.code()>=332&&value.code()<=349;});
+  if(first==record.m_dataEntries.end())return false;
+  auto second=std::find_if(std::next(first),record.m_dataEntries.end(),
+      [](const auto& value){return value.code()>=332&&value.code()<=349;});
+  if(second==record.m_dataEntries.end())return false;
+  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
+  std::iter_swap(first,second);const bool orderRefused=!write();record=saved;
+  if(!orderRefused||bytes(out)!="sentinel"||!write()||!verify())return false;
+ }
  io.late=[&](){record.m_dataEntries[0]=DRW_Variant(1,std::string("changed"));};
  std::ofstream(out,std::ios::binary|std::ios::trunc)<<"sentinel";
  const bool lateRefused=!write();io.late={};record=saved;
@@ -411,7 +426,9 @@ static bool wideGraphCrossReferenceRetry(const std::filesystem::path& in,const s
  if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
  if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true,331))return false;
  if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
- if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true,332))return false;
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true,332,16u))return false;
+ if(io.fileImport(in.string(),&rejected,false)||bytes(out)!="sentinel")return false;
+ if(!defaultSource(in,binary,false,DRW::AC1027,true,nullptr,true,nullptr,false,1u,true,true,332,15u))return false;
  dx_data accepted;
  return io.fileImport(in.string(),&accepted,false)
      &&io.fileExport(out.string(),DRW::AC1027,binary,&accepted,false,true);
@@ -585,7 +602,7 @@ static std::string wideSourceBytes(bool binary,WideSourceVariant variant) {
         ||!text(0,"XRECORD")||!text(5,record)||!text(330,variant==WideSourceVariant::WrongRecordOwner?"A":dict)
         ||!text(100,"AcDbXrecord")||!number(280,1)||!text(1,"literal 100000010 untouched")
         ||!text(340,variant==WideSourceVariant::WrongReference?"A":dict))return {};
-    if(variant==WideSourceVariant::UnknownReference&&!text(341,"A"))return {};
+    if(variant==WideSourceVariant::UnknownReference&&!text(351,"A"))return {};
     if(variant==WideSourceVariant::DuplicateSelf&&(!text(0,"XRECORD")||!text(5,record)
         ||!text(330,dict)||!text(100,"AcDbXrecord")||!number(280,1)))return {};
     if(variant==WideSourceVariant::AliasCollision)for(const char* handle:{"1","2"})
@@ -759,7 +776,9 @@ int main(int argc,char**argv){auto dir=std::filesystem::temp_directory_path()/("
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u,341)
      ||!wideGraphSharedDictionary(in,out,binary,collision,1u,349)
      ||!wideGraphSharedDictionary(in,out,binary,collision,2u,332)
-     ||!wideGraphSharedDictionary(in,out,binary,collision,1u,339))return 41;
+     ||!wideGraphSharedDictionary(in,out,binary,collision,1u,339)
+     ||!wideGraphSharedDictionary(in,out,binary,collision,2u,341,3u)
+     ||!wideGraphSharedDictionary(in,out,binary,collision,2u,341,15u))return 41;
  }
  if(argc==1)for(bool binary:{false,true}) {
   if(!wideGraphChainBoundary(in,out,binary))return 40;

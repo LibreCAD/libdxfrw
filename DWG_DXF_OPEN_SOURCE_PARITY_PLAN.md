@@ -164,6 +164,9 @@ evidence are recorded in `docs/research/` and Git history.
   applies the same check to 332–339. Keep body groups 330/331 refused until
   the observed LibreDWG loss is resolved or a qualified peer profile is chosen;
   both are valid XRECORD codes and must not be mistaken for common ownership.
+  The [multi-pointer extension](docs/research/p7-wide-dxf-xrecord-multiple-pointers-2026-11-27.json)
+  binds up to 16 selected 332–349 references per record, preserving order and
+  repeated codes; 17 or an unqualified target is refused with retry.
   Extend to other graph shapes, 64-bit roles and producers, and bind original-stream
   observation before relaxing those limits. Qualify native consumers independently.
   The [reactor-link follow-up](docs/research/p8-ac1027-plot-graph-reactor-closure-2026-11-26.json)
@@ -292,7 +295,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: b2eabe093a91f7354419548a966eb854bd6be1396876ad68e48d2e019a99c284
+  digest: defe1f69008aa5109d960a443628fdf050f2932e37ce46328a9dd9010cd007d0
   (782 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,

@@ -97601,12 +97601,14 @@ bool dx_iface::hasUnchangedDxfWideProjection(bool inspectOutput) const noexcept 
             for(std::size_t i=0;i<frozen.chains.size();++i) {
                 const auto& a=rebuilt.source.chains[i];const auto& b=frozen.source.chains[i];
                 if(a.dictionaryKey!=b.dictionaryKey || a.recordKey!=b.recordKey
-                    ||a.dictionary!=b.dictionary || a.record!=b.record || a.reference!=b.reference
+                    ||a.dictionary!=b.dictionary || a.record!=b.record || a.references.size()!=b.references.size()
                     ||a.rootEntry.code!=b.rootEntry.code || a.dictionaryEntry.code!=b.dictionaryEntry.code
-                    ||a.recordReference.code!=b.recordReference.code
                     ||rebuilt.chains[i].dictionary!=frozen.chains[i].dictionary
                     ||rebuilt.chains[i].record!=frozen.chains[i].record
-                    ||rebuilt.chains[i].reference!=frozen.chains[i].reference)return false;
+                    ||rebuilt.chains[i].references!=frozen.chains[i].references)return false;
+                for(std::size_t n=0;n<a.references.size();++n)
+                    if(a.references[n].field.code!=b.references[n].field.code
+                        ||a.references[n].value!=b.references[n].value)return false;
             }
         }
         if(!cData->hasNamedObjectDictionary || cData->namedObjectDictionary.handle!=frozen.root)return false;
@@ -97638,13 +97640,16 @@ bool dx_iface::hasUnchangedDxfWideProjection(bool inspectOutput) const noexcept 
                 record=&item;
             }
             if(!record || record->parentHandle!=alias.dictionary)return false;
-            unsigned references=0u;
-            for(const auto& item:record->m_dataEntries)if(item.code()==source.recordReference.code) {
+            if(source.references.empty() || source.references.size()!=alias.references.size())return false;
+            std::size_t references=0u;
+            for(const auto& item:record->m_dataEntries)if(item.code()>=320 && item.code()<=369) {
                 std::uint64_t value=0u;
-                if(++references!=1u || !dx_standard_output::handleValue(item,value)
-                    ||value!=alias.reference)return false;
+                if(references>=source.references.size() || item.code()!=source.references[references].field.code
+                    || !dx_standard_output::handleValue(item,value)
+                    ||value!=alias.references[references])return false;
+                ++references;
             }
-            if(references!=1u)return false;
+            if(references!=source.references.size())return false;
             if(inspectOutput) {
                 const auto root=dxfW->remapHandle(frozen.root);
                 const auto child=dxfW->remapHandle(alias.dictionary);

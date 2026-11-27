@@ -27,11 +27,13 @@ struct Field {
     std::string text, raw;
     std::size_t ordinal{0}, begin{0}, end{0};
 };
+struct Reference {Field field;std::uint64_t value{0};};
 struct Chain {
     std::string dictionaryKey,recordKey;
     Field rootEntry,dictionarySelf,dictionaryOwner,dictionaryEntry,
-        recordSelf,recordOwner,recordReference;
-    std::uint64_t dictionary{0},record{0},reference{0};
+        recordSelf,recordOwner;
+    std::vector<Reference> references;
+    std::uint64_t dictionary{0},record{0};
 };
 struct Graph {
     bool binary{false};
@@ -42,7 +44,7 @@ struct Graph {
     std::vector<Chain> chains;
     std::uint64_t root{0},dictionary{0},record{0};
 };
-struct ChainAlias {std::uint32_t dictionary{0},record{0},reference{0};};
+struct ChainAlias {std::uint32_t dictionary{0},record{0};std::vector<std::uint32_t> references;};
 struct Normalized {
     std::string bytes;
     Graph source;
@@ -110,9 +112,8 @@ inline bool dictionaryEntry(const std::vector<Entry>& entries,
     for(const auto& item:entries)if(item.name==wanted){entry=item.target;return true;}
     return false;
 }
-inline bool recordReference(const Object& object,std::size_t body,Field& reference) {
+inline bool recordReferences(const Object& object,std::size_t body,std::vector<Reference>& references) {
     if(object.name!="XRECORD"||object.fields[body].text!="AcDbXrecord")return false;
-    unsigned references=0u;
     for(std::size_t i=body+1u;i<object.fields.size();++i){
         const auto& f=object.fields[i];
         // Unknown application data, XDATA and additional known reference
@@ -121,9 +122,13 @@ inline bool recordReference(const Object& object,std::size_t body,Field& referen
             ||f.code==5||f.code==105||f.code==1005
             ||(f.code>=320&&f.code<=369&&!(f.code>=332&&f.code<=349))
             ||(f.code>=390&&f.code<=399)||(f.code>=480&&f.code<=481))return false;
-        if(f.code>=332&&f.code<=349){if(++references!=1u)return false;reference=f;}
+        if(f.code>=332&&f.code<=349) {
+            std::uint64_t value=0u;
+            if(references.size()>=16u||!hex(f.text,value)||!value)return false;
+            references.push_back({f,value});
+        }
     }
-    return references==1u;
+    return !references.empty();
 }
 }
 inline bool capture(std::istream& input,std::string_view dictionaryKey,
@@ -235,11 +240,10 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
                     if(rootEntry.value<UINT64_C(0xffffffff)&&item.value<UINT64_C(0xffffffff))continue;
                     const auto* possibleRecord=findObject(item.value);
                     if(!possibleRecord||possibleRecord==possibleDictionary||possibleRecord==&root)continue;
-                    Field recordSelf,recordOwner,reference;std::size_t recordBody=0u;
+                    Field recordSelf,recordOwner;std::vector<Reference> references;std::size_t recordBody=0u;
                     if(!common(*possibleRecord,recordSelf,recordOwner,recordBody)
                         ||!hex(recordOwner.text,value)||value!=rootEntry.value
-                        ||!recordReference(*possibleRecord,recordBody,reference)
-                        ||!hex(reference.text,value)||!value)continue;
+                        ||!recordReferences(*possibleRecord,recordBody,references))continue;
                     if(rootEntry.name.size()>255u||item.name.size()>255u||selections.size()>=8u)return false;
                     selections.emplace_back(rootEntry.name,item.name);
                 }
@@ -268,14 +272,13 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
             const auto* record=findObject(chain.record);if(!record||record==dict||record==&root)return false;
             if(!common(*record,chain.recordSelf,chain.recordOwner,body)
                 ||!hex(chain.recordOwner.text,owner)||owner!=chain.dictionary
-                ||!recordReference(*record,body,chain.recordReference)
-                ||!hex(chain.recordReference.text,chain.reference)||!chain.reference)return false;
+                ||!recordReferences(*record,body,chain.references))return false;
             if(dictionary.second)selectedObjects.emplace_back(dict,chain.dictionary);
             selectedObjects.emplace_back(record,chain.record);
             candidate.chains.push_back(std::move(chain));
         }
-        for(const auto& chain:candidate.chains)
-            if(!selectedDictionaries.count(chain.reference)&&!selectedRecords.count(chain.reference))return false;
+        for(const auto& chain:candidate.chains)for(const auto& reference:chain.references)
+            if(!selectedDictionaries.count(reference.value)&&!selectedRecords.count(reference.value))return false;
         // Each selected identity must correspond to exactly one physical object,
         // including collisions with records outside the OBJECTS section.
         struct IdentityCount {std::size_t index,global{0u},local{0u};};
@@ -297,7 +300,7 @@ inline bool capture(std::istream& input,std::string_view dictionaryKey,
         candidate.rootEntry=first.rootEntry;candidate.dictionarySelf=first.dictionarySelf;
         candidate.dictionaryOwner=first.dictionaryOwner;candidate.dictionaryEntry=first.dictionaryEntry;
         candidate.recordSelf=first.recordSelf;candidate.recordOwner=first.recordOwner;
-        candidate.recordReference=first.recordReference;candidate.dictionary=first.dictionary;candidate.record=first.record;
+        candidate.recordReference=first.references.front().field;candidate.dictionary=first.dictionary;candidate.record=first.record;
         output=std::move(candidate);return true;
     }catch(...){output=Graph{};return false;}
 }
@@ -361,11 +364,16 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
         std::vector<const Field*> selected{&source.rootSelf};
         std::unordered_set<std::size_t> selectedOrdinals{source.rootSelf.ordinal};
         for(const auto& chain:source.chains) {
-            const ChainAlias alias{mapped(chain.dictionary),mapped(chain.record),mapped(chain.reference)};
-            if(!alias.dictionary||!alias.record||!alias.reference)return false;
-            candidate.chains.push_back(alias);
+            ChainAlias alias;alias.dictionary=mapped(chain.dictionary);alias.record=mapped(chain.record);
+            if(!alias.dictionary||!alias.record)return false;
+            for(const auto& reference:chain.references) {
+                const auto target=mapped(reference.value);if(!target)return false;
+                alias.references.push_back(target);
+                if(selectedOrdinals.insert(reference.field.ordinal).second)selected.push_back(&reference.field);
+            }
+            candidate.chains.push_back(std::move(alias));
             for(const auto* field:{&chain.rootEntry,&chain.dictionarySelf,&chain.dictionaryOwner,
-                    &chain.dictionaryEntry,&chain.recordSelf,&chain.recordOwner,&chain.recordReference})
+                    &chain.dictionaryEntry,&chain.recordSelf,&chain.recordOwner})
                 if(selectedOrdinals.insert(field->ordinal).second)selected.push_back(field);
         }
         candidate.dictionary=candidate.chains.front().dictionary;
@@ -425,9 +433,12 @@ inline bool normalize(std::string_view input,std::string_view dictionaryKey,
         for(std::size_t i=0;i<source.chains.size();++i) {
             const auto& chain=source.chains[i];const auto& actual=check.chains[i];const auto& alias=candidate.chains[i];
             if(actual.dictionaryKey!=chain.dictionaryKey||actual.recordKey!=chain.recordKey
-                ||actual.dictionary!=alias.dictionary||actual.record!=alias.record||actual.reference!=alias.reference
+                ||actual.dictionary!=alias.dictionary||actual.record!=alias.record
                 ||actual.rootEntry.code!=chain.rootEntry.code||actual.dictionaryEntry.code!=chain.dictionaryEntry.code
-                ||actual.recordReference.code!=chain.recordReference.code)return false;
+                ||actual.references.size()!=chain.references.size()||actual.references.size()!=alias.references.size())return false;
+            for(std::size_t n=0;n<chain.references.size();++n)
+                if(actual.references[n].field.code!=chain.references[n].field.code
+                    ||actual.references[n].value!=alias.references[n])return false;
         }
         output=std::move(candidate);return true;
     }catch(...){output=Normalized{};return false;}
