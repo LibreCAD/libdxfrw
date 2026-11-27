@@ -34,9 +34,10 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    entity/producer profiles and semantic delivery one at a time. Ordinary
    same-version saves now admit bounded AC1021 [simple lines](docs/research/p8d-librecad-ordinary-sparse-material-2026-11-27.json)
    and [simple circles and arcs](docs/research/p8d-librecad-sparse-material-curves-2026-11-27.json),
-   including selected edits and reopen/resave. The bounded profile also admits
-   [primary ACI colors 1–6](docs/research/p8d-librecad-sparse-material-primary-aci-2026-11-27.json);
-   other colors and profiles remain guarded.
+   including selected edits and reopen/resave. The bounded profile admits
+   [canonical indexed colors](docs/research/p8d-librecad-sparse-material-canonical-aci-2026-11-27.json)
+   when the emitted index matches the source; contextual index 7, palette
+   aliases, true color and other profiles remain guarded.
    The [generic handle checks](docs/research/p8d-librecad-handle-tests-guarded-material-2026-11-27.json)
    now separate remapping from refusal of incomplete MATERIAL graphs; complete
    bundled-codec and hosted checks on the updated consumer head. Extend the 256 KiB capture only with
