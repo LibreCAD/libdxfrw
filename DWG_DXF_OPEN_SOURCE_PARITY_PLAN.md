@@ -168,6 +168,8 @@ evidence are recorded in `docs/research/` and Git history.
   The [multi-pointer extension](docs/research/p7-wide-dxf-xrecord-multiple-pointers-2026-11-27.json)
   binds up to 16 selected 330–349 references per record, preserving order and
   repeated codes; 17 or an unqualified target is refused with retry.
+  A [mixed 330/331 and hard-pointer control](docs/research/p7-wide-dxf-xrecord-mixed-oda-witness-2026-11-27.json)
+  verifies ordered multi-pointer output through ODA in both encodings.
   Extend to other graph shapes, 64-bit roles and producers, and bind original-stream
   observation before relaxing those limits. Qualify native consumers independently.
   The [reactor-link follow-up](docs/research/p8-ac1027-plot-graph-reactor-closure-2026-11-26.json)
@@ -298,7 +300,7 @@ evidence are recorded in `docs/research/` and Git history.
   recheck the final head and other profiles. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 73883917edd685e37514afa80b887f809a1072a3a1baf5a199870b34f6311cb9
+  digest: 31042294e6ebc544fdb2894e8fff382256052a47f0b3382c6bce7bba63193e71
   (782 inputs); the official digest and support checks pass in a clean staged
   checkout. The [previous candidate focused native and shared-package checks](docs/research/p8-native-focused-ba76-2026-11-26.json)
   passed on Linux, macOS and Windows; its hosted fast lane passed (55 tests,
