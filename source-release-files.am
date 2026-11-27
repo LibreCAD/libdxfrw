@@ -1274,6 +1274,7 @@ EXTRA_DIST = \
     tools/research/ac1032_forum_constraint_registry_spans.py \
     tools/research/acadrust_constraint_group_probe.rs \
     tools/research/apply_freecad_import_candidate.py \
+    tools/research/audit_ac1012_generated_root.py \
     tools/research/audit_ac1012_oda_merge_pair.py \
     tools/research/audit_ac1021_field_graph.py \
     tools/research/audit_ac1024_sortents_boundary.py \
@@ -1295,6 +1296,7 @@ EXTRA_DIST = \
     tools/research/check_mpolygon_projection_ezdxf.py \
     tools/research/check_r2000_layout_projection_peer.py \
     tools/research/compare_ac1014_profile_ezdxf.py \
+    tools/research/compare_field_peer_graph.py \
     tools/research/compare_layerstates_selected_ezdxf.py \
     tools/research/compare_mechanical_material_ezdxf.py \
     tools/research/create_ac1021_field_derivative.py \
@@ -1389,7 +1391,9 @@ EXTRA_DIST = \
     tools/research/tablegeometry_dwg_span_scan.cpp \
     tools/research/tablegeometry_physical_span_verify.py \
     tools/research/test_decode_dxf_sat1.py \
+    tools/research/test_freecad_candidate_gui_diagnostics.py \
     tools/research/verify_ac1018_mline_source.py \
+    tools/research/verify_ac1021_metric_field_spans.py \
     tools/research/verify_ac1021_mlinestyle_peer_spans.py \
     tools/research/verify_ac1024_civil_assoc_edge_profile.py \
     tools/research/verify_ac1027_cover_mlinestyle_peer_readback.py \
