@@ -124,8 +124,11 @@ evidence are recorded in `docs/research/` and Git history.
   paper block when complete source inspection proves it absent. The [layer color and
   binding fix](docs/research/p8d-librecad3-layer-color-and-binding-2026-11-26.json)
   preserves selected layer RGB and color metadata and connects BYLAYER entities to
-  the imported layer. Off-layer display, color books, transparency, native
-  applications and other platforms remain open.
+  the imported layer. The [off-layer visibility slice](docs/research/p8d-librecad3-layer-off-visibility-2026-11-26.json)
+  models on/off state and tests rendering, selection, snapping, fit and nested
+  inserts on generated controls. Frozen-layer semantics, color-name retention
+  after replacement, color books, transparency, native toggling and other
+  platforms remain open.
 - **LibreCAD_3 layouts:** the bounded ASCII three-layout implementation and
   its current evidence are recorded in the [consumer receipt](docs/research/p8d-librecad3-plain-layout-graph-2026-11-26.json).
   Extend imported-binary replay beyond the [checked canonical profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json),
