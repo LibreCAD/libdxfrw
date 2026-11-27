@@ -137,9 +137,11 @@ evidence are recorded in `docs/research/` and Git history.
   saves; qualify other entity types and native workflows.
   The [freeze/lock slice](docs/research/p8d-librecad3-frozen-locked-layer-2026-11-26.json)
   separates their DXF flags and normal canvas behavior. Direct scripted edits
-  on locked layers, viewport-specific freeze, other layer flags, color-name
-  retention after replacement, color books, transparency, native toggling and
-  other platforms remain open. The [source callback guard fix](docs/research/p8d-librecad3-layout-callback-guard-ci-2026-11-26.json)
+  on locked layers, viewport-specific freeze and other layer flags remain open.
+  The [state-only color provenance fix](docs/research/p8d-librecad3-layer-state-color-provenance-2026-11-26.json)
+  preserves selected source ACI and color names across layer controls; non-state
+  replacements, color books, transparency, native toggling and other platforms
+  remain open. The [source callback guard fix](docs/research/p8d-librecad3-layout-callback-guard-ci-2026-11-26.json)
   addresses the Linux CI failures; verify hosted checks on the updated head.
 - **LibreCAD_3 layouts:** the bounded ASCII three-layout implementation and
   its current evidence are recorded in the [consumer receipt](docs/research/p8d-librecad3-plain-layout-graph-2026-11-26.json).

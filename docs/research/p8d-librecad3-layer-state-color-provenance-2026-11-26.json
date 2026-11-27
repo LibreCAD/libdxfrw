@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "b48d5104",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "problem": "State-only layer replacements discarded a retained source color name and changed the source palette index despite retaining the same RGB.",
+  "change": [
+    "Layer state-only clones retain the identity of the original color source, including through repeated changes; the layer control uses this shared clone operation.",
+    "The DXF writer reuses source color fields only for the same layer or its state-only descendant. A separately constructed replacement, even with equal RGB and name, does not inherit stale source metadata."
+  ],
+  "validation": [
+    "macOS ARM64: 76 DXF round-trip, three export, ten entity-builder, nine canvas, three layer-operation, four offscreen layer UI, 17 DWG import and 17 layout tests pass. The app builds and older codec syntax compiles.",
+    "ezdxf 1.4.5 low-level ASCII and binary tag readers verify group 62, 70, 420 and 430 values after state changes and the absence of the old name after unrelated replacement; high-level audits report zero errors or fixes. The ezdxf LAYER object does not expose group 430, so the low-level tag proof is distinct from its high-level audit.",
+    "Full, worktree, base-ref and 31 plan checker tests pass."
+  ],
+  "sha256": {
+    "source": "9aab349990c169b5bb046c625c119bd0c711aea1db5c80563728b73a838c286d",
+    "on_ascii": "e5e6ee0bb5cec5ae72e19529409068b70f38508a390f9be8ad22ac891c325c4b",
+    "off_ascii": "3077914ec482e2e1cee99d06a73f57593507ad751c8120975d0494f6d92e7dba",
+    "off_binary": "94f6abaf5d7724df51b77b2591a710159e5cd172cd865d791feb8623b19f7a51",
+    "unrelated_ascii": "8b4d0ee74bb151b8abacd4fae3c4feb12b9afe40a7157b52a075bb2367dce8ef"
+  },
+  "limits": [
+    "Non-state edits and script-created replacement layers still discard source color names with a loss note.",
+    "Color-book semantics, native GUI, other producers and platforms remain open. Generated DXFs are local and were not committed."
+  ],
+  "supportClaimEffect": "none"
+}
