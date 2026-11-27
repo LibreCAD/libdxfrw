@@ -297,6 +297,8 @@ evidence are recorded in `docs/research/` and Git history.
   stack-reserve change; the exact crash cause remains unconfirmed. Recheck the
   final pushed head. The [FreeCAD Linux/Windows handoff](docs/research/p8-freecad-platform-219b-2026-11-27.json)
   passes selected open/insert and installed CLI controls on codec `219b5164`;
+  the [focused native and shared-package matrix](docs/research/p8-native-focused-219b-2026-11-27.json)
+  also passes on Linux, macOS and Windows for that head.
   recheck the final head and other profiles. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
