@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-synthetic-paper-guard-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "f0a00809c4d309ed5e821effd50b2e7338c123c4",
+  "problem": "A source without an additional paper block gained an orphan *Paper_Space0 BLOCK_RECORD because the omission guard treated even a bounded IMAGE-related raw graph as unknown.",
+  "implementation": "Share strict dictionary and text-XRECORD inspectors with the existing replay planner. Admit omission only for a bounded same-revision IMAGE source whose root identity, unique dictionary entries and retained text-XRECORD owners are recognized and whose other raw objects are the explicitly omitted source raster objects. Existing source-block, paper-content and reference guards still apply.",
+  "validation": [
+    "The missing-omission control failed before the fix. 85 focused IMAGE/persistence tests and 18 layout graph tests pass; source paper content, custom or nested dictionaries, wrong owners, foreign image identity and duplicate targets retain the conservative behavior.",
+    "A paper-space content edit refuses export without changing an existing destination; removing it permits a successful retry and reopen.",
+    "Independent ezdxf 1.4.5 reads selected R2010 model-space, named-block and anonymous-block outputs with the IMAGE and XRECORD owner present and zero audit errors or fixes. A separate source-paper-block control remains present and requires a peer orphan-block repair."
+  ],
+  "redLogSha256": "faa66c94c7df7b029bc1b5a3d62b072af44660401d5dd01e6973355ed1af1034",
+  "testLogSha256": "647406cffabec1552682a64a7a072d6410b6a163303e6216b83b9f6a103a0547",
+  "layoutLogSha256": "f8e27bbe48b6b599c802b18d8d32ec79223da3b845b10768ccca8463b7159252",
+  "peerResultSha256": "a08bed2cbb4edeb436a955987e8ba64f7932a4b3c4acc8d7f4a5ecd2de78224d",
+  "limits": [
+    "Source IMAGEDEF/reactor records and their old dictionary entries are still intentionally dropped and reported; zero peer audit repairs do not prove identity or full graph preservation.",
+    "This gate covers selected same-revision generated sources, not binary conversion, broader graph shapes, clipped rendering, native producers or platform qualification. No generated drawing is committed."
+  ]
+}
