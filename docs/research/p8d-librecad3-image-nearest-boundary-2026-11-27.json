@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p8d-librecad3-image-nearest-boundary-2026-11-27",
   "supportClaimEffect": "none",
-  "consumerCommit": "7c39248d",
+  "consumerCommit": "57651521",
   "scope": "Selected LibreCAD_3 IMAGE boundary queries and path snapping in 3D.",
   "problem": "Nearest-point methods previously returned the coordinate origin for every query.",
   "implementation": "Project onto each finite boundary segment and select the nearest in 3D; degenerate segments resolve to their endpoint. Entity and path queries share the implementation.",
@@ -11,15 +11,18 @@
     "After the change, five focused tests passed, including selected tilted edge and endpoint queries, a vertical degenerate segment, point, planar case, path snap, image bounds and transforms, and selected image persistence.",
     "The default logical-corner snap control failed before the follow-up; after it, six focused tests pass, including corners, entity/path snap IDs and distance filtering. Bounds, nearest queries and corner snaps share one corner calculation.",
     "After the snap follow-up, 71 selected image, builder and layer tests passed.",
-    "Headless planar viewer selects a horizontal IMAGE at Z=70, snaps its corner retaining Z, and rejects a distant pick; the selected image and POINT controls pass."
+    "Headless planar viewer selects a horizontal IMAGE at Z=70, snaps its corner retaining Z, and rejects a distant pick; the selected image and POINT controls pass.",
+    "A tilted image edge failed planar picking before the follow-up. The planar query now projects the same finite edges in XY and retains interpolated Z; the headless viewer selects and snaps the tested edge, a distant interior control is rejected, and the original 3D nearest query remains distinct. 85 focused viewer, image, builder and layer tests pass."
   ],
   "redTestLogSha256": "5271608f68d3835ebd6b94d053e5c0dd211be323c1e9ba1ef98c5e303f8d1626",
   "testLogSha256": "19126884f86a0929574b7fb6579b3a35f2cf103cac3ea9c55251c5f6409e10f4",
   "limits": [
-    "The viewer check covers one horizontal elevated image; tilted-image projected-screen selection and other snap modes remain unqualified.",
+    "Selected horizontal and tilted images pass headless planar-view tests. Other projected geometry, edge-on depth ambiguity, other snap modes and native GUI behavior remain unqualified.",
     "Clipping boundaries, extreme floating-point magnitudes, arbitrary application GUI workflows, and complete image persistence remain unqualified."
   ],
   "snapTestLogSha256": "0aad9b42dbc9dcefa5db8f926db43fd308ed69cecee180d54e11fd769c0c9b35",
   "builderLayerTestLogSha256": "bbc703dc4888e0d38943c29622d32b5f006cff875d19382c06f4e4c1e29bd5d6",
-  "viewerTestLogSha256": "9ef5441bdf80686b9823b8cb071c4557b7129bbf805a99bcc1cae578eee39c62"
+  "viewerTestLogSha256": "9ef5441bdf80686b9823b8cb071c4557b7129bbf805a99bcc1cae578eee39c62",
+  "tiltedRedLogSha256": "c8a13a5c0bd11f1762a6e8424fb8b14eaab6b3731e645683d952e7b7421906d1",
+  "tiltedTestLogSha256": "c25d1b4ff24c80cc37d5bc134f0bf1ad046b40e7ff2b5b5dda34cae1d39b0106"
 }
