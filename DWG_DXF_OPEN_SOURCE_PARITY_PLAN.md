@@ -41,8 +41,8 @@ Work in this order when unblocked; a blocked profile must not stop unrelated wor
    additional layouts/versions, unknown fields, layers, clipping and references
    only after aggregate-memory, source-span, graph/output closure and independent
    readback proof. Qualify external producers and native rendering. Keep the
-   33-image, cross-version, orphan and unsupported-profile refusals until their
-   respective evidence is complete; reuse the [mixed block profile](docs/research/p8d-librecad-block-multi-image-2026-11-26.json)
+   33-image, legacy IMAGE graphs carrying MATERIAL, cross-version, orphan and
+   unsupported-profile refusals until their respective evidence is complete; reuse the [mixed block profile](docs/research/p8d-librecad-block-multi-image-2026-11-26.json)
    and [cross-version boundary controls](docs/research/p8d-librecad-image-boundaries-all-versions-2026-11-26.json).
 3. **Legacy HEADER and version boundaries.** Resolve native R12/R14 behavior
    for `$FACETRES`, `$ISOLINES`, `$PELLIPSE`, `$TEXTQLTY`, field presence and
@@ -224,7 +224,8 @@ Additional P6 dependencies:
   unauthenticated examples and the unvalidated null SHAPEFILE do not qualify.
 - Establish producer-based EED layer byte-order detection and expand version,
   dictionary, GROUP and EED schemas only with source, target, output and retry
-  proof. Keep hard-owned R13 and native cloning gated; preserve the observed
+  proof. Retain the explicit little/big byte-order choice and refuse ambiguous
+  or wide targets. Keep hard-owned R13 and native cloning gated; preserve the observed
   [R13/R14 XRECORD length discrepancy](docs/research/p6-oda-legacy-xrecord-string-lengths-2026-11-21.json).
 - Keep the AC1027 unclaimed 173-bit suffix and short-tail LTYPE_CONTROL guarded.
   Resume AC1024 class work only for a new hash-bound failure with producer and
