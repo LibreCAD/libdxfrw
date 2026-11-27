@@ -1,0 +1,11 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-forced-ellipse-spline-current-layer-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "fdd4f293",
+  "finding": "After a layer-state replacement, forced edits based on stale same-named ellipse or spline snapshots could restore the old layer object. Their existing modify implementations retain the modeled geometry and ID, so the same rebind already used for lines, circles and arcs applies.",
+  "validation": "The regression fails before the rebind and passes after it for ellipse and rational spline geometry, including weights, tangents, normal, metadata, undo/redo and intentional moves to a different layer. All 26 BuilderTest cases pass on macOS ARM64. Python plan structural, worktree and actual GitHub base 60727c6c checks, 31 checker tests and git diff --check pass.",
+  "limits": "The test compares the modeled fields of these two entity types and does not establish behavior for other entity classes, renamed layers, native GUI operation or other platforms. The Windows job at the preceding consumer commit remains in progress; hosted checks must run on fdd4f293."
+}
