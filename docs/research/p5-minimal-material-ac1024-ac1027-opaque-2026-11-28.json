@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-minimal-material-ac1024-ac1027-opaque-2026-11-28",
+  "supportClaimEffect": "none",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+  ],
+  "scope": "The exact MATERIAL group sequence 5, 330, 100 AcDbMaterial, 1 name, 94 value 63, followed immediately by the next record, in AC1024 or AC1027 ASCII or binary DXF. The body is opaque and typed output is refused.",
+  "checks": [
+    "Locally authored LibreCAD-produced full AC1032 output was adapted by changing the version header to AC1024 or AC1027. ODA File Converter 27.1.0 accepted and resaved each. ezdxf 1.4.5 confirms POINT geometry, the material dictionary owner and membership, and POINT, LAYER and $CMATERIAL links with zero audit errors or fixes.",
+    "An independent ezdxf binary tag writer encoded those full input records without expanding the material body. ODA accepted and resaved both binary inputs; independent physical inspection confirms the exact five-group body. The same graph and semantic checks and clean audits pass for the binary inputs and ODA outputs.",
+    "The focused libdxfrw test checks both versions and encodings, opt-in policy, legacy and disabled-reader refusal without callbacks, opaque publication without a typed channel flag, same-version ASCII and binary raw readback, typed and cross-version atomic refusal, malformed terminal/extra-field rejection and corrected same-reader retry."
+  ],
+  "witnesses": [
+    {
+      "version": "AC1024",
+      "sourceEncoding": "ASCII",
+      "sourceSha256": "9d9ff0ae9ac38f204d0987bb679f108fd1b626f8ef16db337ee90844e0ac9654",
+      "odaOutputSha256": "a46e485322044be96cd93ec73eb318e39b30ba338fb1d485aaa2ea0d83199cee",
+      "sourceBytes": 21652,
+      "odaOutputBytes": 131294
+    },
+    {
+      "version": "AC1024",
+      "sourceEncoding": "binary",
+      "sourceSha256": "4c6cb72856a1c6137967db506bd30d410e225e575d8ab75bec0e68548193c67a",
+      "odaOutputSha256": "2afbd9b190917f6f0f9107cd6245468438a4fece663af101bd323d519ba34333",
+      "sourceBytes": 16275,
+      "odaOutputBytes": 131295
+    },
+    {
+      "version": "AC1027",
+      "sourceEncoding": "ASCII",
+      "sourceSha256": "a068206421feb339e299daa5a022bc0a383fe490b529a438f0adee43c7794dd9",
+      "odaOutputSha256": "5972ef8c9b14a1cab04dc2e409d3639efee1dd8550b8f670e121d556eb167b45",
+      "sourceBytes": 21652,
+      "odaOutputBytes": 84813
+    },
+    {
+      "version": "AC1027",
+      "sourceEncoding": "binary",
+      "sourceSha256": "f6096f3f0bccdfc33dea08a05c805f92e6a0a44c037e273650203ec691756b57",
+      "odaOutputSha256": "7d34e736fed34e3ba3ed39e8ebc39691d3866cf4fe591ea0aa9a073eb774acc4",
+      "sourceBytes": 16275,
+      "odaOutputBytes": 84812
+    }
+  ],
+  "testLogSha256": "61d2b60b88ef8b283f39790d672b8691e83718386ad97911f406f82313ede82e",
+  "limitations": [
+    "The witnesses are locally authored and version-header adaptations, not independently authored producer drawings; ODA validates their selected interpretation, not all MATERIAL layouts or native AutoCAD behavior.",
+    "No non-63 values, alternate prefixes, later fields, other versions or wider procedural-material interpretation are admitted by this new route. No support claim is promoted and no drawing fixture is committed."
+  ]
+}

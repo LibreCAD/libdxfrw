@@ -185,14 +185,15 @@ bool source(const std::filesystem::path& path,bool binary,int mode,const char* n
  ||!s(0,"ENDSEC")||!s(0,"EOF"))return false;
  return !w->hasWriteError();
 }
-bool minimalChannelSource(const std::filesystem::path& path,bool binary,bool versioned=true,bool extra=false){
+bool minimalChannelSource(const std::filesystem::path& path,bool binary,bool versioned=true,bool extra=false,
+                          const char* version="AC1021",int flag=63){
  std::ofstream f(path,std::ios::binary|std::ios::trunc);if(!f)return false;
  if(binary){const char signature[]="AutoCAD Binary DXF\r\n\x1a";f.write(signature,sizeof(signature));}
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
  const auto s=[&](int c,const char* v){return w->writeString(c,v);};
- if(versioned&&(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,"AC1021")||!s(0,"ENDSEC")))return false;
+ if(versioned&&(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,version)||!s(0,"ENDSEC")))return false;
  return s(0,"SECTION")&&s(2,"OBJECTS")&&s(0,"MATERIAL")&&s(5,"F040")&&s(330,"72")
-  &&s(100,"AcDbMaterial")&&s(1,"RawOnly")&&w->writeInt32(94,63)
+  &&s(100,"AcDbMaterial")&&s(1,"RawOnly")&&w->writeInt32(94,flag)
   &&(!extra||s(1,"extra"))
   &&s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();
 }
@@ -394,6 +395,40 @@ int main(){
   if(input.read(&malformed,false)||!malformed.materials.empty()||!malformed.raw.empty())return 120;
   if(!minimalChannelSource(inputPath,binary,false))return 121;
   if(!input.read(&malformed,false)||malformed.materials.size()!=1u||malformed.raw.size()!=1u)return 122;
+ }
+ for(bool binary:{false,true})for(const auto version:{DRW::AC1024,DRW::AC1027}){
+  const char* name=version==DRW::AC1024?"AC1024":"AC1027";
+  const auto inputPath=dir/(binary?"minimal-later-binary.dxf":"minimal-later-ascii.dxf");
+  const auto inputName=inputPath.string();dxfRW input(inputName.c_str());
+  if(!minimalChannelSource(inputPath,binary,true,false,name))return 130;
+  LegacyReader legacy;if(input.read(&legacy,false)||legacy.materialCallbacks||legacy.rawCallbacks)return 131;
+  Reader disabled;disabled.enabled=false;if(input.read(&disabled,false)||!disabled.materials.empty()||!disabled.raw.empty())return 132;
+  disabled.enabled=true;
+  if(!input.read(&disabled,false)||disabled.materials.size()!=1u||disabled.raw.size()!=1u
+     ||!disabled.materials.front().requiresRawDxfMaterialReplay()||disabled.materials.front().m_hasChannelFlags
+     ||disabled.raw.front().m_version!=version||disabled.raw.front().groups.size()!=5u
+     ||disabled.raw.front().groups.back().code()!=94||disabled.raw.front().groups.back().i_val()!=63)return 133;
+  const auto output=dir/(binary?"minimal-later-output-binary.dxf":"minimal-later-output-ascii.dxf");
+  {std::ofstream f(output);f<<"sentinel";}
+  dxfRW writer(output.string().c_str());DxfWriter adapter(writer);adapter.value=disabled.materials.front();adapter.raw=disabled.raw.front();
+  if(writer.write(&adapter,version,binary)||adapter.ok||bytes(output)!="sentinel")return 134;
+  adapter.useRaw=true;
+  if(!writer.write(&adapter,version,binary)||!adapter.ok)return 135;
+  Reader reread;dxfRW check(output.string().c_str());
+  if(!check.read(&reread,false)||reread.raw.size()!=1u||reread.materials.size()!=1u
+     ||reread.materials.front().m_hasChannelFlags||reread.raw.front().groups.back().i_val()!=63)return 136;
+  if(!writer.write(&adapter,version,!binary)||!adapter.ok)return 142;
+  Reader otherEncoding;dxfRW checkOther(output.string().c_str());
+  if(!checkOther.read(&otherEncoding,false)||otherEncoding.raw.size()!=1u||otherEncoding.materials.size()!=1u
+     ||otherEncoding.materials.front().m_hasChannelFlags||otherEncoding.raw.front().groups.back().i_val()!=63)return 143;
+  {std::ofstream f(output);f<<"sentinel";}
+  if(writer.write(&adapter,version==DRW::AC1024?DRW::AC1027:DRW::AC1024,binary)||bytes(output)!="sentinel")return 137;
+  for(int mode:{0,1}){
+   if(!minimalChannelSource(inputPath,binary,true,mode==1,name,mode==0?62:63))return 138;
+   Reader bad;if(input.read(&bad,false)||!bad.materials.empty()||!bad.raw.empty())return 139;
+   if(!minimalChannelSource(inputPath,binary,true,false,name))return 140;
+   Reader retry;if(!input.read(&retry,false)||retry.materials.size()!=1u||retry.raw.size()!=1u)return 141;
+  }
  }
  for(bool binary:{false,true})for(const auto version:{DRW::AC1024,DRW::AC1027}){
   const auto inputPath=dir/(binary?"ezdxf-binary.dxf":"ezdxf-ascii.dxf");

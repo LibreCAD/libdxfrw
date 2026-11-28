@@ -30373,13 +30373,22 @@ bool dxfRW::processMaterial() {
         return text(1u, "{ACAD_REACTORS") && text(3u, "}")
             && text(5u, "AcDbMaterial");
     };
-    // A bounded R2007 prefix makes a final group 94 unambiguous. When the
-    // version is missing, retain the same shape only as an opaque raw source;
-    // do not assign a version-dependent meaning to its last group.
+    // A bounded R2007 prefix makes a final group 94 unambiguous. For the
+    // independently checked R2010/R2013 shape, retain only the exact
+    // four-field prefix and terminal 63 as opaque, without assigning a role.
+    // Unversioned values also stay opaque.
     const auto isMinimalChannelPrefix = [&]() {
-        if ((reader->getSourceVersion() != DRW::AC1021
-             && reader->getSourceVersion() != DRW::UNKNOWNV)
-            || raw.handle == 0u || raw.parentHandle == 0u
+        const auto version = reader->getSourceVersion();
+        if (version == DRW::AC1024 || version == DRW::AC1027) {
+            constexpr int codes[] = {5, 330, 100, 1};
+            if (reader->getInt32() != 63 ||
+                raw.groups.size() != sizeof(codes) / sizeof(codes[0])) return false;
+            for (std::size_t i = 0; i < raw.groups.size(); ++i)
+                if (raw.groups[i].code() != codes[i]) return false;
+        } else if (version != DRW::AC1021 && version != DRW::UNKNOWNV) {
+            return false;
+        }
+        if (raw.handle == 0u || raw.parentHandle == 0u
             || raw.handle == DRW::NoHandle || raw.parentHandle == DRW::NoHandle
             || data.handle != raw.handle || data.parentHandle != raw.parentHandle
             || data.m_name.empty())
@@ -30502,8 +30511,8 @@ bool dxfRW::processMaterial() {
             }
             if (pendingMinimalChannelTail) {
                 // The omitted body has no qualified typed-output profile.
-                // The versioned flag is exposed to readers; an unversioned
-                // group stays opaque. Both typed encoders refuse this body.
+                // Only the qualified R2007 flag is exposed to readers; the
+                // other versions stay opaque. Typed encoders refuse this body.
                 data.m_dxfMaterialGenProcTableStarted = true;
                 data.m_dxfMaterialImplicitTail = true;
             }
