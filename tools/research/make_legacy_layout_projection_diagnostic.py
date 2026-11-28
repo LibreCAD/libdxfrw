@@ -20,6 +20,8 @@ def main():
     parser.add_argument('--source', type=Path, required=True)
     parser.add_argument('--sha256', required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--inject-table-proof-failure', action='store_true',
+                        help='add an environment-controlled staged TABLES mismatch')
     args = parser.parse_args()
     source = args.source.resolve(strict=True)
     output = args.output.resolve()
@@ -57,6 +59,15 @@ def main():
         if section.count(anchor) != 1:
             raise ValueError(name + ' CLASS guard changed or is ambiguous')
         text = text[:begin] + section.replace(anchor, inject + anchor) + text[end:]
+    if args.inject_table_proof_failure:
+        anchor = '        return dxfW->inspectDxfLayoutBlockRecords(view, links)\n'
+        if text.count(anchor) != 1 or text.count('#include <iostream>\n') != 1:
+            raise ValueError('legacy staged TABLES proof changed or is ambiguous')
+        text = text.replace('#include <iostream>\n', '#include <iostream>\n#include <cstdlib>\n', 1)
+        text = text.replace(anchor,
+            '        // UNSAFE SCRATCH DIAGNOSTIC: force a staged proof mismatch.\n'
+            '        if (std::getenv("LIBDXFRW_DIAGNOSTIC_BAD_LAYOUT") && !links.empty())\n'
+            '            ++links.front().layout;\n' + anchor, 1)
     result = text.encode('utf-8')
     with output.open('xb') as stream:
         stream.write(result)

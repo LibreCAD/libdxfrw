@@ -22,9 +22,9 @@ class DiagnosticControls(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='legacy-projection-generator-') as directory:
             root = Path(directory)
             output = root / 'diagnostic.cpp'
-            def run(source, digest, target):
+            def run(source, digest, target, *options):
                 return subprocess.run([sys.executable, '-B', str(TOOL), '--source', str(source),
-                                       '--sha256', digest, '--output', str(target)],
+                                       '--sha256', digest, '--output', str(target), *options],
                                       capture_output=True, text=True)
             self.assertNotEqual(run(SOURCE, '0' * 64, output).returncode, 0)
             self.assertFalse(output.exists())
@@ -48,6 +48,11 @@ class DiagnosticControls(unittest.TestCase):
             second = root / 'retry.cpp'
             self.assertEqual(run(SOURCE, sha(original), second).returncode, 0)
             self.assertEqual(second.read_bytes(), generated)
+            injected = root / 'fault.cpp'
+            self.assertEqual(run(SOURCE, sha(original), injected,
+                                 '--inject-table-proof-failure').returncode, 0)
+            self.assertIn(b'LIBDXFRW_DIAGNOSTIC_BAD_LAYOUT', injected.read_bytes())
+            self.assertEqual(injected.read_bytes().count(b'UNSAFE SCRATCH DIAGNOSTIC'), 5)
             self.assertEqual(SOURCE.read_bytes(), original)
 
 

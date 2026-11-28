@@ -43307,6 +43307,42 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
     }
 }
 
+bool dx_iface::inspectLegacyLayoutBlockRecords(
+        const dxfRW::DxfTablesWriteView& view) const noexcept {
+    if (dxfW == nullptr || cData == nullptr || view.version != DRW::AC1015
+        || !hasBoundLegacyLayoutSources())
+        return false;
+    try {
+        const DRW_WritingContext* context = dxfW->getWritingContext();
+        if (context == nullptr)
+            return false;
+        std::vector<dxfRW::DxfLayoutOutputLinks> links;
+        links.reserve(cData->layouts.size());
+        for (const DRW_Layout& layout : cData->layouts) {
+            const auto source = std::find_if(cData->blockRecords.begin(),
+                cData->blockRecords.end(), [&layout](const DRW_Block_Record& record) {
+                    return record.handle == layout.paperSpaceBlockRecordHandle.ref;
+                });
+            if (source == cData->blockRecords.end()
+                || context->ambiguousSourceHandles.count(layout.handle) != 0u)
+                return false;
+            const bool model = asciiIdentifierEquals(source->name, "*MODEL_SPACE");
+            const bool paper = asciiIdentifierEquals(source->name, "*PAPER_SPACE");
+            const std::string blockName = model ? "*Model_Space"
+                : paper ? "*Paper_Space" : source->name;
+            const std::uint32_t block = model ? DRW::DxfModelSpaceBlockRecordHandle
+                : paper ? DRW::DxfPaperSpaceBlockRecordHandle
+                : dxfW->getBlockRecordHandleToWrite(source->name);
+            links.push_back({layout.name, blockName,
+                             dxfW->remapHandle(layout.handle), block, layout.tabOrder});
+        }
+        return dxfW->inspectDxfLayoutBlockRecords(view, links)
+            && hasBoundLegacyLayoutSources();
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dx_iface::inspectDwgLayoutBlockRecords(
         const dxfRW::DxfTablesWriteView& view, bool debug) noexcept {
     m_dwgLayoutBlocksInspected = false;
@@ -94912,6 +94948,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         && layerControlSourceDictionary != 0u;
     const bool needsDwgLayoutsOutput =
         !m_dwgLayoutOutputSources.empty();
+    const bool needsLegacyLayoutOutput = cData->sourceFormat == dx_source_format::DWG
+        && dx_legacy_dwg_wire::supported(cData->sourceVersion)
+        && !cData->layouts.empty();
     const bool needsDwgLayerStateOutput =
         m_dwgLayerStateOutputPrepared;
     const bool needsAerialTableStyleOutput = m_dwgTableStyleOutputSources.count(0x87u) != 0u
@@ -94925,7 +94964,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || needsAerialTableStyleOutput
             || m_dwgLtypeControlOutputRequired
             || m_dxfLayerMaterialState.active || m_dxfLayerMaterialState.legacyPlotCrossVersion || !m_dxfMLineLinetypes.empty()
-            || needsDwgLayoutsOutput || !m_dwgGeoDataGraphs.empty() || usesAc1027DefaultLayerProfile() || usesAc1024DefaultLayersProfile()) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsRawEntityNameReferences, needsLayerControlOutput, needsAerialGlobalMaterialEedOutput, needsDwgLayerStateOutput, needsDwgLayoutsOutput, debug, requireResolvedOwners, &reportPreflightFailure](const auto& view) {
+            || needsDwgLayoutsOutput || needsLegacyLayoutOutput || !m_dwgGeoDataGraphs.empty() || usesAc1027DefaultLayerProfile() || usesAc1024DefaultLayersProfile()) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsRawEntityNameReferences, needsLayerControlOutput, needsAerialGlobalMaterialEedOutput, needsDwgLayerStateOutput, needsDwgLayoutsOutput, needsLegacyLayoutOutput, debug, requireResolvedOwners, &reportPreflightFailure](const auto& view) {
             if (needsDwgLayerStateOutput && !inspectDwgLayerStateAppIdTables(view)) {
                 reportPreflightFailure("LayerStates APPID table dependency");
                 return false;
@@ -94974,6 +95013,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && !inspectDwgLayoutBlockRecords(
                     view, debug || requireResolvedOwners)) {
                 reportPreflightFailure("LAYOUT BLOCK_RECORD output proof");
+                return false;
+            }
+            if (needsLegacyLayoutOutput && !inspectLegacyLayoutBlockRecords(view)) {
+                reportPreflightFailure("legacy LAYOUT BLOCK_RECORD output proof");
                 return false;
             }
             if (needsRawEntityNameReferences

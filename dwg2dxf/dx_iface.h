@@ -4556,6 +4556,7 @@ private:
                            bool debug) noexcept;
     bool inspectDwgLayoutBlockRecords(const dxfRW::DxfTablesWriteView&,
                                      bool debug) noexcept;
+    bool inspectLegacyLayoutBlockRecords(const dxfRW::DxfTablesWriteView&) const noexcept;
     struct DwgLayerStateOutputSource {
         std::uint32_t layerControlHandle{0u};
         DRW_Dictionary extensionDictionary;

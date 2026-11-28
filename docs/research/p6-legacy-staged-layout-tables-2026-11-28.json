@@ -1,0 +1,31 @@
+{
+  "checks": [
+    "In the scratch diagnostic build, an environment-controlled wrong expected layout handle forces the legacy TABLES inspector to reject after staging. For two R13 and one R14 locally generated sources, both encodings preserve a pre-existing destination and succeed on the same adapter after clearing the fault. The diagnostic log identifies the legacy LAYOUT BLOCK_RECORD output proof in each refusal.",
+    "A separate physical walker checks the corrected BLOCK_RECORD 340 and LAYOUT 330 links; ezdxf agrees and reports zero audit errors or fixes in all six outputs.",
+    "The existing shared staged-layout CTest covers altered physical backlink bytes, incorrect identities, missing/duplicate rows, destination preservation and corrected retry. Production R13/R14 attempts continue to refuse and preserve the destination.",
+    "The diagnostic source generator refuses changed source hashes or anchors, unsafe output destinations, header shadowing and overwrite; its optional injected-fault mode is available only in the generated scratch adapter."
+  ],
+  "id": "p6-legacy-staged-layout-tables-2026-11-28",
+  "implementation": "For a source-bound AC1012/AC1014 layout graph, the R2000 TABLES staged callback reuses dxfRW::inspectDxfLayoutBlockRecords with mapped output handles, canonical block names and source layout tab order. It checks the source proof before and after inspection. The existing production legacy export refusal remains in force.",
+  "limits": [
+    "The injected mismatch changes the expected TABLES proof input, not source or output bytes. Separate shared-helper tests mutate actual staged bytes.",
+    "The OBJECTS body, full dictionary graph, proxy CLASS semantics, native cloning and platform qualification remain open. Scratch guard bypasses are not production support.",
+    "No generated drawing was committed."
+  ],
+  "outputs": {
+    "r13-destination": {
+      "ascii": "f8240c09e0ff960b7a10fd6fff5b44de41b86d12c98a7acd0638594ea56b8aab",
+      "binary": "669d5aacbef7e845bf80b81ac50169c61cad552020f4fd7e6af98a9f6fb1ed42"
+    },
+    "r13-source": {
+      "ascii": "16c5c506d668ca6616d2931e752ba970c26a7fb46a6708ded4790042b6c53cc7",
+      "binary": "1b74b86b87fa62a7223a815cf626fb40be25891446c47a7c0f2e395d1b7b1941"
+    },
+    "r14-line": {
+      "ascii": "5ac1bbcafea148a84b599b0aec6172f6814654b3325aedc48b2df0f1b1ba2854",
+      "binary": "6827d64ee476527cad067b81ffe92cce4d8eaf1cb3ed8ce8bbf353a81682e042"
+    }
+  },
+  "schema": "libdxfrw.research-receipt.v1",
+  "supportClaimEffect": "none"
+}
