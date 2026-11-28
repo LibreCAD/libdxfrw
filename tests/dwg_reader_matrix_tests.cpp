@@ -21801,7 +21801,8 @@ public:
             ref.ref = static_cast<std::uint32_t>(0x51u + i);
             ref.ref64 = ref.ref;
         }
-        m_dwgHeaderCurrentReferences[5] = {};
+        for (std::size_t i = 5u; i < m_dwgHeaderCurrentReferences.size(); ++i)
+            m_dwgHeaderCurrentReferences[i] = {};
         auto* layer = new DRW_Layer; layer->handle = 0x51u; layer->name = "Layer";
         auto* style = new DRW_Textstyle; style->handle = 0x52u; style->name = "Style";
         auto* type = new DRW_LType; type->handle = 0x53u; type->name = "Type";
@@ -21891,6 +21892,10 @@ void testHeaderSourceCurrentReferenceFailures(TestContext& t) {
     reader.resolveDwgHeaderCurrentReferences(header);
     t.expect(header.vars.count("DIMTXSTY") == 0u && reader.diagnostics().empty(),
              "zero-valued optional DIMTXSTY retains absence without a diagnostic");
+    const auto nullLeader = header.vars.find("DIMLDRBLK");
+    t.expect(nullLeader != header.vars.end() && nullLeader->second->c_str() != nullptr
+                 && *nullLeader->second->c_str() == '\0',
+             "null dimension leader block retains the empty default");
 
     for (int failure = 0; failure != 5; ++failure) {
         std::vector<std::uint8_t> bytes;
@@ -21930,6 +21935,55 @@ void testHeaderSourceCurrentReferenceFailures(TestContext& t) {
                      && *resolved->second->content.s == "DimensionText"
                      && dimensionReader.diagnostics().size() == 1u,
                  "corrected DIMTXSTY resolves on the same reader and header");
+    }
+
+    for (int failure = 0; failure != 5; ++failure) {
+        std::vector<std::uint8_t> bytes;
+        HeaderCurrentReaderProbe arrowReader(bytes);
+        const std::array<const char*, 4> keys{{"DIMBLK", "DIMBLK1", "DIMBLK2", "DIMLDRBLK"}};
+        const std::array<const char*, 4> values{{"P6_ARROW", "_ArchTick", "_P6_CUSTOM", "P6_LEADER"}};
+        for (std::size_t i = 0; i < keys.size(); ++i) {
+            auto* record = new DRW_Block_Record;
+            record->handle = static_cast<std::uint32_t>(0x61u + i);
+            record->name = values[i];
+            arrowReader.blockRecordmap.emplace(record->handle, record);
+            auto& ref = arrowReader.m_dwgHeaderCurrentReferences[i + 6u];
+            ref.code = DRW::DwgHardPointer; ref.size = 1u;
+            ref.ref = record->handle; ref.ref64 = record->handle;
+        }
+        auto& reference = arrowReader.m_dwgHeaderCurrentReferences[6];
+        if (failure == 0) reference.code = DRW::DwgSoftPointer;
+        if (failure == 1) { reference.ref = 0x52u; reference.ref64 = 0x52u; }
+        if (failure == 2) { reference.ref = 0x99u; reference.ref64 = 0x99u; }
+        if (failure == 3) reference.ref64 = UINT64_C(0x100000061);
+        if (failure == 4) {
+            auto* duplicate = new DRW_Block_Record;
+            duplicate->handle = 0x70u; duplicate->name = "p6_arrow";
+            arrowReader.blockRecordmap.emplace(duplicate->handle, duplicate);
+        }
+        DRW_Header arrowHeader;
+        arrowReader.resolveDwgHeaderCurrentReferences(arrowHeader);
+        t.expect(arrowReader.diagnostics().size() == 1u
+                     && arrowReader.diagnostics().front().kind
+                         == DwgIntegrityCheckKind::HeaderDimensionArrowBlockReference,
+                 "unresolved or ambiguous dimension arrow is an integrity error");
+        reference.code = DRW::DwgHardPointer;
+        reference.ref = 0x61u; reference.ref64 = 0x61u;
+        const auto duplicate = arrowReader.blockRecordmap.find(0x70u);
+        if (duplicate != arrowReader.blockRecordmap.end()) {
+            delete duplicate->second;
+            arrowReader.blockRecordmap.erase(duplicate);
+        }
+        arrowReader.resolveDwgHeaderCurrentReferences(arrowHeader);
+        for (std::size_t i = 0; i < keys.size(); ++i) {
+            const auto foundArrow = arrowHeader.vars.find(keys[i]);
+            t.expect(foundArrow != arrowHeader.vars.end()
+                         && foundArrow->second->type() == DRW_Variant::STRING
+                         && *foundArrow->second->content.s == values[i],
+                     "dimension arrow target resolves to its exact BLOCK_RECORD name");
+        }
+        t.expect(arrowReader.diagnostics().size() == 1u,
+                 "corrected dimension arrow retries without a new diagnostic");
     }
 }
 

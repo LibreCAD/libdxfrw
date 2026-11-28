@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-dimension-arrows-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 section 9 defines R2000+ DIMBLK, DIMBLK1, DIMBLK2 and DIMLDRBLK as hard pointers.",
+    "Autodesk documents built-in and user-defined dimension arrow names: https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-6E09DCCA-313F-4FF4-BB1B-F41B512B9CC9.htm"
+  ],
+  "samples": {
+    "provenance": "Locally created R2010 DXFs converted with ODA File Converter 27.1.0 macOS; scratch only.",
+    "builtinDwgSha256": "1b7078320978eff71d6552a291c6c7764133a75edf93c2c6b578df94360ece82",
+    "customDwgSha256": "999667241f2cbc9feff4f6b6c428646e625b5375aba2fcf5829fc1a02d314b7a",
+    "collisionPlainDwgSha256": "68ed6cbba55cb51fe69e6283efbeee3800a47b785d1cee9766ea336b570511cd",
+    "collisionUnderscoreDwgSha256": "0f4a71f67613bab7847474f40e0e9786e59dd324794ff715a9807904596426f8"
+  },
+  "change": "Retain the four R2000+ header hard pointers, resolve them against the same-import BLOCK_RECORD table, preserve exact names, and explicitly represent null arrows as empty. Wrong roles, missing/wide targets and ambiguous names are integrity errors; earlier name-based versions remain unchanged.",
+  "checks": [
+    "PASS targeted header source resolution: four named targets, optional nulls, wrong-role, wrong-table, absent, wide and case-duplicate targets, and corrected same-reader retry.",
+    "PASS the locally created builtin and custom drawings export expected names in ASCII and binary; ezdxf 1.4.5 audit reports zero errors and fixes.",
+    "PASS ODA 27.1 reopened both encodings with audit disabled and LibreDWG 0.14 independently resolved each HEADER target to the original BLOCK_RECORD name.",
+    "PASS collision controls with P6_CLASH and _P6_CLASH both present: ODA reopen after ASCII and binary output retains the chosen target in each drawing.",
+    "ODA-generated DXF removes a leading underscore from both the observed builtin and custom names, whereas LibreDWG keeps it; ODA reopen of either representation restored the observed target."
+  ],
+  "limits": [
+    "Two implementations and locally generated sources do not prove native AutoCAD behavior or every arrow-name profile.",
+    "Unclassified HEADER suffixes still block strict conversion for the affected producer profile.",
+    "No DWG or DXF fixture was committed."
+  ]
+}

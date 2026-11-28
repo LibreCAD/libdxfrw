@@ -209,7 +209,9 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     /// strict output remains refused until those bits have a source profile.
     TableControlUnclaimedData,
     /// Non-null HEADER DIMTXSTY does not resolve to its source STYLE record.
-    HeaderDimensionTextStyleReference
+    HeaderDimensionTextStyleReference,
+    /// A HEADER dimension arrow handle has an invalid role or target.
+    HeaderDimensionArrowBlockReference
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.

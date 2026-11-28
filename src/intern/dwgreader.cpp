@@ -7759,7 +7759,7 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
              envelope.expected, envelope.observed, envelope.hasValues);
       return false;
     }
-    std::array<dwgHandle, 6> currentReferences{};
+    std::array<dwgHandle, 10> currentReferences{};
     const bool ret = hdr.parseDwgForReader(
         version, buf, hBuf, appMaintenanceVersion, &currentReferences);
     if (!ret) {
@@ -7924,14 +7924,41 @@ void dwgReader::resolveDwgHeaderCurrentReferences(DRW_Header& hdr) {
   resolve(3u, "DIMSTYLE", 2,
           DwgIntegrityCheckKind::HeaderCurrentDimensionStyleReference,
           dimstylemap);
-  const dwgHandle& dimensionText = m_dwgHeaderCurrentReferences[5];
-  const bool nullPointer = dimensionText.size <= sizeof(dimensionText.ref64)
-      && dimensionText.ref == 0u && dimensionText.ref64 == 0u
-      && (dimensionText.code == DRW::DwgNullReference
-          || dimensionText.code == DRW::DwgHardPointer);
-  if (!nullPointer)
+  const auto isNullPointer = [](const dwgHandle& reference) {
+    return reference.size <= sizeof(reference.ref64)
+        && reference.ref == 0u && reference.ref64 == 0u
+        && (reference.code == DRW::DwgNullReference
+            || reference.code == DRW::DwgHardPointer);
+  };
+  if (!isNullPointer(m_dwgHeaderCurrentReferences[5]))
     resolve(5u, "DIMTXSTY", 7,
             DwgIntegrityCheckKind::HeaderDimensionTextStyleReference, stylemap);
+  // R2000+ stores these as optional BLOCK_RECORD pointers; earlier versions
+  // store arrow names directly. Preserve an explicit empty leader arrow
+  // instead of letting the DXF writer invent its historical STANDARD default.
+  if (version > DRW::AC1014) {
+    const std::array<const char*, 4> names{{"DIMBLK", "DIMBLK1", "DIMBLK2", "DIMLDRBLK"}};
+    for (std::size_t offset = 0; offset < names.size(); ++offset) {
+      const auto& reference = m_dwgHeaderCurrentReferences[offset + 6u];
+      if (isNullPointer(reference)) {
+        const auto bare = hdr.vars.find(names[offset]);
+        const auto dollar = hdr.vars.find(std::string("$") + names[offset]);
+        if (bare == hdr.vars.end() && dollar == hdr.vars.end()) {
+          hdr.addStr(names[offset], "", 1);
+          continue;
+        }
+        const auto existing = bare != hdr.vars.end() ? bare : dollar;
+        if ((bare == hdr.vars.end() || dollar == hdr.vars.end())
+            && existing->second != nullptr
+            && existing->second->type() == DRW_Variant::STRING
+            && existing->second->code() == 1 && existing->second->c_str() != nullptr
+            && *existing->second->c_str() == '\0')
+          continue;
+      }
+      resolve(offset + 6u, names[offset], 1,
+              DwgIntegrityCheckKind::HeaderDimensionArrowBlockReference, blockRecordmap);
+    }
+  }
 }
 
 bool dwgReader::checkSentinel(dwgBuffer *buf, enum secEnum::DWGSection sec,
