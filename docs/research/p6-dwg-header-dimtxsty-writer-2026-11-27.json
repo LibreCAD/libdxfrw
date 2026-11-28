@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-dimtxsty-writer-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "Open Design Specification for .dwg files v5.4.1 section 9, R2000+ DIMTXSTY hard pointer"
+  ],
+  "implementation": [
+    "Plan the optional HEADER DIMTXSTY through the same emitted STYLE identity validation and fixed-width bit patch/CRC sealing as the existing current references. Preserve the prior compact null encoding when no dimension style is supplied. Reject missing, wrong-kind, ambiguous, malformed and unresolved names before header mutation; corrected inputs can retry."
+  ],
+  "generatedScratchOnly": [
+    {
+      "path": "/private/tmp/p6-dimtxsty-writer/named2.dwg",
+      "sha256": "2651722f339c6c9bf57d7526de218d1e4a097bfacecfb8188f1cc868826df72f",
+      "libredwg014": "HEADER DIMTXSTY [5,4,48,48] points to STYLE P6_STYLE handle 48"
+    },
+    {
+      "path": "/private/tmp/p6-dimtxsty-writer/null2.dwg",
+      "sha256": "0a11b543fad9ffa17e246242de61e0787cce83612846b907c1ecd043ca1ea970",
+      "libredwg014": "HEADER DIMTXSTY [5,0,0,0] retains compact null"
+    }
+  ],
+  "validation": [
+    "Generated AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 header planner, CRC sealing, readback, malformed target and correction retry tests.",
+    "Public writer missing STYLE destination-preservation and same-writer retry test.",
+    "LibreDWG 0.14 independently decodes locally generated AC1021 named and null controls; no generated drawings committed."
+  ],
+  "limits": [
+    "ODA File Converter 27.1 cannot reopen these generated AC1021 controls because its object reader rejects existing dictionary, table and layer records; this is not native verification of DIMTXSTY or a format support claim.",
+    "The hard-pointer block arrow fields and wider HEADER graph remain open; the AC1024 producer suffix still blocks strict output."
+  ]
+}

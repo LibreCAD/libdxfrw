@@ -760,7 +760,7 @@ public:
     /// Resolve all current HEADER table names to already emitted identities.
     /// A subclass must reject an incomplete or ambiguous plan before patching.
     virtual bool planHeaderCurrentReferences(
-        std::array<std::uint32_t, 4>&) const { return false; }
+        std::array<std::uint32_t, 5>&) const { return false; }
 
     /// Patch the already-emitted HEADER field after all object handles have
     /// been minted, then reseal its CRC before container packaging. The fixed
@@ -782,14 +782,19 @@ public:
             (std::max)(m_header->getHandSeed(), highWaterHandle()), requiredSeed);
         if (seed <= maxHandle)
             return false;
-        std::array<std::uint32_t, 4> currentReferences{};
+        std::array<std::uint32_t, 5> currentReferences{};
         if (!planHeaderCurrentReferences(currentReferences))
             return false;
         const auto& headerBytes = m_buf.data();
         const std::uint64_t crcBit = static_cast<std::uint64_t>(crcOffset) * 8u;
         for (std::size_t i = 0; i < m_headerCurrentReferenceBits.size(); ++i) {
             const std::uint64_t bit = m_headerCurrentReferenceBits[i];
-            if (currentReferences[i] == 0u
+            if (bit == DRW_Header::kInvalidDwgHandseedBitOffset) {
+                if (i != 4u || currentReferences[i] != 0u)
+                    return false;
+                continue;
+            }
+            if ((i < 4u && currentReferences[i] == 0u)
                 || bit < static_cast<std::uint64_t>(m_headerDataStartBit) + 8u
                 || bit > crcBit || crcBit - bit < 32u)
                 return false;
@@ -819,6 +824,9 @@ public:
             return false;
         for (std::size_t i = 0; i < currentReferences.size(); ++i) {
             const auto ref = currentReferences[i];
+            if (m_headerCurrentReferenceBits[i]
+                == DRW_Header::kInvalidDwgHandseedBitOffset)
+                continue;
             const std::uint8_t referenceBytes[] = {
                 static_cast<std::uint8_t>(ref >> 24),
                 static_cast<std::uint8_t>(ref >> 16),
@@ -1848,9 +1856,13 @@ protected:
 
     bool recordHeaderCurrentReferenceOffsets(
         std::uint64_t streamStartBit,
-        const std::array<std::uint64_t, 4>& relativeBits) {
-        std::array<std::uint32_t, 4> result{};
+        const std::array<std::uint64_t, 5>& relativeBits) {
+        std::array<std::uint32_t, 5> result{};
         for (std::size_t i = 0; i < result.size(); ++i) {
+            if (relativeBits[i] == (std::numeric_limits<std::uint64_t>::max)()) {
+                result[i] = DRW_Header::kInvalidDwgHandseedBitOffset;
+                continue;
+            }
             std::uint64_t absolute = 0u;
             if (!dwgSafety::add(streamStartBit, relativeBits[i], absolute)
                 || absolute > (std::numeric_limits<std::uint32_t>::max)())
@@ -2260,7 +2272,8 @@ protected:
         DRW_Header::kInvalidDwgHandseedBitOffset};
     std::uint32_t m_headerDataStartBit {
         DRW_Header::kInvalidDwgHandseedBitOffset};
-    std::array<std::uint32_t, 4> m_headerCurrentReferenceBits {{
+    std::array<std::uint32_t, 5> m_headerCurrentReferenceBits {{
+        DRW_Header::kInvalidDwgHandseedBitOffset,
         DRW_Header::kInvalidDwgHandseedBitOffset,
         DRW_Header::kInvalidDwgHandseedBitOffset,
         DRW_Header::kInvalidDwgHandseedBitOffset,

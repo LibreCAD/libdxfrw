@@ -433,14 +433,14 @@ private:
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 4>* currentReferenceBits = nullptr,
+        std::array<std::uint64_t, 5>* currentReferenceBits = nullptr,
         std::uint32_t groupDictionaryHandle = 0,
         std::uint32_t plotStyleDictionaryHandle = 0);
     [[nodiscard]] bool encodeDwgForWriterMaterial(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 4>* currentReferenceBits,
+        std::array<std::uint64_t, 5>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle, std::uint32_t plotStyleDictionaryHandle,
         std::uint32_t materialDictionaryHandle, std::uint32_t currentMaterialHandle);
     bool parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reader,

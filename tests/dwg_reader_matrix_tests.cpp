@@ -110,7 +110,7 @@ public:
 
 class DwgHeaderCurrentTestAccess {
 public:
-    static std::array<std::uint32_t, 4> offsets(const dwgWriter& writer) {
+    static std::array<std::uint32_t, 5> offsets(const dwgWriter& writer) {
         return writer.m_headerCurrentReferenceBits;
     }
 };
@@ -19816,6 +19816,11 @@ public:
     void addHeader(const DRW_Header* header) override {
         ++headers;
         handseed = header->getHandSeed();
+        const auto dimStyle = header->vars.find("DIMTXSTY");
+        if (dimStyle != header->vars.end() && dimStyle->second != nullptr
+            && dimStyle->second->type() == DRW_Variant::STRING
+            && dimStyle->second->content.s != nullptr)
+            dimensionTextStyle = *dimStyle->second->content.s;
         const std::array<const char*, 4> names{{"CLAYER", "TEXTSTYLE", "CELTYPE", "DIMSTYLE"}};
         for (std::size_t i = 0; i < names.size(); ++i) {
             const auto found = header->vars.find(names[i]);
@@ -19925,6 +19930,7 @@ public:
     std::size_t lines{0};
     std::uint32_t handseed{0};
     std::array<std::string, 4> currentNames{};
+    std::string dimensionTextStyle;
     DRW_Coord lineEnd;
     dx_data data;
 };
@@ -21697,6 +21703,7 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             header.addStr("$TEXTSTYLE", "drawing-style", 7);
             header.addStr("$CELTYPE", "drawing-type", 6);
             header.addStr("$DIMSTYLE", "drawing-dim", 2);
+            header.addStr("$DIMTXSTY", "drawing-style", 7);
         }
         Writer writer(&stream, &header);
         const bool headerWritten = writer.prepareDwgClassManifest()
@@ -21732,6 +21739,9 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
                          && readHeaderReferenceBits(writer.buffer(), offsets[i]) == expected[i],
                      std::string(version) + " current name resolves to emitted table handle");
         }
+        t.expect(readHeaderReferenceBits(writer.buffer(), offsets[4])
+                     == (custom ? expected[1] : 0u),
+                 std::string(version) + " dimension text style handle resolves or is null");
         const auto once = writer.buffer();
         t.expect(writer.finalizeHeaderHandseed() && writer.buffer() == once,
                  std::string(version) + " current-reference finalization is idempotent");
@@ -21748,6 +21758,8 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             : std::array<std::string, 4>{{"0", "STANDARD", "BYLAYER", "STANDARD"}};
         t.expect(sink.currentNames == expectedNames,
                  std::string(version) + " source current handles resolve to table names");
+        t.expect(sink.dimensionTextStyle == (custom ? "Drawing-Style" : ""),
+                 std::string(version) + " dimension text style reads back");
     }
 }
 
@@ -21759,6 +21771,7 @@ public:
     }
     void writeHeader(DRW_Header& header) override {
         header.addStr("$CLAYER", "selected-layer", 8);
+        if (dimension) header.addStr("$DIMTXSTY", "selected-style", 7);
     }
     void writeLTypes() override {}
     void writeLayers() override {
@@ -21768,7 +21781,12 @@ public:
             wrote = writer_.addLayer(&layer) && wrote;
         }
     }
-    void writeTextstyles() override {}
+    void writeTextstyles() override {
+        if (includeStyle) {
+            DRW_Textstyle style; style.name = "selected-style";
+            wrote = writer_.addTextstyle(&style) && wrote;
+        }
+    }
     void writeVports() override {}
     void writeDimstyles() override {}
     void writeAppId() override {}
@@ -21782,6 +21800,8 @@ public:
         wrote = writer_.writeLine(&line) && wrote;
     }
     bool includeLayer{false};
+    bool includeStyle{false};
+    bool dimension{false};
     bool wrote{true};
 private:
     dwgRW& writer_;
@@ -21998,7 +22018,7 @@ void testHeaderCurrentReferences(TestContext& t) {
 
     // Every failure must precede any HEADER mutation; repairing the caller's
     // value must make the same writer succeed and reseal its CRC.
-    for (int failure = 0; failure != 6; ++failure) {
+    for (int failure = 0; failure != 11; ++failure) {
         std::stringbuf output(std::ios::out | std::ios::binary);
         std::ofstream stream;
         static_cast<std::ostream&>(stream).rdbuf(&output);
@@ -22012,6 +22032,14 @@ void testHeaderCurrentReferences(TestContext& t) {
         }
         if (failure == 4) header.addStr("$CLAYER", "0", 7);
         if (failure == 5) header.addStr("$clayer", "0", 8);
+        if (failure == 6) header.addStr("$DIMTXSTY", "missing", 7);
+        if (failure == 7) header.addStr("$DIMTXSTY", "0", 7);
+        if (failure == 8) header.addStr("$DIMTXSTY", "STANDARD", 8);
+        if (failure == 9) {
+            header.addStr("$DIMTXSTY", "STANDARD", 7);
+            header.addStr("DIMTXSTY", "STANDARD", 7);
+        }
+        if (failure == 10) header.addStr("$dimtxsty", "STANDARD", 7);
         dwgWriter21 writer(&stream, &header);
         const bool prepared = writer.prepareDwgClassManifest() && writer.writeFileHeaderStub()
             && writer.writeDwgHeader() && writer.writeDwgClasses();
@@ -22038,6 +22066,12 @@ void testHeaderCurrentReferences(TestContext& t) {
             auto it = header.vars.find("$clayer");
             if (it != header.vars.end()) { delete it->second; header.vars.erase(it); }
         }
+        if (failure == 9 || failure == 10) {
+            const auto key = failure == 9 ? "DIMTXSTY" : "$dimtxsty";
+            auto it = header.vars.find(key);
+            if (it != header.vars.end()) { delete it->second; header.vars.erase(it); }
+        }
+        if (failure >= 6) header.addStr("$DIMTXSTY", "STANDARD", 7);
         header.addStr("$CLAYER", "0", 8);
         t.expect(writer.finalizeHeaderHandseed()
                      && readHeaderReferenceBits(writer.buffer(),
@@ -22075,6 +22109,32 @@ void testHeaderCurrentReferences(TestContext& t) {
     t.expect(!file.empty() && reader.readBuffer(file.data(), file.size(), &sink, false)
                  && sink.headers == 1u && sink.lines == 1u,
              "corrected same-writer retry publishes a readable DWG");
+    {
+        std::ofstream existingStyle(path, std::ios::binary | std::ios::trunc);
+        existingStyle << "existing output sentinel";
+    }
+    dwgRW dimensionWriter(path.string().c_str());
+    HeaderCurrentWriteAdapter dimensionAdapter(dimensionWriter);
+    dimensionAdapter.dimension = true;
+    dimensionAdapter.includeLayer = true;
+    const bool styleRefused = !dimensionWriter.write(&dimensionAdapter, DRW::AC1021, true);
+    std::ifstream existingStyle(path, std::ios::binary);
+    const std::string retainedStyle((std::istreambuf_iterator<char>(existingStyle)), {});
+    existingStyle.close();
+    t.expect(styleRefused && retainedStyle == "existing output sentinel",
+             "missing dimension text style preserves an existing DWG destination");
+    dimensionAdapter.includeStyle = true;
+    t.expect(dimensionWriter.write(&dimensionAdapter, DRW::AC1021, true)
+                 && dimensionAdapter.wrote,
+             "adding dimension text style lets the same DWG writer retry");
+    std::ifstream publishedStyle(path, std::ios::binary);
+    const std::vector<std::uint8_t> styleFile((std::istreambuf_iterator<char>(publishedStyle)), {});
+    HeaderPublicationSink styleSink;
+    dwgRW styleReader("");
+    t.expect(!styleFile.empty()
+                 && styleReader.readBuffer(styleFile.data(), styleFile.size(), &styleSink, false)
+                 && styleSink.dimensionTextStyle == "selected-style",
+             "dimension text style retry publishes the selected STYLE");
 }
 
 // Optional local physical-producer regression; the caller supplies the

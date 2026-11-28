@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <array>
 #include <charconv>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -4349,7 +4350,7 @@ bool DRW_Header::encodeDwgForWriter(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 4>* currentReferenceBits,
+        std::array<std::uint64_t, 5>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle,
         std::uint32_t plotStyleDictionaryHandle) {
     return encodeDwgForWriterMaterial(version, buf, hBbuf, strBuf,
@@ -4361,7 +4362,7 @@ bool DRW_Header::encodeDwgForWriterMaterial(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 4>* currentReferenceBits,
+        std::array<std::uint64_t, 5>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle, std::uint32_t plotStyleDictionaryHandle,
         std::uint32_t materialDictionaryHandle, std::uint32_t currentMaterialHandle) {
     if (version != DRW::AC1015 && version != DRW::AC1018 &&
@@ -4742,7 +4743,22 @@ bool DRW_Header::encodeDwgForWriterMaterial(
     }
 
     // -------- DIM handles (R2000+: 5 handles) (parseDwg:2139-2148) ----------
-    hBbuf->putHandle(makeHardPtr(0));  // DIMTXSTY
+    // Preserve the established compact null when no value was supplied.
+    // A supplied value reserves a patchable slot, even if it later fails
+    // validation, so the caller can correct it and retry.
+    const bool hasDimTextStyle = std::any_of(vars.begin(), vars.end(), [](const auto& item) {
+        const auto& key = item.first;
+        const std::size_t start = !key.empty() && key.front() == '$' ? 1u : 0u;
+        constexpr char name[] = "DIMTXSTY";
+        return key.size() - start == sizeof(name) - 1u
+            && std::equal(key.begin() + start, key.end(), name, [](char a, char b) {
+                return std::toupper(static_cast<unsigned char>(a)) == b;
+            });
+    });
+    if (currentReferenceBits != nullptr && hasDimTextStyle)
+        putCurrentReference(4);
+    else
+        hBbuf->putHandle(makeHardPtr(0));  // DIMTXSTY
     hBbuf->putHandle(makeHardPtr(0));  // DIMLDRBLK
     hBbuf->putHandle(makeHardPtr(0));  // DIMBLK
     hBbuf->putHandle(makeHardPtr(0));  // DIMBLK1

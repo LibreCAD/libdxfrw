@@ -859,7 +859,7 @@ void dwgWriter15::initHeaderControlHandles() {
 }
 
 bool dwgWriter15::planHeaderCurrentReferences(
-        std::array<std::uint32_t, 4>& references) const {
+        std::array<std::uint32_t, 5>& references) const {
     if (m_header == nullptr || !m_dwgTableRecordsComplete)
         return false;
     struct RequestedReference {
@@ -868,12 +868,13 @@ bool dwgWriter15::planHeaderCurrentReferences(
         int group;
         const std::map<std::string, std::uint32_t>* table;
     };
-    const std::array<RequestedReference, 4> requests{{
+    const std::array<RequestedReference, 5> requests{{
         {"CLAYER", "0", 8, &m_writingCtx.layerMap},
         {"TEXTSTYLE", "STANDARD", 7, &m_writingCtx.styleMap},
         {"CELTYPE", "BYLAYER", 6, &m_writingCtx.ltypeMap},
-        {"DIMSTYLE", "STANDARD", 2, &m_writingCtx.dimstyleMap}}};
-    std::array<std::uint32_t, 4> result{};
+        {"DIMSTYLE", "STANDARD", 2, &m_writingCtx.dimstyleMap},
+        {"DIMTXSTY", "", 7, &m_writingCtx.styleMap}}};
+    std::array<std::uint32_t, 5> result{};
     for (std::size_t i = 0; i < requests.size(); ++i) {
         const auto& request = requests[i];
         const std::string canonicalBare(request.name);
@@ -898,9 +899,11 @@ bool dwgWriter15::planHeaderCurrentReferences(
                 || value->code() != request.group || value->content.s == nullptr)
                 return false;
             name = *value->content.s;
-            if (name.empty() || name.find('\0') != std::string::npos)
+            if ((name.empty() && i < 4u) || name.find('\0') != std::string::npos)
                 return false;
         }
+        if (name.empty() && i == 4u)
+            continue;
         const auto target = request.table->find(toUpperCase(name));
         if (target == request.table->end() || target->second == 0u
             || m_emittedDwgTableRecordHandles.find(target->second)
@@ -928,7 +931,8 @@ bool dwgWriter15::writeDwgHeader() {
     // the same accumulator for both buf and hBbuf.
     if (m_header != nullptr) {
         const std::uint64_t dataStartBit = m_buf.bitCount();
-        std::array<std::uint64_t, 4> currentReferenceBits{};
+        std::array<std::uint64_t, 5> currentReferenceBits{};
+        currentReferenceBits[4] = (std::numeric_limits<std::uint64_t>::max)();
         // Propagate encode failure: writeDwgHeader reports success as a bool.
         if (!m_header->encodeDwgForWriter(
                 m_version, &m_buf, &m_buf, nullptr,
