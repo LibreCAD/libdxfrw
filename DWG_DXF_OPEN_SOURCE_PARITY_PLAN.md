@@ -18,6 +18,9 @@ The current test-inclusive implementation digest is
 `40e3b464bdc459a1e852d2f045bc01bc6eb44f38021bcf6a8799a14273c3d7e6`
 (785 inputs, including the staged HATCH graph inspector and its focused tests). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
+The fast CI inventory now includes the legacy dictionary wire audit; verify the
+new hosted run. After registering a CTest, refresh the frozen inventory from a
+clean checkout using the hosted configuration and verify the exact name delta.
 Recheck affected profiles against the frozen candidate.
 All support claims remain experimental.
 
