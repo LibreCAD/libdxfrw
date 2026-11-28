@@ -346,6 +346,10 @@ bool writeUnknownHeaderVariant(const std::unique_ptr<dxfWriter>& writer,
 
 } // namespace
 
+bool DRW_Header::isDxfCanonicalVariableName(const std::string& name) noexcept {
+    return isCanonicalDxfHeaderVariable(name);
+}
+
 struct DRW_Header::DxfCodePageSource final {
     DxfCodePageSource(const std::string& value,
                       const std::shared_ptr<DxfReadRetainedBudget>& budget)

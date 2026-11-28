@@ -39,6 +39,8 @@
 #include <optional>
 #include "drw_base.h"
 
+#define LIBDXFRW_HAS_DXF_CANONICAL_HEADER_VARIABLE_QUERY 1
+
 class dxfReader;
 class dxfWriter;
 class dwgBuffer;
@@ -66,6 +68,10 @@ class DRW_Header {
     SETHDRFRIENDS
 public:
     DRW_Header();
+    /** True only for a case-sensitive name in the DXF writer's canonical
+     * HEADER inventory. A leading '$' is optional. This classifies the name;
+     * it does not validate its group shape, value, version or references. */
+    static bool isDxfCanonicalVariableName(const std::string& name) noexcept;
     ~DRW_Header() {
         clearVars();
     }

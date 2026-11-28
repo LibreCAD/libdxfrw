@@ -15,7 +15,7 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`673eb57620e62721337b3c670b8fd6766bacea47d219661a0b13f6c98744b176`
+`3f27059cce760dfc69caa34aeffe45733f3b5a56fea9ead84b839da303d99d93`
 (785 inputs, including the staged HATCH graph inspector and its focused tests). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 Recheck affected profiles against the frozen candidate.
@@ -68,7 +68,9 @@ below is still open, and its linked evidence defines the present boundary.
    bytes. The [source geometry snapshot](docs/research/p8d-hatch-source-geometry-2026-11-28.json)
    matches the selected physical paths to live geometry. An [explicit handle scan](docs/research/p8d-hatch-source-handle-isolation-2026-11-28.json)
    checks incoming references to the selected identities; [opaque-source guards](docs/research/p8d-hatch-opaque-source-guards-2026-11-28.json)
-   suppress that evidence for selected unsupported payloads and classes. Finish
+   suppress that evidence for selected unsupported payloads and classes. The
+   codec exposes its canonical HEADER-name inventory for consumer checks;
+   verify the integrated consumer. Finish
    field-level graph closure, copy/identity checks and finalization with late-edit
    revalidation before enabling replay.
    The [composed entity inspector](docs/research/p8d-entity-inspector-composition-2026-11-28.json)

@@ -25079,6 +25079,14 @@ void testDxfHeaderRepeatedGroups(TestContext& t) {
 }
 
 void testDxfHeaderUnknownVariables(TestContext& t) {
+    t.expect(DRW_Header::isDxfCanonicalVariableName("$ACADVER")
+                 && DRW_Header::isDxfCanonicalVariableName("ACADVER")
+                 && DRW_Header::isDxfCanonicalVariableName("$HANDSEED")
+                 && !DRW_Header::isDxfCanonicalVariableName("$VENDOR_TEXT")
+                 && !DRW_Header::isDxfCanonicalVariableName("$acadver")
+                 && !DRW_Header::isDxfCanonicalVariableName("$$ACADVER")
+                 && !DRW_Header::isDxfCanonicalVariableName(""),
+             "public canonical HEADER name query follows the shared inventory");
     const auto nonce = std::chrono::steady_clock::now()
         .time_since_epoch().count();
     for (const bool binary : {false, true}) {
