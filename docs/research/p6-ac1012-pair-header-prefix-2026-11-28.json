@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-header-prefix-2026-11-28",
+  "supportClaimEffect": "none",
+  "candidateCommit": "a8ee6b836",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "9 AcDb:Header; AC1012 prefix through CELTSCALE"
+    ]
+  },
+  "scope": "Physical bit spans and peer-decoded values for the initial HEADER prefix in the existing generated AC1012 pair.",
+  "checks": [
+    "An independent Python bit walker records contiguous start/end bits and values for 90 prefix fields, covering 1,096 bits of each file from the payload start through CELTSCALE; values agree with LibreDWG 0.14 minJSON, including the null hard-pointer role.",
+    "A changed DIMASO flag, invalid bitdouble tag, and wrong viewport-handle role are rejected even after the HEADER CRC is repaired; restoring the original bytes passes a clean retry.",
+    "The shared prefix check also runs within the existing 32-object source census; both drawings and the focused legacy BLOCK_HEADER probe pass.",
+    "Source-release inventory check and self-test pass; drawings remain in scratch storage."
+  ],
+  "hashes": {
+    "prefixTool": "78b5ec406bbea334de46a3784d91b0086f7bb1151d3a8e24ab9f059dab60e9a3",
+    "censusTool": "c0ee273d016d2170cb8db84645280b0d8e6469611cf56563b0ab144edde6f48d",
+    "prefixResults": "a27915a181b07485412eeae7750235dfa0a382dbb6d06b778b6573b5e01750a3",
+    "integratedCensusResults": "2096f70ad3143fc1d425ae722ad9565ef492ee28cfedda3fb5c2f4cfedf3de9b"
+  },
+  "limits": [
+    "The two controls are LibreDWG-generated and LibreDWG supplies the peer decode; this is independent of libdxfrw but not an independent producer.",
+    "The remaining HEADER body and handle graph, defaults, complete export, native open and clone semantics are not qualified. No general DWG or DXF support claim follows."
+  ]
+}

@@ -167,6 +167,8 @@ envelope, CRCs, truncations and corrected retry with:
 ```sh
 python3 -B tools/research/audit_ac1012_pair_header.py \
   /private/tmp/ac1012-native-two-element-handoff
+python3 -B tools/research/audit_ac1012_pair_header_prefix.py \
+  /private/tmp/ac1012-native-two-element-handoff
 ```
 
 Before transfer, the bounded source audit can recheck both frames and their

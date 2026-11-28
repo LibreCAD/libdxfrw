@@ -10,6 +10,7 @@ from pathlib import Path
 import tempfile
 
 from audit_ac1012_pair_header import audit as audit_header
+from audit_ac1012_pair_header_prefix import audit_prefix
 from generate_ac1012_dictionary_merge_samples import read_object_frame
 from generate_ac1012_dictionary_witness import require, run, sha
 
@@ -22,7 +23,8 @@ def audit(packet: Path, side: str, manifest: dict, dwgread: str, probe: str) -> 
     with tempfile.TemporaryDirectory(prefix="ac1012-census-") as temporary:
         decoded = Path(temporary) / "source.json"
         run([dwgread, "-O", "minJSON", str(path), "-o", str(decoded)])
-        rows = json.loads(decoded.read_text())["OBJECTS"]
+        drawing = json.loads(decoded.read_text())
+        rows = drawing["OBJECTS"]
     by_handle = {}
     for row in rows:
         handle = row["handle"][-1]
@@ -76,6 +78,7 @@ def audit(packet: Path, side: str, manifest: dict, dwgread: str, probe: str) -> 
         frames[f"{handle:X}"] = {"type": kind, "offset": offset, "frameSha256": digest,
                                   "binding": "shared-block-probe" if expected_sha is None else "audited-packet"}
     return {"sourceSha256": source_sha, "headerEnvelope": audit_header(path.read_bytes()),
+            "headerPrefix": audit_prefix(path.read_bytes(), drawing["HEADER"]),
             "frameCount": len(frames),
             "probeOutputSha256": sha(probe_result.stdout + probe_result.stderr), "frames": frames}
 
