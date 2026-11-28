@@ -110,7 +110,7 @@ public:
 
 class DwgHeaderCurrentTestAccess {
 public:
-    static std::array<std::uint32_t, 9> offsets(const dwgWriter& writer) {
+    static std::array<std::uint32_t, 12> offsets(const dwgWriter& writer) {
         return writer.m_headerCurrentReferenceBits;
     }
 };
@@ -19821,6 +19821,14 @@ public:
             && dimStyle->second->type() == DRW_Variant::STRING
             && dimStyle->second->content.s != nullptr)
             dimensionTextStyle = *dimStyle->second->content.s;
+        const std::array<const char*, 3> dimTypeNames{{"DIMLTYPE", "DIMLTEX1", "DIMLTEX2"}};
+        for (std::size_t i = 0; i < dimTypeNames.size(); ++i) {
+            const auto found = header->vars.find(dimTypeNames[i]);
+            if (found != header->vars.end() && found->second != nullptr
+                && found->second->type() == DRW_Variant::STRING
+                && found->second->content.s != nullptr)
+                dimensionLineTypes[i] = *found->second->content.s;
+        }
         const std::array<const char*, 4> arrowNames{{"DIMLDRBLK", "DIMBLK", "DIMBLK1", "DIMBLK2"}};
         for (std::size_t i = 0; i < arrowNames.size(); ++i) {
             const auto found = header->vars.find(arrowNames[i]);
@@ -19940,6 +19948,7 @@ public:
     std::array<std::string, 4> currentNames{};
     std::string dimensionTextStyle;
     std::array<std::string, 4> dimensionArrows{};
+    std::array<std::string, 3> dimensionLineTypes{};
     DRW_Coord lineEnd;
     dx_data data;
 };
@@ -21702,6 +21711,8 @@ std::uint32_t readHeaderReferenceBits(const std::vector<std::uint8_t>& bytes,
 
 template<class Writer>
 void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) {
+    const bool supportsDimLineTypes = std::string(version) != "AC1015"
+        && std::string(version) != "AC1018";
     for (bool custom : {false, true}) {
         std::stringbuf output(std::ios::out | std::ios::binary);
         std::ofstream stream;
@@ -21717,6 +21728,11 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             header.addStr("$DIMBLK", "Arrow-Main", 1);
             header.addStr("$DIMBLK1", "_Arrow-One", 1);
             header.addStr("$DIMBLK2", "Arrow-Two", 1);
+            if (supportsDimLineTypes) {
+                header.addStr("$DIMLTYPE", "Dim-Line", 6);
+                header.addStr("$DIMLTEX1", "Dim-Ext1", 6);
+                header.addStr("$DIMLTEX2", "Dim-Ext2", 6);
+            }
         }
         Writer writer(&stream, &header);
         const bool headerWritten = writer.prepareDwgClassManifest()
@@ -21735,6 +21751,12 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             expected[0] = writer.addLayer(layer);
             expected[1] = writer.addTextstyle(style);
             expected[3] = writer.addDimstyle(dim);
+        }
+        std::array<std::uint32_t, 3> dimLineHandles{};
+        if (custom && supportsDimLineTypes) {
+            DRW_LType line; line.name = "Dim-Line"; dimLineHandles[0] = writer.addLType(line);
+            line.name = "Dim-Ext1"; dimLineHandles[1] = writer.addLType(line);
+            line.name = "Dim-Ext2"; dimLineHandles[2] = writer.addLType(line);
         }
         std::array<std::uint32_t, 4> arrowHandles{};
         if (custom) {
@@ -21767,6 +21789,11 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
                          && readHeaderReferenceBits(writer.buffer(), offsets[i + 5u])
                              == arrowHandles[i],
                      std::string(version) + " dimension arrow resolves or is null");
+        for (std::size_t i = 0; i < dimLineHandles.size(); ++i)
+            t.expect((!custom || !supportsDimLineTypes || dimLineHandles[i] != 0u)
+                         && readHeaderReferenceBits(writer.buffer(), offsets[i + 9u])
+                             == dimLineHandles[i],
+                     std::string(version) + " dimension linetype resolves or is null");
         const auto once = writer.buffer();
         t.expect(writer.finalizeHeaderHandseed() && writer.buffer() == once,
                  std::string(version) + " current-reference finalization is idempotent");
@@ -21790,6 +21817,11 @@ void testHeaderCurrentReferencesForVersion(TestContext& t, const char* version) 
             : std::array<std::string, 4>{};
         t.expect(sink.dimensionArrows == expectedArrows,
                  std::string(version) + " dimension arrow block names read back");
+        const std::array<std::string, 3> expectedLineTypes = custom && supportsDimLineTypes
+            ? std::array<std::string, 3>{{"Dim-Line", "Dim-Ext1", "Dim-Ext2"}}
+            : std::array<std::string, 3>{};
+        t.expect(sink.dimensionLineTypes == expectedLineTypes,
+                 std::string(version) + " dimension linetype names read back");
     }
 }
 
@@ -21803,8 +21835,14 @@ public:
         header.addStr("$CLAYER", "selected-layer", 8);
         if (dimension) header.addStr("$DIMTXSTY", "selected-style", 7);
         if (arrow) header.addStr("$DIMBLK", "selected-block", 1);
+        if (dimLine) header.addStr("$DIMLTYPE", "selected-type", 6);
     }
-    void writeLTypes() override {}
+    void writeLTypes() override {
+        if (includeType) {
+            DRW_LType line; line.name = "selected-type";
+            wrote = writer_.addLType(&line) && wrote;
+        }
+    }
     void writeLayers() override {
         if (includeLayer) {
             DRW_Layer layer;
@@ -21838,6 +21876,8 @@ public:
     bool dimension{false};
     bool arrow{false};
     bool includeBlock{false};
+    bool dimLine{false};
+    bool includeType{false};
     bool wrote{true};
 private:
     dwgRW& writer_;
@@ -22107,7 +22147,7 @@ void testHeaderCurrentReferences(TestContext& t) {
 
     // Every failure must precede any HEADER mutation; repairing the caller's
     // value must make the same writer succeed and reseal its CRC.
-    for (int failure = 0; failure != 15; ++failure) {
+    for (int failure = 0; failure != 18; ++failure) {
         std::stringbuf output(std::ios::out | std::ios::binary);
         std::ofstream stream;
         static_cast<std::ostream&>(stream).rdbuf(&output);
@@ -22130,7 +22170,9 @@ void testHeaderCurrentReferences(TestContext& t) {
         }
         if (failure == 10) header.addStr("$dimtxsty", "STANDARD", 7);
         const std::array<const char*, 4> arrowKeys{{"$DIMLDRBLK", "$DIMBLK", "$DIMBLK1", "$DIMBLK2"}};
-        if (failure >= 11) header.addStr(arrowKeys[failure - 11], "missing-block", 1);
+        const std::array<const char*, 3> dimLineKeys{{"$DIMLTYPE", "$DIMLTEX1", "$DIMLTEX2"}};
+        if (failure >= 11 && failure <= 14) header.addStr(arrowKeys[failure - 11], "missing-block", 1);
+        if (failure >= 15) header.addStr(dimLineKeys[failure - 15], "missing-type", 6);
         dwgWriter21 writer(&stream, &header);
         const bool prepared = writer.prepareDwgClassManifest() && writer.writeFileHeaderStub()
             && writer.writeDwgHeader() && writer.writeDwgClasses();
@@ -22163,12 +22205,33 @@ void testHeaderCurrentReferences(TestContext& t) {
             if (it != header.vars.end()) { delete it->second; header.vars.erase(it); }
         }
         if (failure >= 6 && failure <= 10) header.addStr("$DIMTXSTY", "STANDARD", 7);
-        if (failure >= 11) header.addStr(arrowKeys[failure - 11], "", 1);
+        if (failure >= 11 && failure <= 14) header.addStr(arrowKeys[failure - 11], "", 1);
+        if (failure >= 15) header.addStr(dimLineKeys[failure - 15], "BYLAYER", 6);
         header.addStr("$CLAYER", "0", 8);
         t.expect(writer.finalizeHeaderHandseed()
                      && readHeaderReferenceBits(writer.buffer(),
                             DwgHeaderCurrentTestAccess::offsets(writer)[0]) == 0x12u,
                  "corrected current reference retries on same writer");
+    }
+
+    for (const auto* key : {"$DIMLTYPE", "$DIMLTEX1", "$DIMLTEX2"}) {
+        std::stringbuf output(std::ios::out | std::ios::binary);
+        std::ofstream stream;
+        static_cast<std::ostream&>(stream).rdbuf(&output);
+        DRW_Header header;
+        header.addStr(key, "BYLAYER", 6);
+        dwgWriter18 writer(&stream, &header);
+        const bool prepared = writer.prepareDwgClassManifest() && writer.writeFileHeaderStub()
+            && writer.writeDwgHeader() && writer.writeDwgClasses()
+            && writer.writeDwgObjects() && writer.emitDeferredBlockControl();
+        t.expect(prepared, "pre-R2007 dimension linetype version control prepared");
+        if (!prepared) continue;
+        const auto before = writer.buffer();
+        t.expect(!writer.finalizeHeaderHandseed() && writer.buffer() == before,
+                 "pre-R2007 nonempty dimension linetype refuses without mutation");
+        header.addStr(key, "", 6);
+        t.expect(writer.finalizeHeaderHandseed(),
+                 "clearing the unsupported dimension linetype allows retry");
     }
 
     const auto path = std::filesystem::temp_directory_path()
@@ -22252,6 +22315,31 @@ void testHeaderCurrentReferences(TestContext& t) {
                  && arrowReader.readBuffer(arrowFile.data(), arrowFile.size(), &arrowSink, false)
                  && arrowSink.dimensionArrows[1] == "selected-block",
              "dimension arrow retry publishes the selected BLOCK_RECORD");
+    {
+        std::ofstream existingType(path, std::ios::binary | std::ios::trunc);
+        existingType << "existing output sentinel";
+    }
+    dwgRW typeWriter(path.string().c_str());
+    HeaderCurrentWriteAdapter typeAdapter(typeWriter);
+    typeAdapter.dimLine = true;
+    typeAdapter.includeLayer = true;
+    const bool typeRefused = !typeWriter.write(&typeAdapter, DRW::AC1021, true);
+    std::ifstream existingType(path, std::ios::binary);
+    const std::string retainedType((std::istreambuf_iterator<char>(existingType)), {});
+    existingType.close();
+    t.expect(typeRefused && retainedType == "existing output sentinel",
+             "missing dimension linetype preserves an existing DWG destination");
+    typeAdapter.includeType = true;
+    t.expect(typeWriter.write(&typeAdapter, DRW::AC1021, true) && typeAdapter.wrote,
+             "adding the dimension linetype lets the same DWG writer retry");
+    std::ifstream publishedType(path, std::ios::binary);
+    const std::vector<std::uint8_t> typeFile((std::istreambuf_iterator<char>(publishedType)), {});
+    HeaderPublicationSink typeSink;
+    dwgRW typeReader("");
+    t.expect(!typeFile.empty()
+                 && typeReader.readBuffer(typeFile.data(), typeFile.size(), &typeSink, false)
+                 && typeSink.dimensionLineTypes[0] == "selected-type",
+             "dimension linetype retry publishes the selected LTYPE");
 }
 
 // Optional local physical-producer regression; the caller supplies the

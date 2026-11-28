@@ -859,7 +859,7 @@ void dwgWriter15::initHeaderControlHandles() {
 }
 
 bool dwgWriter15::planHeaderCurrentReferences(
-        std::array<std::uint32_t, 9>& references) const {
+        std::array<std::uint32_t, 12>& references) const {
     if (m_header == nullptr || !m_dwgTableRecordsComplete)
         return false;
     struct RequestedReference {
@@ -868,7 +868,7 @@ bool dwgWriter15::planHeaderCurrentReferences(
         int group;
         const std::map<std::string, std::uint32_t>* table;
     };
-    const std::array<RequestedReference, 9> requests{{
+    const std::array<RequestedReference, 12> requests{{
         {"CLAYER", "0", 8, &m_writingCtx.layerMap},
         {"TEXTSTYLE", "STANDARD", 7, &m_writingCtx.styleMap},
         {"CELTYPE", "BYLAYER", 6, &m_writingCtx.ltypeMap},
@@ -877,8 +877,11 @@ bool dwgWriter15::planHeaderCurrentReferences(
         {"DIMLDRBLK", "", 1, nullptr},
         {"DIMBLK", "", 1, nullptr},
         {"DIMBLK1", "", 1, nullptr},
-        {"DIMBLK2", "", 1, nullptr}}};
-    std::array<std::uint32_t, 9> result{};
+        {"DIMBLK2", "", 1, nullptr},
+        {"DIMLTYPE", "", 6, &m_writingCtx.ltypeMap},
+        {"DIMLTEX1", "", 6, &m_writingCtx.ltypeMap},
+        {"DIMLTEX2", "", 6, &m_writingCtx.ltypeMap}}};
+    std::array<std::uint32_t, 12> result{};
     for (std::size_t i = 0; i < requests.size(); ++i) {
         const auto& request = requests[i];
         const std::string canonicalBare(request.name);
@@ -908,6 +911,8 @@ bool dwgWriter15::planHeaderCurrentReferences(
         }
         if (name.empty() && i >= 4u)
             continue;
+        if (i >= 9u && m_version <= DRW::AC1018)
+            return false;
         if (request.table != nullptr) {
             const auto target = request.table->find(toUpperCase(name));
             if (target == request.table->end() || target->second == 0u
@@ -948,7 +953,7 @@ bool dwgWriter15::writeDwgHeader() {
     // the same accumulator for both buf and hBbuf.
     if (m_header != nullptr) {
         const std::uint64_t dataStartBit = m_buf.bitCount();
-        std::array<std::uint64_t, 9> currentReferenceBits{};
+        std::array<std::uint64_t, 12> currentReferenceBits{};
         currentReferenceBits.fill((std::numeric_limits<std::uint64_t>::max)());
         // Propagate encode failure: writeDwgHeader reports success as a bool.
         if (!m_header->encodeDwgForWriter(

@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-dimension-linetypes-writer-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "Open Design Specification for .dwg files v5.4.1 section 9: DIMLTYPE, DIMLTEX1, DIMLTEX2 are R2007+ hard pointers."
+  ],
+  "change": "Reuse the HEADER reference planner, patch and CRC sealing for the three R2007+ LTYPE fields. Check each name against a successfully emitted LTYPE; preserve compact nulls when absent, reject unresolved or malformed values without publication, and reject nonempty values when writing pre-R2007 DWG.",
+  "generatedScratchOnly": {
+    "path": "/private/tmp/p6-header-linetype-20261127/writer.dwg",
+    "sha256": "b36eca2201138a4b8814af14ab0802f33daa11ae2589946a177431a9294e6171",
+    "libredwg014": "The three hard pointers resolve to the emitted P6_DASH, P6_DOT and P6_DASHDOT LTYPE records."
+  },
+  "checks": [
+    "Five focused HEADER groups pass for generated AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 controls, including readback and CRC sealing.",
+    "Missing targets on all three fields refuse before header mutation and corrected same-writer retry passes. Nonempty fields on AC1018 refuse and clearing them allows retry.",
+    "The public DWG writer preserves an existing destination on missing target and publishes the resolved name after retry.",
+    "LibreDWG 0.14 independently decodes the locally authored AC1021 writer output."
+  ],
+  "limits": [
+    "ODA does not currently reopen the generated AC1021 writer baseline because of existing object-record failures; native dimension rendering remains unqualified.",
+    "No support claim was promoted and no generated DWG/DXF fixture was committed."
+  ]
+}

@@ -4355,7 +4355,7 @@ bool DRW_Header::encodeDwgForWriter(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 9>* currentReferenceBits,
+        std::array<std::uint64_t, 12>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle,
         std::uint32_t plotStyleDictionaryHandle) {
     return encodeDwgForWriterMaterial(version, buf, hBbuf, strBuf,
@@ -4367,7 +4367,7 @@ bool DRW_Header::encodeDwgForWriterMaterial(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
         dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
         std::uint32_t plotSettingsDictionaryHandle,
-        std::array<std::uint64_t, 9>* currentReferenceBits,
+        std::array<std::uint64_t, 12>* currentReferenceBits,
         std::uint32_t groupDictionaryHandle, std::uint32_t plotStyleDictionaryHandle,
         std::uint32_t materialDictionaryHandle, std::uint32_t currentMaterialHandle) {
     if (version != DRW::AC1015 && version != DRW::AC1018 &&
@@ -4771,9 +4771,9 @@ bool DRW_Header::encodeDwgForWriterMaterial(
     putOptionalReference(7, "DIMBLK1");
     putOptionalReference(8, "DIMBLK2");
     if (version > DRW::AC1018) {  // 2007+: DIMLTYPE, DIMLTEX1, DIMLTEX2 (parseDwg:2154-2160)
-        hBbuf->putHandle(makeHardPtr(0));  // DIMLTYPE
-        hBbuf->putHandle(makeHardPtr(0));  // DIMLTEX1
-        hBbuf->putHandle(makeHardPtr(0));  // DIMLTEX2
+        putOptionalReference(9, "DIMLTYPE");
+        putOptionalReference(10, "DIMLTEX1");
+        putOptionalReference(11, "DIMLTEX2");
     }
 
     // -------- DIMLWD, DIMLWE (R2000+: 2 BS) (parseDwg:2159-2160) ------------
