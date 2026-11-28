@@ -59,6 +59,22 @@ resaved layout identities and assigns a model viewport in both cases. Do not
 interpret these transformations as proof of native semantics or lossless
 conversion.
 
+For a hash-bound AC1012 scratch sample, inspect an individual class against
+the complete single-page physical object map with:
+
+```sh
+python3 -B tools/research/audit_ac1012_class_census.py \
+  --source /tmp/sample.dwg --sha256 <source-sha256> \
+  --dwgread /path/to/dwgread --class-name GEODATA \
+  --output /tmp/ac1012-class-census.json
+python3 -B tools/research/test_ac1012_class_census.py
+```
+
+This checks mapped frames and the physical CLASS section, not bytes omitted
+from the map or the semantics of emitting the class to DXF. R13 class records
+do not contain an instance-count field; a decoded default zero is not evidence
+that no instance exists.
+
 For native qualification, keep the drawings scratch-only and follow the
 [existing native witness procedure](AC1012_DICTIONARY_NATIVE_WITNESS.md) on a
 profiled AutoCAD host. Record the exact source hashes and producer revision,

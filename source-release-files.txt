@@ -1302,6 +1302,7 @@ tools/research/ac1032_forum_constraint_registry_spans.py
 tools/research/acadrust_constraint_group_probe.rs
 tools/research/apply_freecad_import_candidate.py
 tools/research/audit_ac1012_acadrust_pair.py
+tools/research/audit_ac1012_class_census.py
 tools/research/audit_ac1012_dimstyle_defaults.py
 tools/research/audit_ac1012_generated_root.py
 tools/research/audit_ac1012_layout_peer.py
@@ -1431,6 +1432,7 @@ tools/research/run_freecad_candidate_gui_probe.py
 tools/research/run_freecad_candidate_probe.py
 tools/research/tablegeometry_dwg_span_scan.cpp
 tools/research/tablegeometry_physical_span_verify.py
+tools/research/test_ac1012_class_census.py
 tools/research/test_decode_dxf_sat1.py
 tools/research/test_freecad_candidate_gui_diagnostics.py
 tools/research/test_legacy_dwg_dictionary_wire.py

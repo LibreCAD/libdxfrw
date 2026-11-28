@@ -94,9 +94,12 @@ below is still open, and its linked evidence defines the present boundary.
    bypass](docs/research/p6-ac1012-layout-next-refusal-2026-11-28.json) reaches
    that refusal. An [explicitly rooted scratch variant](docs/research/p6-ac1012-rooted-plotstyle-probe-2026-11-28.json)
    instead reaches a proxy GEODATA CLASS refusal. The R13 CLASS record has no
-   instance-count field, so LibreDWG's zero is not a measured count. Verify a
-   complete class-number/frame census and output-class behavior before changing
-   that guard; neither scratch variant proves valid native
+   instance-count field, so LibreDWG's zero is not a measured count. A
+   [bounded physical census](docs/research/p6-ac1012-proxy-class-map-census-2026-11-28.json)
+   finds no mapped GEODATA class frames in those two samples; bind equivalent
+   complete source-frame and class-number evidence in the adapter, then inspect
+   target CLASS emission and refusal/retry before changing that guard. Neither
+   scratch variant proves valid native
    semantics. Qualify each source and its target mapping separately; peer repair
    is not source-graph evidence. The [shared association
    identity checks](docs/research/p6-layout-association-identity-guards-2026-11-28.json)
