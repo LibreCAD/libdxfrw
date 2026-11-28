@@ -293,9 +293,10 @@ Additional P8 dependencies:
   framebuffer behavior where the changed profiles affect it. The earlier [Linux
   framebuffer failure](docs/research/p8-freecad-candidate-linux-pixel-failure-2026-11-27.json)
   remains unexplained despite two passing retries. Establish independent producer
-  and `dwg2dxf` handoff semantics before widening consumer claims; retain strict
-  and partial-output refusal until HEADER and object-graph gates close. Earlier
-  platform and generated-DWG results remain in their receipts.
+  and `dwg2dxf` handoff semantics before widening consumer claims. Retain strict
+  refusal for the unclassified HEADER and all applicable graph/output guards;
+  explicit partial mode does not establish completeness. Earlier platform and
+  generated-DWG results remain in their receipts.
 - Keep LibreCAD's R13 raw-carrier refusal until owner/remap namespace and all 65
   omitted records close. For FreeCAD, independently qualify nonplanar 3DFACE,
   hidden-edge, smoothing, mixed color/layer, nested blocks, persistence and
