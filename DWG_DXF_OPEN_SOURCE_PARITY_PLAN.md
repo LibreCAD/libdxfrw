@@ -67,8 +67,9 @@ below is still open, and its linked evidence defines the present boundary.
    binds the selected AC1024 HEADER/version and ownership profile to retained
    bytes. The [source geometry snapshot](docs/research/p8d-hatch-source-geometry-2026-11-28.json)
    matches the selected physical paths to live geometry. An [explicit handle scan](docs/research/p8d-hatch-source-handle-isolation-2026-11-28.json)
-   checks incoming references to the selected identities; address opaque and
-   nonstandard references, copy/identity checks and finalization with late-edit
+   checks incoming references to the selected identities; [opaque-source guards](docs/research/p8d-hatch-opaque-source-guards-2026-11-28.json)
+   suppress that evidence for selected unsupported payloads and classes. Finish
+   field-level graph closure, copy/identity checks and finalization with late-edit
    revalidation before enabling replay.
    The [composed entity inspector](docs/research/p8d-entity-inspector-composition-2026-11-28.json)
    provides the common hook for binding the check to consumer finalization.

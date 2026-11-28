@@ -1,0 +1,32 @@
+{
+  "kind": "librecad-hatch-opaque-source-guards",
+  "date": "2026-11-28",
+  "consumerCommit": "35a60969c5557c60b1a7da425e82078133601aed",
+  "codecCommit": "7a76eb16c4dd201264b8c4bde6e8dc984193618a",
+  "scope": "Conservatively suppress the selected source-handle isolation witness when bounded input includes binary chunks, XDATA, unfamiliar sections or records, nonselected application groups, or unrecognized class definitions. This is a refusal gate, not a parser for opaque content.",
+  "checks": {
+    "systemCodec": {
+      "cases": 6,
+      "assertions": 417,
+      "result": "pass",
+      "logSha256": "52f0da83e9dd3ec212f73cf82b342cd486da6292e040043d5fef220691c9f474"
+    },
+    "bundledCodec": {
+      "cases": 4,
+      "assertions": 225,
+      "result": "pass; optional source observer absent",
+      "logSha256": "f3c1354ab0b7636202c435166e13767852e233fa3cfef2cbcd91a380006a76bb"
+    }
+  },
+  "controls": [
+    "The locally authored AC1024 model-space drawing remains eligible for its existing source evidence.",
+    "Added binary chunk, XDATA and unknown class suppress the isolation witness without suppressing the separate model-space result.",
+    "Earlier explicit handle collisions, coordinate faults, late geometry move, observer mutations, retries and mixed IMAGE/MATERIAL checks pass."
+  ],
+  "limits": [
+    "Whitelisting record names and excluding selected opaque groups is not a complete field-level graph proof or native semantics evidence.",
+    "Association replay and support-claim promotion remain disabled."
+  ],
+  "fixtures": "Locally authored drawing; no DXF or DWG committed",
+  "supportClaimsPromoted": false
+}
