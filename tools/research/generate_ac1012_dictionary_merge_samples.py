@@ -16,7 +16,6 @@ import hashlib
 import json
 import math
 from pathlib import Path
-import re
 import struct
 import subprocess
 import sys
@@ -24,12 +23,12 @@ import tempfile
 
 from generate_ac1012_dictionary_witness import (
     Bits,
-    crc16,
     executable_identity,
     require,
     run,
     sha,
 )
+from legacy_dwg_dictionary_wire import decode_dictionary_frame, locate_object_frame
 
 
 VERSION = b"AC1012"
@@ -41,28 +40,9 @@ def read_object_frame(path: Path, dwgread: str, handle: int,
                       object_type: int) -> tuple[int, bytes]:
     """Locate one R13 frame through LibreDWG's trace and validate size/CRC."""
     data = path.read_bytes()
-    require(data.startswith(VERSION), "sample is not AC1012")
     trace = run([dwgread, "-v4", str(path)])
     text = (trace.stdout + trace.stderr).decode(errors="replace")
-    blocks = re.split(r"(?=Object number:)", text)
-    pattern = re.compile(
-        r"\bhandle: 0\.\d+\." + format(handle, "X") + r"\s+\[H 5\]",
-        re.IGNORECASE,
-    )
-    selected = [block for block in blocks if pattern.search(block)]
-    require(len(selected) == 1, "trace does not identify one selected object frame")
-    match = re.search(r"Size: (\d+) \[MS\], Type: " + str(object_type)
-                      + r" \[BS\], Address: (\d+)", selected[0])
-    require(match is not None, "object frame size/address or type missing")
-    size, address = map(int, match.groups())
-    require(size < 0x8000 and address >= 2 and address + size + 2 <= len(data),
-            "object frame is outside the source")
-    require(data[address - 2:address] == size.to_bytes(2, "little"),
-            "unexpected AC1012 frame-size prefix")
-    require(int.from_bytes(data[address + size:address + size + 2], "little")
-            == crc16(data[address - 2:address + size]), "object frame CRC mismatch")
-
-    return address, data[address:address + size]
+    return locate_object_frame(data, text, "r13", handle, object_type)
 
 
 def observe_single_line_frame(frame: bytes, handle: int, layer: int) -> dict:
@@ -178,74 +158,30 @@ def read_dictionary_frame(path: Path, dwgread: str, handle: int,
                           selected_key: str = ENTRY_KEY,
                           allow_empty_name: bool = False) -> tuple[dict, bytes]:
     address, frame = read_object_frame(path, dwgread, handle, 42)
-    size = len(frame)
-    bits = Bits(frame)
-    require(bits.bs() == 42, "selected frame is not DICTIONARY")
-    own = bits.handle(0, own=True)
-    require(own["value"] == handle, "dictionary self handle mismatch")
-    eed = []
-    while True:
-        length = bits.bs()
-        if length == 0:
-            break
-        require(length <= 1024 and len(eed) < 32, "dictionary EED exceeds the bound")
-        app = bits.handle(5)
-        payload = bytes(bits.take(8) for _ in range(length))
-        eed.append({"appid": app, "hex": payload.hex()})
-
-    data_end = bits.little(4)
-    reactors = bits.bl()
-    count = bits.bl()
-    require(reactors <= 8 and 0 < count <= 64
-            and count == len(expected_entries),
-            "dictionary entry count differs from the bounded model")
-    names = []
-    for _ in range(count):
-        name_length = bits.bs()
-        require((name_length > 0 or allow_empty_name) and name_length <= 256,
-                "dictionary TV name length is invalid")
-        name_bytes = bytes(bits.take(8) for _ in range(name_length))
-        require(name_bytes.count(b"\0") <= 1
-                and (b"\0" not in name_bytes or name_bytes.endswith(b"\0")),
-                "AC1012 TV name has an embedded or repeated terminator")
-        name = name_bytes[:-1].decode("ascii") if name_bytes.endswith(b"\0") \
-            else name_bytes.decode("ascii")
-        names.append({"name": name,
-                      "nameHasTerminator": name_bytes.endswith(b"\0")})
-    require(len({item["name"] for item in names}) == len(names),
-            "dictionary contains duplicate entry names")
-    require(bits.position == data_end, "dictionary data span does not end after its TV entries")
-
-    parent = bits.handle(4, handle)
-    reactor_handles = [bits.handle(4, handle) for _ in range(reactors)]
-    xdictionary = bits.handle(3, handle)
-    entries = [dict(name=name["name"],
-                    nameHasTerminator=name["nameHasTerminator"],
-                    handle=bits.handle(2, handle)) for name in names]
-    require({item["name"]: item["handle"]["value"] for item in entries}
-            == expected_entries,
-            "physical dictionary entries differ from the model")
-    require(len(frame) * 8 - bits.position < 8, "unexpected data after dictionary item handle")
+    require(expected_entries, "expected a populated dictionary")
+    row = decode_dictionary_frame(frame, "r13", handle, expected_entries=expected_entries,
+                                  allow_empty_name=allow_empty_name)
+    entries = row["entries"]
     selected = next((item for item in entries if item["name"] == selected_key), None)
     require(selected is not None and selected["handle"]["value"] != 0,
             "dictionary item differs from the selected key")
     proof = {
         "offset": address,
-        "sizeBytes": size,
-        "frameSha256": sha(frame),
+        "sizeBytes": len(frame),
+        "frameSha256": row["frameSha256"],
         "crcValid": True,
-        "self": own,
-        "dataEndBit": data_end,
+        "self": row["self"],
+        "dataEndBit": row["dataEndBit"],
         "entries": entries,
         "entryName": selected["name"],
         "entryNameHasTerminator": selected["nameHasTerminator"],
-        "parent": parent,
-        "reactors": reactor_handles,
-        "xdictionary": xdictionary,
+        "parent": row["owner"],
+        "reactors": row["reactors"],
+        "xdictionary": row["xdict"],
         "itemHandle": selected["handle"],
         "cloningField": None,
-        "eed": eed,
-        "paddingBits": len(frame) * 8 - bits.position,
+        "eed": row["eed"],
+        "paddingBits": row["paddingBits"],
     }
     return proof, frame
 

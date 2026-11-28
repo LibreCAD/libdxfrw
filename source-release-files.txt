@@ -1341,6 +1341,7 @@ tools/research/generate_wide_dictionary_xrecord_control.py
 tools/research/inspect_mtext_field_freecad.FCMacro
 tools/research/inventory_cover_peer_body_handles.py
 tools/research/lc3_spline_builder_removal_asan.cpp
+tools/research/legacy_dwg_dictionary_wire.py
 tools/research/librecad3-point-layer-merge-2026-11-27.patch
 tools/research/mutate_ac1024_header_suffix_traced.py
 tools/research/objectarx_witness.lsp
@@ -1407,6 +1408,7 @@ tools/research/tablegeometry_dwg_span_scan.cpp
 tools/research/tablegeometry_physical_span_verify.py
 tools/research/test_decode_dxf_sat1.py
 tools/research/test_freecad_candidate_gui_diagnostics.py
+tools/research/test_legacy_dwg_dictionary_wire.py
 tools/research/verify_ac1018_mline_source.py
 tools/research/verify_ac1021_field_oda_resave.py
 tools/research/verify_ac1021_metric_field_spans.py

@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-shared-dictionary-wire-2026-11-28",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "40e3b464bdc459a1e852d2f045bc01bc6eb44f38021bcf6a8799a14273c3d7e6",
+  "scope": "Research-tool consolidation for selected plain R13/R14/R2000 DICTIONARY frames; no library parser or encoder changes.",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1 and 20.4.44; selected source and synthetic controls do not resolve native cloning semantics.",
+  "checks": [
+    "The shared walker bounds the frame, checks its version, unique traced identity, object size and CRC, then checks the version-specific dictionary body, EED, handle roles, names and alignment.",
+    "Six locally generated R13, R14 and R2000 inputs from independent runs produced identical DWG hashes and identical wire observations before and after the consolidation, including cloning 0 and 1 controls.",
+    "The generated AC1012 two-element pair's populated root audit is byte-for-byte identical before and after the consolidation, including wrong-role rejection and corrected retry. The selected entity audit also passes.",
+    "The new fast CTest covers the three version profiles, wrong-version layout, malformed CRC, size, truncation and duplicate trace, wrong parent, extension and item roles, model mismatch and valid retry.",
+    "No generated drawing is committed; source-release inventory and self-test pass."
+  ],
+  "sha256": {
+    "sharedWalker": "4b80bc48bc7f90537358d17819f7508ae442e7b1e8f5544e140063ea89e309bb",
+    "controls": "4c8b92ede759a1d7c35be288d45ad47642ba86fca48cdc2474e2c0851ca39762",
+    "rootAudit": "6b9f68e4e50c27539614cd44424225966a46c45b4c550c5a47ffd4dadd65693b",
+    "entityAudit": "00504f8e39428fd921c8d8eb5466976c663d94611404f22ea6a73b23615fdd08"
+  },
+  "limits": [
+    "The walker handles only the bounded plain dictionary profiles; DICTIONARYWDFLT's observed legacy subclass fields are not generalized here.",
+    "This refactor does not qualify native AutoCAD opening, duplicate-record merge behavior, legacy strict output, whole-source graph closure or general DWG support."
+  ]
+}

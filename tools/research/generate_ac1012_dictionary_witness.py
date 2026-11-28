@@ -12,15 +12,14 @@ import hashlib
 import json
 from pathlib import Path
 import plistlib
-import re
 import shutil
 import subprocess
 import tempfile
 
 from audit_dxf_dictionary_cloning import audit_bytes
-from audit_ac1024_sortents_boundary import Bits as SharedBits, crc16
+from audit_ac1024_sortents_boundary import crc16
+from legacy_dwg_dictionary_wire import Bits, VERSIONS, decode_dictionary_frame, locate_object_frame
 
-VERSIONS = {"r13": b"AC1012", "r14": b"AC1014", "r2000": b"AC1015"}
 SENTINEL = b"destination must survive failed conversion\n"
 
 
@@ -47,68 +46,14 @@ def executable_identity(name: str) -> dict:
     return {"path": str(path), "sha256": sha(path.read_bytes())}
 
 
-class Bits(SharedBits):
-    @property
-    def position(self) -> int:
-        return self.bit
-
-    def little(self, n: int) -> int:
-        return sum(self.take(8) << (8 * i) for i in range(n))
-
-    def handle(self, role: int, base: int = 0, own: bool = False) -> dict:
-        actual, length, value = super().handle()
-        if own:
-            require(actual == 0 and value != 0, "invalid self handle")
-        elif actual == 0 and length == 0:
-            pass
-        elif actual == role:
-            pass
-        elif role == 4 and actual in (6, 8, 10, 12):
-            require(actual not in (6, 8) or length == 0, "invalid relative handle width")
-            delta = 1 if actual in (6, 8) else value
-            value = base + delta if actual in (6, 10) else base - delta
-            require(0 <= value <= 0xFFFFFFFF, "relative handle overflow")
-        else:
-            raise ValueError(f"invalid handle role {actual} expected {role}")
-        return {"role": actual, "length": length, "value": value}
-
-
 def observe_dictionary(frame: bytes, version: str, expected_self: int) -> dict:
     """Walk the observed empty DICTIONARY using ODA v5.4.1 sections 20.1/20.4.44."""
-    bits = Bits(frame)
-    require(bits.bs() == 42, "wrong object type")
-    boundary = bits.little(4) if version == "r2000" else None
-    own = bits.handle(0, own=True)
-    require(own["value"] == expected_self, "self handle mismatch")
-    eed = []
-    while True:
-        length = bits.bs()
-        if not length:
-            break
-        require(length <= 1024 and len(eed) < 32, "EED limit")
-        app = bits.handle(5)
-        raw = bytes(bits.take(8) for _ in range(length))
-        eed.append({"appid": app, "rawHex": raw.hex()})
-    if boundary is None:
-        boundary = bits.little(4)
-    reactors = bits.bl()
-    count = bits.bl()
-    require(reactors <= 8 and count == 0, "expected bounded empty dictionary")
-    if version == "r14":
-        require(bits.take(8) == 0, "unexpected R14-only byte")
-    cloning = bits.bs() if version == "r2000" else None
-    hard_owner = bits.take(8) if version == "r2000" else None
-    require(bits.position == boundary, "dictionary data/handle boundary mismatch")
-    owner = bits.handle(4, expected_self)
-    handles = [bits.handle(4, expected_self) for _ in range(reactors)]
-    xdict_offset = bits.position
-    xdict = bits.handle(3, expected_self)
-    require(len(frame) * 8 - bits.position < 8, "unexpected trailing data")
-    return {"dataBits": boundary, "cloning": cloning, "hardOwner": hard_owner,
-            "owner": owner, "reactors": handles, "xdict": xdict,
-            "xdictBitOffset": xdict_offset,
-            "eed": eed, "paddingBits": len(frame) * 8 - bits.position,
-            "frameSha256": sha(frame), "frameHex": frame.hex()}
+    row = decode_dictionary_frame(frame, version, expected_self, expected_entries={})
+    return {"dataBits": row["dataEndBit"], "cloning": row["cloning"], "hardOwner": row["hardOwner"],
+            "owner": row["owner"], "reactors": row["reactors"], "xdict": row["xdict"],
+            "xdictBitOffset": row["xdictBitOffset"],
+            "eed": [{"appid": e["appid"], "rawHex": e["hex"]} for e in row["eed"]],
+            "paddingBits": row["paddingBits"], "frameSha256": row["frameSha256"], "frameHex": frame.hex()}
 
 
 def model_and_frame(dwgread: str, path: Path, expected_version: str) -> dict:
@@ -126,18 +71,9 @@ def model_and_frame(dwgread: str, path: Path, expected_version: str) -> dict:
     require(rows[0]["ownerhandle"][-1] == nod["handle"][-1], "owner mismatch in peer model")
     trace = run([dwgread, "-v4", str(path)])
     text = (trace.stdout + trace.stderr).decode(errors="replace")
-    blocks = re.split(r"(?=Object number:)", text)
-    pattern = re.compile(r"\bhandle: 0\.[0-9]+\." + format(target, "X") + r"\s")
-    selected = [block for block in blocks if pattern.search(block)]
-    require(len(selected) == 1, "peer trace does not identify one source frame")
-    match = re.search(r"Size: (\d+) \[MS\], Type: 42 \[BS\], Address: (\d+)", selected[0])
-    require(match is not None, "source frame location missing")
-    size, address = map(int, match.groups())
-    require(size < 0x8000 and address >= 2 and address + size + 2 <= len(data), "frame out of bounds")
-    require(data[address - 2:address] == size.to_bytes(2, "little"), "unexpected object size encoding")
-    require(int.from_bytes(data[address + size:address + size + 2], "little")
-            == crc16(data[address - 2:address + size]), "object CRC mismatch")
-    proof = observe_dictionary(data[address:address + size], expected_version, target)
+    address, frame = locate_object_frame(data, text, expected_version, target, 42)
+    size = len(frame)
+    proof = observe_dictionary(frame, expected_version, target)
     require(proof["owner"]["value"] == nod["handle"][-1], "wire owner mismatch")
     require(proof["xdict"]["value"] == 0, "unexpected extension dictionary")
     return {"path": str(path), "sha256": sha(data), "sourceHandle": target,
