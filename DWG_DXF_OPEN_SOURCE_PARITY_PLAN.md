@@ -55,8 +55,9 @@ below is still open, and its linked evidence defines the present boundary.
 4. **Graph edits and wide identities.** Complete associative HATCH edit and
    graph handling beyond the [selected deassociation, copy and unidentified-boundary guard](docs/research/p8d-librecad-hatch-unidentified-boundaries-2026-11-28.json).
    Use the [staged line-loop graph check](docs/research/p8d-hatch-staged-association-2026-11-28.json)
-   as an output prerequisite: retain per-loop source identities, match live
-   geometry and owners, handle copies and edits, then bind the check to consumer
+   as an output prerequisite. The [per-loop source identities](docs/research/p8d-librecad-hatch-source-loops-2026-11-28.json)
+   retain input order, but reconstructed loops may differ; match live geometry
+   and owners, handle copies and edits, then bind the check to consumer
    finalization. Preserve explicit deassociation outside the verified profile;
    the staged check alone does not establish consumer association support.
    Preserve refusal for unresolved reactors and advanced-object graphs until

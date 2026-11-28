@@ -1,0 +1,30 @@
+{
+  "kind": "librecad-hatch-source-loop-identity-evidence",
+  "date": "2026-11-28",
+  "consumerCommit": "acb23b37cea0f0d2fe927e7f2e0f5ecf0cf4c082",
+  "codecCommit": "e7e40c6ec",
+  "profile": "DXF associative HATCH source-loop handles in original input order, including multiple handles in a loop and cloning",
+  "checks": {
+    "bundledCodec": {
+      "assertions": 192,
+      "cases": 3,
+      "result": "pass",
+      "logSha256": "7049a530ac8e4e327454ecef6f3278436df0b27e88dd82b9ac65f108b4d42d37"
+    },
+    "systemCodec": {
+      "assertions": 197,
+      "cases": 3,
+      "result": "pass",
+      "note": "Existing test executable compiled against previous compatible installed headers; dyld confirmed current codec library loaded.",
+      "codecLibrarySha256": "7092297d09ff22726d87eb3979a278df69cb798d469239f79d98a3b96b98749a",
+      "logSha256": "802957a1bb4b3724df6555d4164408fc7b993098d26ebbac7964884405515218"
+    }
+  },
+  "limits": [
+    "Provenance records raw input order; validation can reorder, merge, drop, or modify loops.",
+    "No association replay is authorized; current export retains deassociation and loss reports.",
+    "Native edit semantics, graph closure, source authenticity and cross-platform qualification remain open."
+  ],
+  "fixtures": "Locally generated text, no drawing files committed",
+  "supportClaimsPromoted": false
+}
