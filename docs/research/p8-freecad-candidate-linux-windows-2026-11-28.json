@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-candidate-linux-windows-2026-11-28",
+  "supportClaimEffect": "none",
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/46113790869",
+  "qualificationToolsCommit": "1fb791ec080e71ac44bbd7d87b99920030562339",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "25 ordered local patches",
+  "results": {
+    "ubuntu-24.04": {
+      "testsRun": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "receiptSha256": "0139ca9f7b2038458adddb4f5d888c79bfcf8627be1da6033c93f7e52ea4a4af",
+      "artifact": "freecad-candidate-ubuntu-24.04-46113790869-1"
+    },
+    "windows-2022": {
+      "testsRun": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "receiptSha256": "481aca576e301a7200f7415dfc298481be8075a116a7dc61ae41a38af1de1127",
+      "artifact": "freecad-candidate-windows-2022-46113790869-1"
+    }
+  },
+  "limits": [
+    "Headless candidate build and selected importer tests only; neither native GUI nor released FreeCAD package qualification.",
+    "The candidate is not an upstream FreeCAD contribution; layer visibility, fused shapes, independent producers and broader support remain open.",
+    "Later modifications affecting the candidate require requalification."
+  ]
+}
