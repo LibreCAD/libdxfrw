@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-simple-hatch-association-replay-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "bf689414",
+  "codecCommit": "f5eba6d44",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "scope": "Checked replay for one unchanged solid HATCH and one closed, straight LWPOLYLINE in bounded ASCII AC1024 model space.",
+  "checks": [
+    "Bind physical source bytes, source owner, geometry and reciprocal handles; require a simple integer contour and revalidate live identities and geometry at section boundaries and finalization.",
+    "Compose the staged HEADER, TABLES, BLOCKS, ENTITIES and OBJECTS isolation checks with existing image and material observers. Changes detected before finalization refuse atomically; corrected retries succeed.",
+    "A second save after reopen preserves the association and reciprocal reactor. Non-admitted versions, profiles and selected unrelated object families retain deassociation; an existing fixed-structural-handle collision still fails safely.",
+    "System codec: 957 assertions in 7 focused cases, including material/image coexistence, geometry and identity late mutation, destination preservation and retry. Bundled codec: 203 assertions in 3 focused cases.",
+    "Independent ezdxf 1.4.5 audits found matching reciprocal references and model-space ownership with zero errors/fixes in three locally authored outputs and their ODA File Converter 27.1.0 conversions. No DWG/DXF fixture is committed."
+  ],
+  "hashes": {
+    "localSource": "1e24eac2a25d4bf21c1ba1cefa7f81bd3fde4fdd91e8337d5db62d4d95c08f55",
+    "systemTestLog": "7330633bb9bd24b0cbc283030bcb936454ee741e58f8ee46080d831a476b98fc",
+    "bundledTestLog": "dbebe425b46e02952aae7b258d1a941d6ccc2ebc95921d77fbb00d15473fbc0e",
+    "ezdxfAudit": "05cdaf98b8df80e62a32ff1539f0ba2422f8a7b592e013178bfac3eb2954aa8b"
+  },
+  "limits": [
+    "At most 64 KiB source capture; one solid straight loop, integral coordinates bounded by one million, at most 4096 edges, and the exact known source/output graph profile.",
+    "This does not qualify edits to the loop, general HATCH associations, arbitrary object graphs, native GUI behavior or other producers. Later unqualified metadata changes may still cause safe transactional refusal.",
+    "No native AutoCAD cloning semantics or general DWG/DXF support claim follows."
+  ]
+}

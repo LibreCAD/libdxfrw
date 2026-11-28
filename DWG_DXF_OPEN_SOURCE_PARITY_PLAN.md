@@ -54,38 +54,7 @@ below is still open, and its linked evidence defines the present boundary.
    `$PELLIPSE`, `$TEXTQLTY`, field presence and extension semantics using
    [versioned authority](docs/research/p8d-r14-display-header-authority-2026-11-26.json)
    and native evidence. Retain unsupported-field and nonzero PELLIPSE refusals.
-4. **Graph edits and wide identities.** Complete associative HATCH edit and
-   graph handling beyond the [selected deassociation, copy and unidentified-boundary guard](docs/research/p8d-librecad-hatch-unidentified-boundaries-2026-11-28.json).
-   Use the [staged line-loop graph check](docs/research/p8d-hatch-staged-association-2026-11-28.json)
-   as an output prerequisite. The [staged entity isolation check](docs/research/p8d-hatch-staged-entity-isolation-2026-11-28.json)
-   also rejects unexpected selected-handle references in its narrow BLOCKS/ENTITIES profile.
-   The [HEADER/TABLES/OBJECTS isolation check](docs/research/p8d-hatch-staged-other-section-isolation-2026-11-28.json)
-   covers selected fields in those staged sections. [Documented SNAPISOPAIR, simple linetypes and scalar PLOTSETTINGS](docs/research/p8d-hatch-isolation-librecad-defaults-2026-11-28.json)
-   cover the observed LibreCAD defaults. The [exact DIMTALN trailer check](docs/research/p8d-hatch-dimtaln-isolation-2026-11-28.json)
-   admits only the modeled two-integer form. Bind emitted identities
-   early, compose all section observers and revalidate live state at finalization.
-   [HEADER and TABLES hooks are composable](docs/research/p8d-hatch-header-table-inspector-composition-2026-11-28.json);
-   connect the HATCH checks without replacing existing material or image checks.
-   The [per-loop source identities](docs/research/p8d-librecad-hatch-source-loops-2026-11-28.json)
-   retain input order. Use the [live geometry matcher](docs/research/p8d-hatch-live-geometry-2026-11-28.json)
-   for its one-straight-loop profile. [Decoded owner candidates and geometry snapshots](docs/research/p8d-dxf-owner-candidate-snapshot-2026-11-28.json)
-   reject duplicate identities and overflow. The selected [source-role observer](docs/research/p8d-hatch-observed-source-roles-2026-11-28.json)
-   checks one ASCII HATCH/polyline pair; its entity groups are [bound to retained source bytes](docs/research/p8d-hatch-source-byte-binding-2026-11-28.json).
-   One [local model-space drawing and ODA peer](docs/research/p8d-hatch-local-model-space-peer-2026-11-28.json)
-   audit clean. A [bounded model-space source check](docs/research/p8d-hatch-model-space-source-2026-11-28.json)
-   binds the selected AC1024 HEADER/version and ownership profile to retained
-   bytes. The [source geometry snapshot](docs/research/p8d-hatch-source-geometry-2026-11-28.json)
-   matches the selected physical paths to live geometry. An [explicit handle scan](docs/research/p8d-hatch-source-handle-isolation-2026-11-28.json)
-   checks incoming references to the selected identities; [opaque-source guards](docs/research/p8d-hatch-opaque-source-guards-2026-11-28.json)
-   suppress that evidence for selected unsupported payloads and classes. The
-   [shared HEADER query and observed-field guard](docs/research/p8d-hatch-known-header-fields-2026-11-28.json)
-   also refuse unknown variables, custom properties and unrecognized field
-   codes, including [unprefixed aliases](docs/research/p8d-hatch-header-alias-guard-2026-11-28.json). Finish per-field semantic closure, copy/identity checks and staged
-   finalization with late-edit revalidation before enabling replay.
-   The [composed entity inspector](docs/research/p8d-entity-inspector-composition-2026-11-28.json)
-   provides the common hook for binding the check to consumer finalization.
-   Preserve explicit deassociation outside the verified profile;
-   the staged check alone does not establish consumer association support.
+4. **Graph edits and wide identities.** Extend the [checked simple HATCH replay](docs/research/p8d-librecad-simple-hatch-association-replay-2026-11-28.json) beyond one unchanged solid integer contour. Qualify edits, copying, per-field semantics, other source and output profiles, and native behavior; retain deassociation for unqualified cases and compose existing material/image checks. Fix the existing fixed-structural-handle collision in source entity mapping with unambiguous source identity and reference proof; retain atomic refusal and corrected retry.
    Preserve refusal for unresolved reactors and advanced-object graphs until
    their target identities and output closure are proved. Extend the [wide XRECORD route](docs/research/p7-wide-dxf-cross-encoding-2026-11-27.json)
    beyond its eight chains, selected roles and safe text only after source,
