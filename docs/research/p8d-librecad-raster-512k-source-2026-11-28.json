@@ -1,0 +1,67 @@
+{
+  "date": "2026-11-28",
+  "scope": "Selected same-version LibreCAD system-codec DXF raster source capture, not general DXF or DWG parity",
+  "librecadCommit": "4e602e8ec1ddf8833e5b7bf624d004691a7f9298",
+  "codecImplementationDigest": "af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea",
+  "host": "macOS ARM64",
+  "testBinarySha256": "4eba4782dfb2700afe2e9c9bc09e24bfd69c96cc580a6d6728ea8cccd558e1fb",
+  "policy": {
+    "rasterOnlySourceFileMaximumBytes": 524288,
+    "materialOrMixedSourceFileMaximumBytes": 262144,
+    "rasterAggregateLogicalRetainedBytes": 4194304,
+    "rasterSourcesPerKind": 512,
+    "imageDefGroupLimit": 640,
+    "imageGroupLimit": 542,
+    "memoryQualification": "Logical retained raster-source charge, not a bound on total process memory; root and group capture remain individually bounded."
+  },
+  "locallyGeneratedEvidence": {
+    "version": "AC1024",
+    "images": 512,
+    "definitions": 256,
+    "reactors": 512,
+    "sourceBytes": 273208,
+    "sourceSha256": "e270c01c9a0a81812b538018e87bb41364b0f4d51ebc952982e880664cfa1299",
+    "outputSha256": "c0d0c890a7f437841144167c7fa50d18ad478311ebb6c9b38eb3363a819870e0",
+    "independentReader": "ezdxf 1.4.5",
+    "independentChecks": "Matching image and definition fields, clipping paths, dictionary and model owners, reactor identities and definition back-references; both audits clean.",
+    "provenance": "Generated locally from scratch; scratch DXF files were not committed."
+  },
+  "focusedChecks": [
+    {
+      "name": "Image source file-size guard",
+      "assertions": 42,
+      "result": "pass",
+      "details": "Exact 512 KiB accepted; 512 KiB + 1 refused with destination unchanged; same-filter corrected retries; 512 distinct definitions refused by retained-source checks; mixed larger raster/material refused and retry succeeds."
+    },
+    {
+      "name": "Ambiguous AC1024 default material",
+      "assertions": 604,
+      "result": "pass"
+    },
+    {
+      "name": "Shared logical raster-source budget",
+      "assertions": 1036,
+      "result": "pass"
+    },
+    {
+      "name": "512-image source graphs",
+      "assertions": 188,
+      "result": "pass"
+    },
+    {
+      "name": "Bounded multi-image definition graphs",
+      "assertions": 16010,
+      "result": "pass"
+    },
+    {
+      "name": "Bundled-codec filter compile check",
+      "result": "pass"
+    }
+  ],
+  "limits": [
+    "512 distinct IMAGEDEFs are not admitted by this control.",
+    "Input files over 512 KiB, mixed raster/material files over 256 KiB, and graphs exceeding existing source budgets remain refused.",
+    "No native GUI, Linux/Windows or other version qualification is inferred from this slice.",
+    "Hosted CI for the new LibreCAD head remains pending."
+  ]
+}
