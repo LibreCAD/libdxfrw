@@ -1,0 +1,15 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-p6-ucs-reader-digest-refresh-2026-11-27",
+  "supportClaimEffect": "none",
+  "implementationCommit": "0b9dc14a3",
+  "previousDigest": "b36fd3a17b58efdc525efb593428c3837a281aa284852a0dde450099a694cafd",
+  "implementationDigestSha256": "78a97c9f6bff446e0b7adda19e7dfd23c8ed6a188d9a7f563596bb4bbd170695",
+  "inputCount": 784,
+  "checks": [
+    "Clean detached checkout qualification digest, inventory, support status and workflow contract. All 15 claims remain experimental with no advertised routes."
+  ],
+  "limits": [
+    "Current-head hosted and platform qualification is pending; previous receipts bind older implementation digests."
+  ]
+}
