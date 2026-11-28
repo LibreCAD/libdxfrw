@@ -47,6 +47,9 @@ EXTRA_TESTS = {
         "test_block_annotation_shared_graph_budget_and_retry",
         "test_flattened_block_rigid_instances_share_geometry",
         "test_parametric_nested_block_transforms",
+        "test_flattened_nested_block_base_points",
+        "test_parametric_nested_block_base_points",
+        "test_nested_block_annotation_base_points",
     ),
 }
 

@@ -38,6 +38,7 @@ EXTRA_DIST = \
     docs/patches/freecad-p8-3dface-block-layer-report-2026-11-27.patch \
     docs/patches/freecad-p8-block-annotation-budget-2026-11-28.patch \
     docs/patches/freecad-p8-block-annotation-depth-2026-11-28.patch \
+    docs/patches/freecad-p8-block-base-points-2026-11-28.patch \
     docs/patches/freecad-p8-block-geometry-layer-report-2026-11-27.patch \
     docs/patches/freecad-p8-block-original-layer-metadata-2026-11-28.patch \
     docs/patches/freecad-p8-block-recursion-guard-2026-11-28.patch \

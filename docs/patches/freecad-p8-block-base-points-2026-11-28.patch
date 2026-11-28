@@ -1,0 +1,157 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -740,0 +741 @@
++    Base::Vector3d m_blockBasePoint;  // Base point of the BLOCK currently being read
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2898,0 +2899,2 @@
++    m_blockBasePoint = Base::Vector3d();
++    Setup3DVectorAttribute(ePrimaryPoint, m_blockBasePoint);
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.h b/src/Mod/Import/App/dxf/ImpExpDxf.h
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -261 +261 @@
+-        Block(const std::string& name, int flags)
++        Block(const std::string& name, int flags, const Base::Vector3d& basePoint)
+@@ -263,0 +264 @@
++            , BasePoint(basePoint)
+@@ -266,0 +268 @@
++        const Base::Vector3d BasePoint;
+@@ -439,0 +442,3 @@
++                            Base::Matrix4D baseAdjustment;
++                            baseAdjustment.move(-blk.BasePoint);
++                            const Base::Matrix4D blockTransform = transform * baseAdjustment;
+@@ -444 +449 @@
+-                                    App::FeaturePython* feature = builder(transform);
++                                    App::FeaturePython* feature = builder(blockTransform);
+@@ -471 +476 @@
+-                                        transform * nestedMatrix,
++                                        blockTransform * nestedMatrix,
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -643,0 +644,10 @@
++    if (!finalShape.IsNull() &&
++        (blockData.BasePoint.x != 0 || blockData.BasePoint.y != 0 || blockData.BasePoint.z != 0)) {
++        Part::TopoShape normalized(finalShape);
++        Base::Matrix4D baseAdjustment;
++        baseAdjustment.move(-blockData.BasePoint);
++        normalized.transformShape(baseAdjustment, false, true);
++        // Keep the translated shape inside an identity-location compound: an
++        // App::Link with LinkTransform disabled ignores its feature placement.
++        finalShape = CombineShapesToCompound({normalized.getShape()});
++    }
+@@ -721 +731 @@
+-                    nestedInsert.Point,
++                    nestedInsert.Point - blockData.BasePoint,
+@@ -798,0 +809,4 @@
++                auto* feature = static_cast<Part::Feature*>(newObject);
++                Base::Placement placement = feature->Placement.getValue();
++                placement.setPosition(placement.getPosition() - blockData.BasePoint);
++                feature->Placement.setValue(placement);
+@@ -948 +962 @@
+-    auto& temporaryBlock = Blocks.emplace(std::make_pair(name, Block(name, flags))).first->second;
++    auto& temporaryBlock = Blocks.emplace(std::make_pair(name, Block(name, flags, m_blockBasePoint))).first->second;
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1222,0 +1223,97 @@
++    def _assert_nested_block_base_points(self, mode):
++        """Place nested block geometry relative to each block base point."""
++        options = FreeCAD.ParamGet(self.option_source)
++        options.SetInt("DxfImportMode", mode)
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                (0, "BLOCK"), (8, "0"), (2, "INNER"), (70, 0), (10, 1), (20, 1), (30, 0),
++                (0, "LINE"), (8, "0"), (10, 1), (20, 1), (30, 0), (11, 2), (21, 2), (31, 0),
++                (0, "ENDBLK"), (8, "0"),
++                (0, "BLOCK"), (8, "0"), (2, "OUTER"), (70, 0), (10, 5), (20, 4), (30, 0)]
++        for x, y, rotation, sx, sy, sz in ((10, 0, 0, 1, 1, 1), (0, 10, 90, 1, 1, 1),
++                                            (20, 0, 0, 2, 2, 2), (30, 0, 0, 2, 3, 1),
++                                            (40, 0, 0, -1, 1, 1), (50, 0, 90, 2, 3, 1)):
++            tags.extend([(0, "INSERT"), (8, "0"), (2, "INNER"), (10, x), (20, y), (30, 0),
++                         (41, sx), (42, sy), (43, sz), (50, rotation)])
++        tags.extend([(0, "ENDBLK"), (8, "0"), (0, "ENDSEC"),
++                     (0, "SECTION"), (2, "ENTITIES"),
++                     (0, "INSERT"), (8, "0"), (2, "OUTER"), (10, 0), (20, 0), (30, 0),
++                     (0, "INSERT"), (8, "0"), (2, "INNER"), (10, 100), (20, 100), (30, 0),
++                     (0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "shared-rigid-blocks.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        previous = set(self.document.Objects)
++        Import.readDXF(path, self.document.Name, True, self.option_source)
++        self.document.recompute()
++        added = [obj for obj in self.document.Objects if obj not in previous]
++        outer = [obj for obj in added if obj.Name.startswith("Link_OUTER")]
++        inner = [obj for obj in added if obj.Name.startswith("Link_INNER") and obj.Label == "INNER"]
++        self.assertEqual(len(outer), 1)
++        self.assertEqual(len(inner), 1)
++        edges = outer[0].Shape.Edges
++        self.assertEqual(len(edges), 6)
++        def endpoints(edge):
++            return tuple(sorted((round(v.Point.x, 7), round(v.Point.y, 7), round(v.Point.z, 7))
++                                for v in edge.Vertexes))
++        expected = [((5, -4, 0), (6, -3, 0)), ((-6, 7, 0), (-5, 6, 0)),
++                    ((15, -4, 0), (17, -2, 0)), ((25, -4, 0), (27, -1, 0)),
++                    ((34, -3, 0), (35, -4, 0)), ((42, -2, 0), (45, -4, 0))]
++        self.assertEqual(sorted(endpoints(edge) for edge in edges), sorted(expected))
++        self.assertEqual(endpoints(inner[0].Shape.Edges[0]), ((100, 100, 0), (101, 101, 0)))
++        if mode == 3:
++            shared = {endpoints(edge) for edge in edges if edge.isPartner(inner[0].Shape.Edges[0])}
++            self.assertEqual(shared, {expected[0], expected[1]})
++
++    def test_flattened_nested_block_base_points(self):
++        self._assert_nested_block_base_points(3)
++
++    def test_parametric_nested_block_base_points(self):
++        self._assert_nested_block_base_points(2)
++
++    def test_nested_block_annotation_base_points(self):
++        """Nested annotations use each definition's base before its INSERT transform."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
++        calls = []
++        def make_text(text, placement, *args):
++            calls.append((text, placement.Base))
++            return self.document.addObject("App::FeaturePython", "BaseTextWitness")
++        draft.make_text = make_text
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            options = FreeCAD.ParamGet(self.option_source)
++            options.SetBool("dxftext", True)
++            tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                    (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                    (0, "BLOCK"), (8, "0"), (2, "INNER"), (70, 0), (10, 1), (20, 2), (30, 0),
++                    (0, "LINE"), (8, "0"), (10, 1), (20, 2), (30, 0), (11, 2), (21, 2), (31, 0),
++                    (0, "TEXT"), (8, "0"), (10, 4), (20, 6), (30, 0), (40, 1), (1, "BASE"),
++                    (0, "ENDBLK"), (8, "0"),
++                    (0, "BLOCK"), (8, "0"), (2, "OUTER"), (70, 0), (10, 5), (20, 6), (30, 0),
++                    (0, "INSERT"), (8, "0"), (2, "INNER"), (10, 10), (20, 20), (30, 0),
++                    (41, 2), (42, 3), (43, 1), (50, 90), (0, "ENDBLK"), (8, "0"),
++                    (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                    (0, "INSERT"), (8, "0"), (2, "OUTER"), (10, 100), (20, 200), (30, 0),
++                    (0, "ENDSEC"), (0, "EOF")]
++            path = os.path.join(self.temp_dir, "nested-base-text.dxf")
++            with open(path, "w", encoding="ascii", newline="\n") as stream:
++                stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++            for mode in (2, 3):
++                with self.subTest(mode=mode):
++                    options.SetInt("DxfImportMode", mode)
++                    calls.clear()
++                    Import.readDXF(path, self.document.Name, True, self.option_source)
++                    self.assertEqual(len(calls), 1)
++                    self.assertEqual(calls[0][0], "BASE")
++                    self.assertAlmostEqual(calls[0][1].x, 93)
++                    self.assertAlmostEqual(calls[0][1].y, 220)
++                    self.assertAlmostEqual(calls[0][1].z, 0)
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
++
