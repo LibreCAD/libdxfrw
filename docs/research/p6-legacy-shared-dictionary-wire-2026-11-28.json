@@ -8,13 +8,16 @@
   "checks": [
     "The shared walker bounds the frame, checks its version, unique traced identity, object size and CRC, then checks the version-specific dictionary body, EED, handle roles, names and alignment.",
     "Six locally generated R13, R14 and R2000 inputs from independent runs produced identical DWG hashes and identical wire observations before and after the consolidation, including cloning 0 and 1 controls.",
+    "Additional locally generated populated R14 and R2000 dictionaries each retain the three expected names and soft-owner handles; the walker observes the R14 cloning field absent and the R2000 field equal to 1. Their frame bodies are included in the fast controls, with wrong-role and corrected-retry checks for each version.",
     "The generated AC1012 two-element pair's populated root audit is byte-for-byte identical before and after the consolidation, including wrong-role rejection and corrected retry. The selected entity audit also passes.",
     "The new fast CTest covers the three version profiles, wrong-version layout, malformed CRC, size, truncation and duplicate trace, wrong parent, extension and item roles, model mismatch and valid retry.",
     "No generated drawing is committed; source-release inventory and self-test pass."
   ],
   "sha256": {
     "sharedWalker": "4b80bc48bc7f90537358d17819f7508ae442e7b1e8f5544e140063ea89e309bb",
-    "controls": "4c8b92ede759a1d7c35be288d45ad47642ba86fca48cdc2474e2c0851ca39762",
+    "controls": "53bd187ab2e175e8fdf40b8765ea79ad3797ae1d36c473d38c9874f3b925e80a",
+    "populatedR14Dwg": "28a5916ed0477135db14130881a3dd6fe076debf8acde407caa238b109194edd",
+    "populatedR2000Dwg": "1df74e74c0ba135ebaa9c78d3ac0f094fe9a03d4a2a3265dc78459095bfe8cdd",
     "rootAudit": "6b9f68e4e50c27539614cd44424225966a46c45b4c550c5a47ffd4dadd65693b",
     "entityAudit": "00504f8e39428fd921c8d8eb5466976c663d94611404f22ea6a73b23615fdd08"
   },

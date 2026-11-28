@@ -12,9 +12,14 @@ EMPTY = {
     "r14": "4a804be5000000040600c123410c30",
     "r2000": "4a96800000004be40640403048d0430c00",
 }
-POPULATED = bytes.fromhex(
-    "4a8045e36010000405034214dd185b99185c9910853414d455f4b455942511154d517d3d393167"
-    "042d0430c0846084b884bc")
+POPULATED = {
+    "r13": bytes.fromhex("4a8045e36010000405034214dd185b99185c9910853414d455f4b455942511154d517d3d393167"
+                         "042d0430c0846084b884bc"),
+    "r14": bytes.fromhex("4a8045e5601000040503004254dd185b99185c990010953414d455f4b45590042911154d517d3d393164"
+                         "03042d0430c0846084b884bc"),
+    "r2000": bytes.fromhex("4a980040000045e4050340401095374616e64617264004254d0535157d2d1564010a444553545f4f4e4c"
+                           "5900c10b410c302118212e212f"),
+}
 ENTRIES = {"Standard": 24, "SAME_KEY": 46, "DEST_ONLY": 47}
 
 
@@ -40,25 +45,29 @@ class LegacyDictionaryWireTests(unittest.TestCase):
             decode_dictionary_frame(bytes.fromhex(EMPTY["r13"]), "r14", 0x2F, expected_entries={})
 
     def test_populated_roles_and_retry(self):
-        row = decode_dictionary_frame(POPULATED, "r13", 23, expected_entries=ENTRIES)
-        self.assertEqual(row["dataEndBit"], 310)
-        self.assertEqual([entry["handle"]["value"] for entry in row["entries"]], [24, 46, 47])
-        # Parent role, xdictionary role, and first entry role are distinct.
-        for bit in (row["dataEndBit"] + 3, row["xdictBitOffset"] + 3,
-                    row["xdictBitOffset"] + 8 + 3):
-            with self.subTest(bit=bit), self.assertRaises(ValueError):
-                decode_dictionary_frame(flip(POPULATED, bit), "r13", 23, expected_entries=ENTRIES)
-        with self.assertRaises(ValueError):
-            decode_dictionary_frame(POPULATED, "r13", 23, expected_entries={**ENTRIES, "SAME_KEY": 45})
-        self.assertEqual(decode_dictionary_frame(POPULATED, "r13", 23, expected_entries=ENTRIES), row)
+        for version, frame in POPULATED.items():
+            with self.subTest(version=version):
+                row = decode_dictionary_frame(frame, version, 23, expected_entries=ENTRIES)
+                self.assertEqual(row["dataEndBit"], {"r13": 310, "r14": 342, "r2000": 352}[version])
+                self.assertEqual(row["cloning"], 1 if version == "r2000" else None)
+                self.assertEqual([entry["handle"]["value"] for entry in row["entries"]], [24, 46, 47])
+                # Parent role, xdictionary role, and first entry role are distinct.
+                for bit in (row["dataEndBit"] + 3, row["xdictBitOffset"] + 3,
+                            row["xdictBitOffset"] + 8 + 3):
+                    with self.subTest(bit=bit), self.assertRaises(ValueError):
+                        decode_dictionary_frame(flip(frame, bit), version, 23, expected_entries=ENTRIES)
+                with self.assertRaises(ValueError):
+                    decode_dictionary_frame(frame, version, 23, expected_entries={**ENTRIES, "SAME_KEY": 45})
+                self.assertEqual(decode_dictionary_frame(frame, version, 23, expected_entries=ENTRIES), row)
 
     def test_frame_locator_refuses_corruption_and_ambiguous_trace(self):
-        prefix = len(POPULATED).to_bytes(2, "little")
-        payload = prefix + POPULATED
+        frame = POPULATED["r13"]
+        prefix = len(frame).to_bytes(2, "little")
+        payload = prefix + frame
         data = b"AC1012" + payload + crc16(payload).to_bytes(2, "little")
-        trace = (f"Object number: 0/0, Size: {len(POPULATED)} [MS], Type: 42 [BS], Address: 8\n"
+        trace = (f"Object number: 0/0, Size: {len(frame)} [MS], Type: 42 [BS], Address: 8\n"
                  "handle: 0.1.17 [H 5]\n")
-        self.assertEqual(locate_object_frame(data, trace, "r13", 23, 42), (8, POPULATED))
+        self.assertEqual(locate_object_frame(data, trace, "r13", 23, 42), (8, frame))
         for invalid_data, invalid_trace, version in (
             (data[:-1], trace, "r13"), (data[:-1] + bytes([data[-1] ^ 1]), trace, "r13"),
             (data[:6] + b"\x00" + data[7:], trace, "r13"), (data, trace + trace, "r13"),
@@ -66,7 +75,7 @@ class LegacyDictionaryWireTests(unittest.TestCase):
         ):
             with self.subTest(version=version), self.assertRaises(ValueError):
                 locate_object_frame(invalid_data, invalid_trace, version, 23, 42)
-        self.assertEqual(locate_object_frame(data, trace, "r13", 23, 42), (8, POPULATED))
+        self.assertEqual(locate_object_frame(data, trace, "r13", 23, 42), (8, frame))
 
 
 if __name__ == "__main__":
