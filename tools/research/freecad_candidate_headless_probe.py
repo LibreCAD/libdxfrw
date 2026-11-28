@@ -58,6 +58,8 @@ EXTRA_TESTS = {
         "test_insert_malformed_normals_are_skipped_and_retry",
         "test_block_text_height_and_transform_loss",
         "test_nested_block_text_shear_is_reported",
+        "test_block_insert_arrays_geometry_and_text",
+        "test_block_insert_array_invalid_then_valid",
     ),
 }
 

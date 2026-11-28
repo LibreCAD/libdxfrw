@@ -92,13 +92,15 @@ below is still open, and its linked evidence defines the present boundary.
 8. **Integration and FreeCAD.** Recheck affected profiles against final heads
    of LibreCAD PR #3289, LibreCAD_3 PRs #460–#463 and the codec. Finish the
    native GUI, Linux/Windows, package and FreeCAD handoff gates. For the local
-   [39-patch FreeCAD draft](docs/research/p8-freecad-block-text-shear-control-2026-11-28.json),
+   [40-patch FreeCAD draft](docs/research/p8-freecad-bounded-minsert-2026-11-28.json),
    preserve named child-layer visibility and color through block composition;
    qualify additional geometry, INSERT/OCS and unit profiles, malformed numeric
    extremes, real producer drawings and actual Draft rendering. TEXT under
    nonuniform, sheared or reflected transforms is still approximate and reported;
    implement a lossless representation only with consumer evidence. Qualify the
-   block annotation depth and visit limits on large producer drawings. Split and
+   block annotation depth and visit limits and aggregate nested-array expansion
+   on large producer drawings; qualify MINSERT attributes, identity and zero-spacing
+   behavior. Split and
    review the candidate, follow FreeCAD's contributor-authored submission policy,
    then freeze it before broad suites and release claims. The 36-patch candidate's
    [Linux and Windows headless run](https://github.com/dxli/libdxfrw/actions/runs/46157961230)
