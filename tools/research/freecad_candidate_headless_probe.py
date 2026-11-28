@@ -50,6 +50,9 @@ EXTRA_TESTS = {
         "test_flattened_nested_block_base_points",
         "test_parametric_nested_block_base_points",
         "test_nested_block_annotation_base_points",
+        "test_flattened_nested_insert_ocs",
+        "test_parametric_nested_insert_ocs",
+        "test_nested_insert_ocs_annotation",
     ),
 }
 

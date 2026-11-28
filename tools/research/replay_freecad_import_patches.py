@@ -76,6 +76,7 @@ EXTRA_PATCHES = {
         "freecad-p8-block-annotation-budget-2026-11-28.patch",
         "freecad-p8-block-transform-sharing-2026-11-28.patch",
         "freecad-p8-block-base-points-2026-11-28.patch",
+        "freecad-p8-insert-ocs-2026-11-28.patch",
     ),
 }
 
