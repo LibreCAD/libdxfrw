@@ -2030,6 +2030,10 @@ set(LIBDXFRW_AC1012_LAYOUT_WIRE_SAMPLE "" CACHE FILEPATH
     "Optional external AC1012 two-LAYOUT source for physical wire controls")
 set(LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE "" CACHE FILEPATH
     "Optional external AC1014 two-LAYOUT source for physical wire controls")
+set(LIBDXFRW_AC1012_BLOCK_PAIR_SOURCE "" CACHE FILEPATH
+    "Optional generated AC1012 collision-pair source for BLOCK_HEADER wire control")
+set(LIBDXFRW_AC1012_BLOCK_PAIR_DESTINATION "" CACHE FILEPATH
+    "Optional generated AC1012 collision-pair destination for BLOCK_HEADER wire control")
 set(LIBDXFRW_AC1014_TABLE_SAMPLE "" CACHE FILEPATH
     "Optional ACadSharp sample_AC1014.dwg for the hash-selected TABLE prefix control")
 set(LIBDXFRW_AC1012_TABLE_SAMPLE "" CACHE FILEPATH
@@ -2068,7 +2072,8 @@ if(LIBDXFRW_AC1014_TABLE_SAMPLE OR LIBDXFRW_AC1012_TABLE_SAMPLE)
     endforeach()
 endif()
 if(LIBDXFRW_AC1014_EXTERNAL_PROFILE OR LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL
-   OR LIBDXFRW_AC1012_LAYOUT_WIRE_SAMPLE OR LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE)
+   OR LIBDXFRW_AC1012_LAYOUT_WIRE_SAMPLE OR LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE
+   OR LIBDXFRW_AC1012_BLOCK_PAIR_SOURCE OR LIBDXFRW_AC1012_BLOCK_PAIR_DESTINATION)
     if(LIBDXFRW_AC1014_EXTERNAL_PROFILE AND NOT EXISTS "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}")
         message(FATAL_ERROR "LIBDXFRW_AC1014_EXTERNAL_PROFILE does not exist")
     endif()
@@ -2085,6 +2090,20 @@ if(LIBDXFRW_AC1014_EXTERNAL_PROFILE OR LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CON
     target_link_libraries(libdxfrw_dwg_ac1014_output_external_tests PRIVATE dxfrw)
     libdxfrw_check_test_adapter_context(libdxfrw_dwg_ac1014_output_external_tests)
     add_dependencies(libdxfrw_dwg_ac1014_output_external_tests dwg2dxf)
+    foreach(_side IN ITEMS SOURCE DESTINATION)
+        set(_block_sample "${LIBDXFRW_AC1012_BLOCK_PAIR_${_side}}")
+        if(_block_sample)
+            if(NOT EXISTS "${_block_sample}")
+                message(FATAL_ERROR "AC1012 BLOCK_HEADER ${_side} sample does not exist")
+            endif()
+            add_test(NAME libdxfrw_AC1012_block_pair_${_side}
+                COMMAND libdxfrw_dwg_ac1014_output_external_tests
+                    --legacy-block-pair-wire "${_block_sample}")
+            set_tests_properties(libdxfrw_AC1012_block_pair_${_side}
+                PROPERTIES LABELS "dwg;block;source;transaction;external;AC1012"
+                TIMEOUT 30)
+        endif()
+    endforeach()
     foreach(_layout_version IN ITEMS AC1012 AC1014)
         set(_layout_sample "${LIBDXFRW_${_layout_version}_LAYOUT_WIRE_SAMPLE}")
         if(_layout_sample)

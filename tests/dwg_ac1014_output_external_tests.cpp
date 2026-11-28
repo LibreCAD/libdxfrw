@@ -1274,6 +1274,39 @@ bool checkLegacyLayoutWire(const std::string& input) {
     return refused && DxIfaceStandardDwgCaptureTestAccess::legacyLayoutWire(data, source);
 }
 
+// A locally generated AC1012 pair has no LAYOUT records. Validate its two
+// source-bound BLOCK_HEADER frames without assuming a layout graph exists.
+bool checkLegacyBlockPairWire(const std::string& input) {
+    dx_iface reader;
+    dx_data data;
+    if (!reader.fileImport(input, &data, false) || data.sourceVersion != DRW::AC1012
+        || data.blockRecords.size() != 2u) return false;
+    const auto source = bytes(input);
+    if (!DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(data, source)
+        || !DxIfaceStandardDwgCaptureTestAccess::legacyBlockWire(data)) return false;
+    const auto model = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
+        [](const DRW_Block_Record& record) { return record.name == "*MODEL_SPACE"; });
+    const auto paper = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
+        [](const DRW_Block_Record& record) { return record.name == "*PAPER_SPACE"; });
+    if (model == data.blockRecords.end() || paper == data.blockRecords.end()
+        || DRW_DwgBlockRecordWireAccess::first(*model) != 0x2cu
+        || DRW_DwgBlockRecordWireAccess::last(*model) != 0x2cu
+        || DRW_DwgBlockRecordWireAccess::first(*paper) != 0u
+        || DRW_DwgBlockRecordWireAccess::last(*paper) != 0u) return false;
+    auto& captured = DxIfaceStandardDwgCaptureTestAccess::blockBytes(data, model->handle);
+    if (captured.empty()) return false;
+    captured.front() ^= 0x80u;
+    const bool rejectedBytes = !DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(data, source);
+    captured.front() ^= 0x80u;
+    auto& generation = DxIfaceStandardDwgCaptureTestAccess::blockGeneration(data, model->handle);
+    generation ^= 1u;
+    const bool rejectedGeneration = !DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(data, source);
+    generation ^= 1u;
+    return rejectedBytes && rejectedGeneration
+        && DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(data, source)
+        && DxIfaceStandardDwgCaptureTestAccess::legacyBlockWire(data);
+}
+
 bool checkLegacyLayoutGraph(const std::string& input) {
     dx_iface adapter;
     dx_data data;
@@ -1644,7 +1677,9 @@ bool generatedR2000DefaultRetry(const std::string& input, const std::filesystem:
 } // namespace
 
 int main(int argc, char** argv) {
-    const bool ok = argc == 3 && std::string(argv[1]) == "--legacy-layout-graph"
+    const bool ok = argc == 3 && std::string(argv[1]) == "--legacy-block-pair-wire"
+        ? checkLegacyBlockPairWire(argv[2])
+        : argc == 3 && std::string(argv[1]) == "--legacy-layout-graph"
         ? checkLegacyLayoutGraph(argv[2])
         : argc == 3 && std::string(argv[1]) == "--legacy-layout-wire"
         ? checkLegacyLayoutWire(argv[2])
