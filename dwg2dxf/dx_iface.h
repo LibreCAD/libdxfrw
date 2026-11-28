@@ -2379,11 +2379,12 @@ public:
                 if (usesAc1027DefaultLayerProfile()) {
                     DRW_Ac1027BoundDictionary projection(*typed);
                     if (!dxfW->writeDictionaryWithDefault(&projection)) return;
-                } else if (cData->sourceVersion == DRW::AC1015
+                } else if ((cData->sourceVersion == DRW::AC1015
+                            || cData->sourceVersion == DRW::AC1024)
                            && m_dwgDictionaryDefaultOutputSources.count(handle) == 1u) {
                     // The source-bound pair must use the documented DXF name;
                     // the legacy alias is not recognized by all DXF readers.
-                    DRW_Ac1015BoundDictionary projection(*typed, dxfW->getVersion());
+                    DRW_SourceBoundDictionary projection(*typed, dxfW->getVersion());
                     if (!dxfW->writeDictionaryWithDefault(&projection)) return;
                 } else if (!dxfW->writeDictionaryWithDefault(typed)) return;
             } else if (m_dxfLayerMaterialState.defaultPlotSourceActive

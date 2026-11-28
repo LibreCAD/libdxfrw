@@ -382,13 +382,20 @@ static bool checkOutput(const std::filesystem::path& input,
         dx_data actual; dx_iface imported;
         if (!imported.fileImport(output.string(), &actual, false)
             || actual.layers.size() != expectedLayers || actual.dictionaryWithDefaults.size() != 1u
-            || actual.rawPlaceholders.size() != 1u || actual.materials.size() != 3u) return false;
+            || actual.rawDictionaryWithDefaults.size() != 1u
+            || actual.rawDictionaryWithDefaults.front().name != "ACDBDICTIONARYWDFLT"
+            || actual.rawPlaceholders.size() != 1u || actual.materials.size() != 3u
+            || !actual.hasNamedObjectDictionary) return false;
         const auto& plot = actual.rawPlaceholders.front();
         const auto& dict = actual.dictionaryWithDefaults.front();
         const auto global = std::find_if(actual.materials.begin(), actual.materials.end(),
             [](const DRW_Material& item) { return item.m_name == "Global"; });
         if (global == actual.materials.end() || dict.m_defaultEntryHandle != plot.handle
-            || plot.parentHandle != dict.handle) return false;
+            || plot.parentHandle != dict.handle
+            || std::count_if(actual.namedObjectDictionary.m_entries.begin(),
+                actual.namedObjectDictionary.m_entries.end(), [&dict](const auto& entry) {
+                    return entry.m_name == "ACAD_PLOTSTYLENAME" && entry.m_handle == dict.handle;
+                }) != 1) return false;
         if (expectedLayers > 2u) {
             const auto style = std::find_if(actual.textStyles.begin(), actual.textStyles.end(),
                 [](const DRW_Textstyle& item) { return item.name == "P6_CUSTOM_TEXT"; });

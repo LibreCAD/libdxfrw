@@ -20,8 +20,8 @@ struct DRW_Ac1027BoundDictionary final : DRW_DictionaryWithDefault {
     explicit DRW_Ac1027BoundDictionary(const DRW_DictionaryWithDefault& source)
         : DRW_DictionaryWithDefault(source) {}
 };
-struct DRW_Ac1015BoundDictionary final : DRW_DictionaryWithDefault {
-    DRW_Ac1015BoundDictionary(const DRW_DictionaryWithDefault& source,
+struct DRW_SourceBoundDictionary final : DRW_DictionaryWithDefault {
+    DRW_SourceBoundDictionary(const DRW_DictionaryWithDefault& source,
                               DRW::Version target)
         : DRW_DictionaryWithDefault(source), targetVersion(target) {}
     DRW::Version targetVersion;
