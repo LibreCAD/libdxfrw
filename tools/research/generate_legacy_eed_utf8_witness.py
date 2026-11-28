@@ -14,55 +14,29 @@ import re
 import tempfile
 
 from generate_ac1012_dictionary_witness import Bits, crc16, executable_identity, model_and_frame, require, run, sha
+from legacy_dwg_dictionary_wire import VERSIONS, decode_dictionary_frame, locate_object_frame
 
 
 def dictionary_default_source(dwgread: str, source: Path) -> dict:
     """Observe a selected legacy DICTIONARYWDFLT through its final padding."""
     trace = run([dwgread, "-v4", str(source)])
-    blocks = re.split(r"(?=Object number:)", (trace.stdout + trace.stderr).decode(errors="replace"))
-    matches = [block for block in blocks if re.search(r"\bhandle: 0\.[0-9]+\.12\s", block)]
-    require(len(matches) == 1, "dictionary-default peer frame is not unique")
-    location = re.search(r"Size: (\d+) \[MS\], Type: (\d+) \[BS\], Address: (\d+)", matches[0])
-    require(location is not None, "dictionary-default frame location missing")
-    size, objtype, address = map(int, location.groups())
     data = source.read_bytes()
-    require(objtype == 500 and address >= 2 and address + size + 2 <= len(data)
-            and data[address - 2:address] == size.to_bytes(2, "little"), "frame bounds/type")
-    require(int.from_bytes(data[address + size:address + size + 2], "little")
-            == crc16(data[address - 2:address + size]), "dictionary-default CRC")
-    frame = data[address:address + size]
-    bits = Bits(frame)
-    require(bits.bs() == objtype and bits.handle(0, own=True)["value"] == 0x12, "self handle")
-    eed = []
-    while True:
-        length = bits.bs()
-        if not length:
-            break
-        require(length <= 1024 and len(eed) < 32, "EED bounds")
-        app = bits.handle(5)
-        eed.append({"appid": app, "rawHex": bytes(bits.take(8) for _ in range(length)).hex()})
-    end = bits.little(4)
-    require(bits.bl() == 0 and bits.bl() == 1, "reactor or entry count")
-    cloning_start = bits.position
-    cloning = bits.bs()
-    hard_owner = bits.take(8)
-    count = bits.bs()
-    name = bytes(bits.take(8) for _ in range(count)).rstrip(b"\0")
-    require((cloning, hard_owner, name, bits.position) == (1, 0, b"NORMAL", end),
-            "legacy dictionary-default body or end-bit mismatch")
-    owner = bits.handle(4, 0x12)
-    extension = bits.handle(3, 0x12)
-    item = bits.handle(2, 0x12)
-    default_start = bits.position
-    default = bits.handle(5, 0x12)
-    require(owner["value"] == 0xA and item["value"] == default["value"] == 0x13
-            and len(frame) * 8 - bits.position < 8, "dictionary-default handle roles or tail")
-    return {"frameOffset": address, "frameSize": size, "frameSha256": sha(frame),
-            "crcValid": True, "cloningStartBit": cloning_start, "cloning": cloning,
-            "hardOwner": hard_owner, "name": name.decode("ascii"), "bodyEndBit": end,
-            "owner": owner, "extensionDictionary": extension, "entry": item,
-            "default": default, "defaultStartBit": default_start,
-            "eed": eed, "paddingBits": len(frame) * 8 - bits.position}
+    versions = [name for name in ("r13", "r14") if data.startswith(VERSIONS[name])]
+    require(len(versions) == 1, "unexpected dictionary-default version")
+    address, frame = locate_object_frame(data, (trace.stdout + trace.stderr).decode(errors="replace"),
+                                         versions[0], 0x12, 500)
+    row = decode_dictionary_frame(frame, versions[0], 0x12,
+                                  expected_entries={"NORMAL": 0x13}, with_default=True)
+    require(row["cloning"] == 1 and row["hardOwner"] == 0 and not row["reactors"]
+            and row["owner"]["value"] == 0xA and row["default"]["value"] == 0x13,
+            "legacy dictionary-default body or handle roles mismatch")
+    return {"frameOffset": address, "frameSize": len(frame), "frameSha256": row["frameSha256"],
+            "crcValid": True, "cloningStartBit": row["cloningStartBit"], "cloning": row["cloning"],
+            "hardOwner": row["hardOwner"], "name": "NORMAL", "bodyEndBit": row["dataEndBit"],
+            "owner": row["owner"], "extensionDictionary": row["xdict"], "entry": row["entries"][0]["handle"],
+            "default": row["default"], "defaultStartBit": row["defaultStartBit"],
+            "eed": [{"appid": e["appid"], "rawHex": e["hex"]} for e in row["eed"]],
+            "paddingBits": row["paddingBits"]}
 
 
 def malformed_controls(dwgread: str, candidate: str, source: Path, root: Path,

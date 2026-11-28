@@ -60,11 +60,12 @@ def locate_object_frame(data, trace, version, handle, object_type):
 
 
 def decode_dictionary_frame(frame, version, expected_self, *, expected_entries=None,
-                            allow_empty_name=False):
-    """Walk a plain legacy DICTIONARY through its bounded handle tail."""
+                            allow_empty_name=False, with_default=False):
+    """Walk a selected legacy DICTIONARY or DICTIONARYWDFLT handle tail."""
     require(version in VERSIONS, "unsupported dictionary version")
+    require(not with_default or version in ("r13", "r14"), "unqualified default-dictionary version")
     bits = Bits(frame)
-    require(bits.bs() == 42, "wrong object type")
+    require(bits.bs() == (500 if with_default else 42), "wrong object type")
     boundary = bits.little(4) if version == "r2000" else None
     own = bits.handle(0, own=True)
     require(own["value"] == expected_self, "self handle mismatch")
@@ -82,10 +83,11 @@ def decode_dictionary_frame(frame, version, expected_self, *, expected_entries=N
     require(reactors <= 8 and count <= 64, "dictionary count exceeds bounded profile")
     if expected_entries is not None:
         require(count == len(expected_entries), "dictionary entry count differs from the bounded model")
-    if version == "r14":
+    if version == "r14" and not with_default:
         require(bits.take(8) == 0, "unexpected R14-only byte")
-    cloning = bits.bs() if version == "r2000" else None
-    hard_owner = bits.take(8) if version == "r2000" else None
+    cloning_start = bits.position
+    cloning = bits.bs() if version == "r2000" or with_default else None
+    hard_owner = bits.take(8) if version == "r2000" or with_default else None
     names = []
     for _ in range(count):
         length = bits.bs()
@@ -106,9 +108,12 @@ def decode_dictionary_frame(frame, version, expected_self, *, expected_entries=N
     if expected_entries is not None:
         require({row["name"]: row["handle"]["value"] for row in entries} == expected_entries,
                 "physical dictionary entries differ from the model")
+    default_start = bits.position
+    default = bits.handle(5, expected_self) if with_default else None
     require(len(frame) * 8 - bits.position < 8, "unexpected trailing data")
     return {"self": own, "dataEndBit": boundary, "cloning": cloning, "hardOwner": hard_owner,
             "owner": owner, "reactors": reactor_handles, "xdict": xdict,
             "xdictBitOffset": xdict_offset, "entries": entries, "eed": eed,
+            "cloningStartBit": cloning_start, "defaultStartBit": default_start, "default": default,
             "paddingBits": len(frame) * 8 - bits.position,
             "frameSha256": hashlib.sha256(frame).hexdigest()}

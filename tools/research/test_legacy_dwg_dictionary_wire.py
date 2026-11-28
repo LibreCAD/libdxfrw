@@ -21,6 +21,12 @@ POPULATED = {
                            "5900c10b410c302118212e212f"),
 }
 ENTRIES = {"Standard": 24, "SAME_KEY": 46, "DEST_ONLY": 47}
+# Locally authored seed saved by ODA 27.1.0; these selected type-500 bodies
+# exercise the observed legacy DICTIONARYWDFLT subclass fields and EED.
+WITH_DEFAULT = {
+    "r13": bytes.fromhex("3d004044914512a000d002d54524541545f41535f484152444600009580400024050100419393d493505310428c6ec844d444c"),
+    "r14": bytes.fromhex("3d004044a9c00000090140401064e4f524d414c410a31bd211351130"),
+}
 
 
 def flip(data, bit):
@@ -77,6 +83,29 @@ class LegacyDictionaryWireTests(unittest.TestCase):
                 locate_object_frame(invalid_data, invalid_trace, version, 23, 42)
         self.assertEqual(locate_object_frame(data, trace, "r13", 23, 42), (8, frame))
 
-
+    def test_dictionary_with_default_selected_legacy_frames(self):
+        for version, frame in WITH_DEFAULT.items():
+            with self.subTest(version=version):
+                row = decode_dictionary_frame(frame, version, 0x12,
+                                              expected_entries={"NORMAL": 0x13}, with_default=True)
+                self.assertEqual((row["cloning"], row["hardOwner"]), (1, 0))
+                self.assertEqual(row["owner"]["value"], 0xA)
+                self.assertEqual(row["entries"][0]["handle"]["value"], 0x13)
+                self.assertEqual(row["default"]["value"], 0x13)
+                self.assertEqual(len(row["eed"]), 1 if version == "r13" else 0)
+                for bit in (row["dataEndBit"] + 3, row["xdictBitOffset"] + 3,
+                            row["xdictBitOffset"] + 8 * (1 + row["xdict"]["length"]) + 3,
+                            row["defaultStartBit"] + 3):
+                    with self.subTest(bit=bit), self.assertRaises(ValueError):
+                        decode_dictionary_frame(flip(frame, bit), version, 0x12,
+                                                expected_entries={"NORMAL": 0x13}, with_default=True)
+                with self.assertRaises(ValueError):
+                    decode_dictionary_frame(frame[:-1], version, 0x12,
+                                            expected_entries={"NORMAL": 0x13}, with_default=True)
+                self.assertEqual(decode_dictionary_frame(frame, version, 0x12,
+                                 expected_entries={"NORMAL": 0x13}, with_default=True), row)
+        with self.assertRaises(ValueError):
+            decode_dictionary_frame(WITH_DEFAULT["r14"], "r2000", 0x12,
+                                    expected_entries={"NORMAL": 0x13}, with_default=True)
 if __name__ == "__main__":
     unittest.main()
