@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-binary-image-dictionary-replay-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "93c6a7ff2b45775ccf010449db28d59187a2dcd6",
+  "implementation": "Allow same-revision ASCII-to-binary replay of the existing checked IMAGE dictionary graph for selected standard-block LINE/IMAGE documents. Reuse the graph and entity inspectors, require bounded printable ASCII and matching source/decoded text, signed 16-bit integer values and no reserved root names; unsupported captures keep the prior reported-loss fallback. Regenerated IMAGE source objects and removed entries continue to be reported.",
+  "validation": [
+    "New no-unmodeled-record-loss controls failed before the change. Thirteen focused image, dictionary and paper-space tests and eighteen layout tests pass afterward.",
+    "A fresh libdxfrw binary import sees the selected LC_REACTOR dictionary, its XRECORD owner and text. Escaped and over-255-byte text, foreign image identity and unsupported child references retain the reported-loss fallback; a subsequent ASCII save succeeds.",
+    "Paper-space content fails without replacing the destination and a corrected retry on the same DXFimpl succeeds. Low source handles remap to distinct IMAGEDEFs; the test also verifies reopen.",
+    "ezdxf 1.4.5 independently audits four final-head R2000 binary outputs with zero errors and zero fixes. Mixed and empty outputs retain LC_REACTOR owner C and KEEP XRECORD owner 90 with value keep-value. Distinct and low-handle outputs retain two IMAGE-to-IMAGEDEF links and their selected dimensions and pixel sizes."
+  ],
+  "redLogSha256": "60a620a9e6dfad21f0df603f8c5877845dc122d2e4c1dffa970322fae026ad61",
+  "testLogSha256": "cc4e19b10db669631c125f15c30a7c7c260b8bb0fd0e1fcce04bdd5029db4e39",
+  "layoutLogSha256": "15dd8b12e1756a22cf0d466666fdaf3b9fb43781eeb8b2b7534f746870d83c5e",
+  "outputsSha256": {
+    "mixed": "560e5b968a9801ebc0ed178e7a251400e160256eee3929ea2771b08fcba21e81",
+    "empty": "4a94001331d363b2340fcf14bf0a903f980e81372bb77b96287a4c6adb5937e8",
+    "distinctImages": "f5ed7fe3b5b064442a21fb3683ddfb612a4516b3e31d1c6caba235b09b9331a4",
+    "lowHandles": "403ef3ed5da1d75165d3c2f1521873a6dd40971e1168dcc68cede9edcc998e86"
+  },
+  "limits": [
+    "The admitted sources are locally authored R2000 ASCII with bounded ordinary dictionaries and text-only XRECORDs. Unknown fields, other roots, text/codepage cases, image/reactor source metadata and full graph identity remain unqualified.",
+    "This does not establish binary-to-ASCII replay after a later reopen, native rendering, external producer semantics or whole-drawing parity. Generated drawings remain in scratch storage."
+  ]
+}
