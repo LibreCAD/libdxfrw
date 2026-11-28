@@ -1289,6 +1289,15 @@ bool checkLegacyBlockPairWire(const std::string& input) {
     const bool rejectedOwner = !data.hasCompleteDwgBlockRecordControlMembership();
     data.blockRecords.front().parentHandle ^= 1u;
     if (!rejectedOwner || !data.hasCompleteDwgBlockRecordControlMembership()) return false;
+    std::uint32_t layerControl = 0, layerExtension = 0;
+    if (data.layers.size() != 1u || data.layers.front().handle != 0x10u
+        || !data.getLayerTableControlExtensionDictionary(layerControl, layerExtension)
+        || layerControl != 2u || layerExtension != 0u) return false;
+    data.layers.front().parentHandle ^= 1u;
+    const bool rejectedLayerOwner = !data.getLayerTableControlExtensionDictionary(layerControl, layerExtension);
+    data.layers.front().parentHandle ^= 1u;
+    if (!rejectedLayerOwner || !data.getLayerTableControlExtensionDictionary(layerControl, layerExtension)
+        || layerControl != 2u || layerExtension != 0u) return false;
     const auto model = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
         [](const DRW_Block_Record& record) { return record.name == "*MODEL_SPACE"; });
     const auto paper = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
