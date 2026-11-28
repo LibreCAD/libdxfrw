@@ -1285,6 +1285,7 @@ EXTRA_DIST = \
     tools/probe_wipeout_ac1032_source.cpp \
     tools/qualify_material_source_order.py \
     tools/replay_dwg_legacy_extrusion.cpp \
+    tools/research/AC1012_ACADRUST_DISTINCT_WITNESS.md \
     tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md \
     tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md \
     tools/research/OBJECTARX_WITNESS_README.md \
@@ -1294,6 +1295,7 @@ EXTRA_DIST = \
     tools/research/P5D_AC1024_TABLE_WITNESS_README.md \
     tools/research/P5H_VIEWPORT_SHADEPLOT_WITNESS_README.md \
     tools/research/P6A_IMAGEDEF_WITNESS_README.md \
+    tools/research/ac1012_acadrust_pair.rs \
     tools/research/ac1021_mtext_field_census.cpp \
     tools/research/ac1032_forum_assocnetwork_spans.py \
     tools/research/ac1032_forum_constraint_group_spans.py \
@@ -1301,6 +1303,7 @@ EXTRA_DIST = \
     tools/research/ac1032_forum_constraint_registry_spans.py \
     tools/research/acadrust_constraint_group_probe.rs \
     tools/research/apply_freecad_import_candidate.py \
+    tools/research/audit_ac1012_acadrust_pair.py \
     tools/research/audit_ac1012_dimstyle_defaults.py \
     tools/research/audit_ac1012_generated_root.py \
     tools/research/audit_ac1012_oda_merge_pair.py \
@@ -1348,6 +1351,7 @@ EXTRA_DIST = \
     tools/research/freecad_minsert_handoff_probe.py \
     tools/research/freecad_real_draft_mesh_layer_probe.py \
     tools/research/freecad_torus_bound_probe.py \
+    tools/research/generate_ac1012_acadrust_pair.py \
     tools/research/generate_ac1012_dictionary_merge_samples.py \
     tools/research/generate_ac1012_dictionary_witness.py \
     tools/research/generate_acadrust_legacy_shape.py \

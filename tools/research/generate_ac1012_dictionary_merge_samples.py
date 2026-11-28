@@ -78,7 +78,8 @@ def observe_single_line_frame(frame: bytes, handle: int, layer: int) -> dict:
 
 
 def observe_populated_style_frame(frame: bytes, handle: int, name: str,
-                                  owner: int, start_angle: float) -> dict:
+                                  owner: int, start_angle: float,
+                                  reactor_count: int = 1) -> dict:
     """Bind a generated R13 MLINESTYLE's body and handle roles to its frame."""
     bits = Bits(frame)
     spans = {}
@@ -108,7 +109,8 @@ def observe_populated_style_frame(frame: bytes, handle: int, name: str,
             and field("self", lambda: bits.handle(0, own=True))["value"] == handle
             and field("eedSize", bits.bs) == 0, "wrong or unsupported style frame")
     data_end = field("dataEndBit", lambda: bits.little(4))
-    require(field("reactorCount", bits.bl) == 1
+    require(reactor_count in (0, 1)
+            and field("reactorCount", bits.bl) == reactor_count
             and field("name", text_value) == name
             and field("description", text_value) == ""
             and field("flags", bits.bs) == 0
@@ -124,9 +126,9 @@ def observe_populated_style_frame(frame: bytes, handle: int, name: str,
                 "unexpected style element")
     require(bits.position == data_end, "style body boundary differs")
     parent = field("owner", lambda: bits.handle(4, handle))
-    reactor = field("reactor", lambda: bits.handle(4, handle))
+    reactor = field("reactor", lambda: bits.handle(4, handle)) if reactor_count else None
     extension = field("extension", lambda: bits.handle(3, handle))
-    require(parent["value"] == owner and reactor["value"] == owner
+    require(parent["value"] == owner and (reactor is None or reactor["value"] == owner)
             and extension["role"] == 3 and extension["value"] == 0
             and len(frame) * 8 - bits.position < 8, "style handles or tail differ")
     return {"frameSha256": sha(frame), "spans": spans,

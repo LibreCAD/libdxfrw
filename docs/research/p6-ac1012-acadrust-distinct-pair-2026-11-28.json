@@ -1,0 +1,397 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-acadrust-distinct-pair-2026-11-28",
+  "supportClaimEffect": "none",
+  "scope": "Source-distinct generated AC1012 MLINESTYLE dictionary collision and unique-entry pair, plus same-writer resaves; no native AutoCAD cloning claim.",
+  "producer": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "d7c71f5032fc2d8844142ad7df7a6f0ee5ac535f",
+    "version": "0.6.8",
+    "cargoLockSha256": "76b17a86b44fb75aea3748ee119286139e17abc462554c19059610c83f01f959",
+    "rustVersion": "rustc 1.100.0 (0ef1bc386 2026-11-09) (Homebrew)",
+    "cargoVersion": "cargo 1.100.0 (3acc79c0c 2026-11-05) (Homebrew)",
+    "generatorSha256": "58eca999f04715a73eee84396cdcada780af0055295833ff8570010223b1fad4"
+  },
+  "samples": {
+    "destination.dwg": {
+      "sha256": "8702bc7aa27ebb411c06d34d26de464cef159e53764512d18a8b7c6d6dc4751e",
+      "bytes": 5241
+    },
+    "source.dwg": {
+      "sha256": "f3cb3547b3d699cc817ef745ea7f42297a0cb414a0437339c487d386d170bba4",
+      "bytes": 5245
+    },
+    "destination-resaved.dwg": {
+      "sha256": "b8e4eabf4feb1f84bc272650344c191873fd5425698b58761bc19f4fbd6e740b",
+      "bytes": 5255
+    },
+    "source-resaved.dwg": {
+      "sha256": "2da9c240f21068137b6b58023724b5aa84bd786d9e996d00d4af0d20c88cf5ae",
+      "bytes": 5259
+    }
+  },
+  "wireAuditSha256": "3fb22f9af6cce72b95c0ca8b5a5f2c33ff20297ec337e37905db36057d522cb9",
+  "independentDwgreadSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+  "selectedStyleFrames": {
+    "destination.dwg": {
+      "SAME_KEY": {
+        "frameSha256": "1d5d8e0c852d751273060e31f08b30cad99d653b58517af1dac533c9460c4145",
+        "offset": 4570,
+        "handle": 51,
+        "wrongRoleAndTruncationsRejectedAndRetryPassed": true
+      },
+      "DEST_ONLY": {
+        "frameSha256": "72cb2c9963b7f14545aea4d1f5f0e6faaf7f9dcfb0fc47aa79456694d5691447",
+        "offset": 4634,
+        "handle": 52,
+        "wrongRoleAndTruncationsRejectedAndRetryPassed": true
+      }
+    },
+    "destination-resaved.dwg": {
+      "SAME_KEY": {
+        "frameSha256": "1d5d8e0c852d751273060e31f08b30cad99d653b58517af1dac533c9460c4145",
+        "offset": 4619,
+        "handle": 51,
+        "wrongRoleAndTruncationsRejectedAndRetryPassed": true
+      },
+      "DEST_ONLY": {
+        "frameSha256": "72cb2c9963b7f14545aea4d1f5f0e6faaf7f9dcfb0fc47aa79456694d5691447",
+        "offset": 4683,
+        "handle": 52,
+        "wrongRoleAndTruncationsRejectedAndRetryPassed": true
+      }
+    },
+    "source.dwg": {
+      "SAME_KEY": {
+        "frameSha256": "41e80634caa180d2e7cabb900f4e201b6dd6796f91e157708d56916b99411d29",
+        "offset": 4572,
+        "handle": 51,
+        "wrongRoleAndTruncationsRejectedAndRetryPassed": true
+      },
+      "SOURCE_ONLY": {
+        "frameSha256": "746675c0ec78f04ffb72e2063994564bdd3064800d53dd968dcc5f62346c856e",
+        "offset": 4636,
+        "handle": 52,
+        "wrongRoleAndTruncationsRejectedAndRetryPassed": true
+      }
+    },
+    "source-resaved.dwg": {
+      "SAME_KEY": {
+        "frameSha256": "41e80634caa180d2e7cabb900f4e201b6dd6796f91e157708d56916b99411d29",
+        "offset": 4621,
+        "handle": 51,
+        "wrongRoleAndTruncationsRejectedAndRetryPassed": true
+      },
+      "SOURCE_ONLY": {
+        "frameSha256": "746675c0ec78f04ffb72e2063994564bdd3064800d53dd968dcc5f62346c856e",
+        "offset": 4685,
+        "handle": 52,
+        "wrongRoleAndTruncationsRejectedAndRetryPassed": true
+      }
+    }
+  },
+  "checks": [
+    "A pinned independent writer produced AC1012 destination/source drawings with SAME_KEY angles 15/37 degrees, DEST_ONLY/SOURCE_ONLY angles 22/51 degrees, two selected MLINESTYLE elements and a model-space LINE. Its own reopen/resave created a second pair. A locked offline rerun produced all four identical sample hashes.",
+    "LibreDWG decodes all four; the shared specification-directed frame walkers validate CRCs, root and style dictionary entries, owner/item/extension roles, zero EED and zero reactors, plus the selected populated-style body fields and handle tails. Eight style frames reject wrong extension roles and three truncations, and corrected retries pass. The prior one-reactor generated control still passes the same helper.",
+    "ODA File Converter 27.1.0 converts all four to AC1024 DXF. ezdxf 1.4.5 reports zero audit errors or fixes and confirms selected owned styles, exact two-element offsets/colors/linetypes, angles and LINE endpoints. ODA conversion is not native AutoCAD acceptance.",
+    "Strict libdxfrw conversion refuses both original and resaved drawings at the unqualified AC1012 duplicate-merge gate while preserving preexisting destinations. Explicit partial conversion of originals stops at an unbound LAYOUT source graph. Resaved R2000 ASCII and binary partial attempts stop at the unqualified LAYOUT forward-reference projection and preserve destinations.",
+    "Generator and audit reject a mismatched producer revision, nonempty output, altered sample hash and preexisting audit output; a corrected sample passes on retry. No DWG or DXF fixture was committed."
+  ],
+  "odaReadback": [
+    {
+      "source": "destination.dxf",
+      "sha256": "6ba2e58a3fecc1f99efb101c29dfdc54cad7a06d727ed88840535666d21b8937",
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "styles": {
+        "SAME_KEY": {
+          "angleDegrees": 15.0,
+          "elements": 2,
+          "ownerMatches": true,
+          "elementsExact": [
+            [
+              0.5,
+              256,
+              "BYLAYER"
+            ],
+            [
+              -0.5,
+              256,
+              "BYLAYER"
+            ]
+          ]
+        },
+        "DEST_ONLY": {
+          "angleDegrees": 22.0,
+          "elements": 2,
+          "ownerMatches": true,
+          "elementsExact": [
+            [
+              0.5,
+              256,
+              "BYLAYER"
+            ],
+            [
+              -0.5,
+              256,
+              "BYLAYER"
+            ]
+          ]
+        }
+      },
+      "line": [
+        [
+          1,
+          2,
+          0
+        ],
+        [
+          4,
+          5,
+          0
+        ]
+      ]
+    },
+    {
+      "source": "destination-resaved.dxf",
+      "sha256": "2a5b45a333fce26471c1b4dc0cf2b4285e7b98865e4236b39863698f38a8017f",
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "styles": {
+        "SAME_KEY": {
+          "angleDegrees": 15.0,
+          "elements": 2,
+          "ownerMatches": true,
+          "elementsExact": [
+            [
+              0.5,
+              256,
+              "BYLAYER"
+            ],
+            [
+              -0.5,
+              256,
+              "BYLAYER"
+            ]
+          ]
+        },
+        "DEST_ONLY": {
+          "angleDegrees": 22.0,
+          "elements": 2,
+          "ownerMatches": true,
+          "elementsExact": [
+            [
+              0.5,
+              256,
+              "BYLAYER"
+            ],
+            [
+              -0.5,
+              256,
+              "BYLAYER"
+            ]
+          ]
+        }
+      },
+      "line": [
+        [
+          1,
+          2,
+          0
+        ],
+        [
+          4,
+          5,
+          0
+        ]
+      ]
+    },
+    {
+      "source": "source.dxf",
+      "sha256": "a87f0d15b50de011887f8be94482e6da99496216917d320aa3e8ede6f1427748",
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "styles": {
+        "SAME_KEY": {
+          "angleDegrees": 37.0,
+          "elements": 2,
+          "ownerMatches": true,
+          "elementsExact": [
+            [
+              0.5,
+              256,
+              "BYLAYER"
+            ],
+            [
+              -0.5,
+              256,
+              "BYLAYER"
+            ]
+          ]
+        },
+        "SOURCE_ONLY": {
+          "angleDegrees": 51.0,
+          "elements": 2,
+          "ownerMatches": true,
+          "elementsExact": [
+            [
+              0.5,
+              256,
+              "BYLAYER"
+            ],
+            [
+              -0.5,
+              256,
+              "BYLAYER"
+            ]
+          ]
+        }
+      },
+      "line": [
+        [
+          1,
+          2,
+          0
+        ],
+        [
+          4,
+          5,
+          0
+        ]
+      ]
+    },
+    {
+      "source": "source-resaved.dxf",
+      "sha256": "5325a8b8a35763bda65550e691da11870494338e2b6a53a86ef64fbfebd03953",
+      "auditErrors": 0,
+      "auditFixes": 0,
+      "styles": {
+        "SAME_KEY": {
+          "angleDegrees": 37.0,
+          "elements": 2,
+          "ownerMatches": true,
+          "elementsExact": [
+            [
+              0.5,
+              256,
+              "BYLAYER"
+            ],
+            [
+              -0.5,
+              256,
+              "BYLAYER"
+            ]
+          ]
+        },
+        "SOURCE_ONLY": {
+          "angleDegrees": 51.0,
+          "elements": 2,
+          "ownerMatches": true,
+          "elementsExact": [
+            [
+              0.5,
+              256,
+              "BYLAYER"
+            ],
+            [
+              -0.5,
+              256,
+              "BYLAYER"
+            ]
+          ]
+        }
+      },
+      "line": [
+        [
+          1,
+          2,
+          0
+        ],
+        [
+          4,
+          5,
+          0
+        ]
+      ]
+    }
+  ],
+  "strictAndPartialR2000": [
+    {
+      "side": "destination",
+      "mode": "strict",
+      "encoding": "ascii",
+      "exit": 1,
+      "preserved": true,
+      "size": 34,
+      "stderrTail": "DXF export preflight failed: AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification\nDXF export stopped during: output preparation\n"
+    },
+    {
+      "side": "destination",
+      "mode": "strict",
+      "encoding": "binary",
+      "exit": 1,
+      "preserved": true,
+      "size": 35,
+      "stderrTail": "DXF export preflight failed: AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification\nDXF export stopped during: output preparation\n"
+    },
+    {
+      "side": "destination",
+      "mode": "partial",
+      "encoding": "ascii",
+      "exit": 1,
+      "preserved": true,
+      "size": 35,
+      "stderrTail": "WARNING: explicit partial DWG read mode; output may omit failed or unmodeled source content and is not a completeness/support claim. Owner/reference checks remain strict.\nDXF export preflight failed: R13/R14 DWG LAYOUT forward references need a qualified target projection\nDXF export stopped during: output preparation\n"
+    },
+    {
+      "side": "destination",
+      "mode": "partial",
+      "encoding": "binary",
+      "exit": 1,
+      "preserved": true,
+      "size": 36,
+      "stderrTail": "WARNING: explicit partial DWG read mode; output may omit failed or unmodeled source content and is not a completeness/support claim. Owner/reference checks remain strict.\nDXF export preflight failed: R13/R14 DWG LAYOUT forward references need a qualified target projection\nDXF export stopped during: output preparation\n"
+    },
+    {
+      "side": "source",
+      "mode": "strict",
+      "encoding": "ascii",
+      "exit": 1,
+      "preserved": true,
+      "size": 29,
+      "stderrTail": "DXF export preflight failed: AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification\nDXF export stopped during: output preparation\n"
+    },
+    {
+      "side": "source",
+      "mode": "strict",
+      "encoding": "binary",
+      "exit": 1,
+      "preserved": true,
+      "size": 30,
+      "stderrTail": "DXF export preflight failed: AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification\nDXF export stopped during: output preparation\n"
+    },
+    {
+      "side": "source",
+      "mode": "partial",
+      "encoding": "ascii",
+      "exit": 1,
+      "preserved": true,
+      "size": 30,
+      "stderrTail": "WARNING: explicit partial DWG read mode; output may omit failed or unmodeled source content and is not a completeness/support claim. Owner/reference checks remain strict.\nDXF export preflight failed: R13/R14 DWG LAYOUT forward references need a qualified target projection\nDXF export stopped during: output preparation\n"
+    },
+    {
+      "side": "source",
+      "mode": "partial",
+      "encoding": "binary",
+      "exit": 1,
+      "preserved": true,
+      "size": 31,
+      "stderrTail": "WARNING: explicit partial DWG read mode; output may omit failed or unmodeled source content and is not a completeness/support claim. Owner/reference checks remain strict.\nDXF export preflight failed: R13/R14 DWG LAYOUT forward references need a qualified target projection\nDXF export stopped during: output preparation\n"
+    }
+  ],
+  "limits": [
+    "The producer-generated and ODA-converted drawings do not establish native AutoCAD normal-open, cloning/duplicate-record merge behavior, native dictionary validity or full graph/output closure.",
+    "Acadrust resaving adds an ACAD_LAYOUT root entry; this observation does not establish a valid layout projection. The R13/R14 layout, strict and partial output gates remain in force.",
+    "The frame observers use LibreDWG traces to locate frames and the ODA specification for field interpretation; source provenance and physical agreement are not independent native semantic evidence."
+  ]
+}
