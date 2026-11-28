@@ -15,7 +15,7 @@ advisory, and excluded. Completed slice history and validation remain in
 `docs/research/` and Git history.
 
 The current test-inclusive implementation digest is
-`d549f79da2f29f565385e09aeeb1e1547d6924baab72055ab8d36dab55bd161e`
+`673eb57620e62721337b3c670b8fd6766bacea47d219661a0b13f6c98744b176`
 (785 inputs, including the staged HATCH graph inspector and its focused tests). Earlier hosted runs bind prior digests; current-head hosted results are pending. The [latest source-release inventory repair](docs/research/p8-freecad-3dface-source-release-inventory-repair-2026-11-27.json) adds the tracked FreeCAD report patch omitted from the manifest; the local inventory and self-test pass and a new hosted run is pending. The [current CI repair and focused requalification](docs/research/p8-ci-repair-3e681e-2026-11-27.json) tracks completed and pending platform jobs at commit 3e681e694. The [focused native, package, and fast matrix](docs/research/p8-native-package-740cd6ea-2026-11-27.json)
 and the [FreeCAD handoff matrix](docs/research/p8-native-freecad-2e4ae17b-2026-11-27.json) passed on earlier production inputs. The current [FreeCAD recheck](docs/research/p8-ci-repair-3e681e-2026-11-27.json) passes 16 Linux and 17 Windows tests, covering specified CLI and legacy importer profiles, not GUI or general 3D parity; hosted focused native and installed shared/static package checks also pass on Linux, Windows and macOS for matching production inputs.
 Recheck affected profiles against the frozen candidate.
@@ -29,6 +29,8 @@ below is still open, and its linked evidence defines the present boundary.
 
 1. **LibreCAD MATERIAL graphs.** Extend ordinary same-version replay beyond the
    [current bounded entity and color profiles](docs/research/p8d-librecad-sparse-material-exact-truecolor-2026-11-27.json), [explicit POINT, LINE, CIRCLE and ARC defaults](docs/research/p8d-librecad-sparse-material-curved-defaults-2026-11-27.json), [ELLIPSE/LWPOLYLINE default extrusion](docs/research/p8d-librecad-sparse-material-ellipse-polyline-defaults-2026-11-27.json), and [explicit model-space, visibility and linetype-scale defaults](docs/research/p8d-librecad-sparse-material-common-defaults-2026-11-27.json).
+   The [ODA AC1024 compact-material import](docs/research/p8d-ac1024-oda-compact-material-import-2026-11-28.json)
+   is raw-only; qualify its source graph and output before allowing replay.
    Prove complete ACAD_MATERIAL dictionaries, carriers, identities, ownership,
    reactors, layer/current-material references, handle remapping, and staged
    root/entity edges for each new profile. Address contextual ACI 7, palette

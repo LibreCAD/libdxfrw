@@ -1,0 +1,25 @@
+{
+  "kind": "libdxfrw-ac1024-oda-compact-material-import",
+  "date": "2026-11-28",
+  "implementationDigestSha256": "673eb57620e62721337b3c670b8fd6766bacea47d219661a0b13f6c98744b176",
+  "reference": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+  "trigger": "ODA File Converter 27.1.0 macOS ARM64 AC1024 DXF saved from the locally authored HATCH drawing emits three compact MATERIAL records with code 72 = 1 and code 94 = 127. Before this slice LibreCAD import failed on the first record.",
+  "scope": "Permit the existing exact AC1027 compact raw-only MATERIAL shape at AC1024 for explicitly opted-in raw consumers. No general MATERIAL or write/replay support is inferred.",
+  "checks": {
+    "focusedCtest": "compact material graph, sparse material and staged HATCH graph pass",
+    "focusedCtestLogSha256": "a1c5aeac7cf050bbd32ac14bcfbcf76f94f57181972ad82f74f031b042d39fa5",
+    "generatedFaults": "ASCII and binary; wrong flags, source, duplicate terminal fields, wrong reactor, unsupported name and extra field reject with no material callbacks; corrected same-reader retry passes; unqualified strict export preserves destination",
+    "libreCadOdaPeer": {
+      "assertions": 8,
+      "result": "pass; selected HATCH, closed polyline and three raw-only materials import",
+      "sourceSha256": "e5060cf2cb9ffe01c2ade5d1abdcadd314576e2049e6d27da3f023f2d26307dc",
+      "logSha256": "62b84193fdbe3a9ad08e69796f17289770bdea749fc72e1ebeb64fe7b6a27b17"
+    }
+  },
+  "limits": [
+    "Exact selected producer shape and AC1024/AC1027 only; absent raw-capture policy still rejects.",
+    "MATERIAL graph closure, independent semantic interpretation, typed output, same-version replay and broad LibreCAD behavior remain unqualified.",
+    "Locally authored source and ODA-generated peer remained in scratch; no drawing fixtures committed."
+  ],
+  "supportClaimsPromoted": false
+}

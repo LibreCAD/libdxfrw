@@ -30237,7 +30237,8 @@ bool dxfRW::processMaterial() {
     };
     const auto isCompactProducerPrefix = [&]() {
         constexpr int codes[] = {5,102,330,102,330,100,1,72};
-        if (reader->getSourceVersion()!=DRW::AC1027 || raw.groups.size()!=8u
+        if ((reader->getSourceVersion()!=DRW::AC1024 && reader->getSourceVersion()!=DRW::AC1027)
+            || raw.groups.size()!=8u
             || raw.handle==0u || raw.handle==DRW::NoHandle
             || raw.parentHandle==0u || raw.parentHandle==DRW::NoHandle || data.handle!=raw.handle
             || data.parentHandle!=raw.parentHandle || data.reactorHandles.size()!=1u

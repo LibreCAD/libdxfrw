@@ -30,10 +30,11 @@ public:
  }
 };
 static std::string bytes(const std::filesystem::path& p){std::ifstream f(p,std::ios::binary);return {std::istreambuf_iterator<char>(f),{}};}
-static bool source(const std::filesystem::path& p,bool binary,int mode=0){
- std::ofstream f(p,std::ios::binary|std::ios::trunc);if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';std::unique_ptr<dxfWriter>w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));w->setVersion(mode==7?"AC1024":"AC1027",true);
+static bool source(const std::filesystem::path& p,bool binary,int mode=0,bool ac1024=false){
+ const bool version1024=ac1024||mode==7;
+ std::ofstream f(p,std::ios::binary|std::ios::trunc);if(binary)f<<"AutoCAD Binary DXF\r\n"<<char(26)<<'\0';std::unique_ptr<dxfWriter>w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));w->setVersion(version1024?"AC1024":"AC1027",true);
  const auto s=[&](int c,const char*v){return w->writeString(c,v);};const auto h=[&](int c,int v){return w->writeInt16(c,v);};const auto i=[&](int c,int v){return w->writeInt32(c,v);};
- if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,mode==7?"AC1024":"AC1027")||!s(0,"ENDSEC")||!s(0,"SECTION")||!s(2,"OBJECTS")||!s(0,"DICTIONARY")||!s(5,"C")||!s(330,"0")||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)||!s(3,"ACAD_MATERIAL")||!s(350,"67")||!s(0,"DICTIONARY")||!s(5,"67")||!s(102,"{ACAD_REACTORS")||!s(330,"C")||!s(102,"}")||!s(330,"C")||!s(100,"AcDbDictionary")||!h(281,1))return false;
+ if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,version1024?"AC1024":"AC1027")||!s(0,"ENDSEC")||!s(0,"SECTION")||!s(2,"OBJECTS")||!s(0,"DICTIONARY")||!s(5,"C")||!s(330,"0")||!s(100,"AcDbDictionary")||!h(280,0)||!h(281,1)||!s(3,"ACAD_MATERIAL")||!s(350,"67")||!s(0,"DICTIONARY")||!s(5,"67")||!s(102,"{ACAD_REACTORS")||!s(330,"C")||!s(102,"}")||!s(330,"C")||!s(100,"AcDbDictionary")||!h(281,1))return false;
  for(const auto& x:std::vector<std::pair<const char*,const char*>>{{"ByBlock","69"},{"ByLayer","68"},{"Global","6A"}})if(!s(3,x.first)||!s(350,x.second))return false;
  for(const auto& x:std::vector<std::pair<const char*,const char*>>{{"ByBlock","69"},{"ByLayer","68"},{"Global","6A"}}){if(!s(0,"MATERIAL")||!s(5,x.second)||!s(102,"{ACAD_REACTORS")||!s(330,mode==4?"66":"67")||!s(102,"}")||!s(330,"67")||!s(100,"AcDbMaterial")||!s(1,mode==5?"Other":x.first))return false;if(mode==8&&(!h(71,1)||!i(91,-1023410177)))return false;if(!h(72,mode==2?0:1))return false;if(mode==8&&!h(273,1))return false;if(mode==6&&!s(2,"extra"))return false;if(!i(94,mode==1?126:mode==8?63:127))return false;if(mode==3&&!i(94,127))return false;}
  return s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();}
@@ -879,7 +880,27 @@ int main(int argc,char**argv){
   auto saved=data.rawMaterialObjects.front();io.late=[&](){data.rawMaterialObjects.front().groups.back()=DRW_Variant(94,126);};std::ofstream(out,std::ios::trunc)<<"sentinel";const bool failed=!exportFile();io.late={};data.rawMaterialObjects.front()=saved;if(!failed||bytes(out)!="sentinel"||!exportFile()||!verify())return 13;
   auto savedFlags=data.materials.front().m_channelFlags;io.late=[&](){data.materials.front().m_channelFlags=126;};std::ofstream(out,std::ios::trunc)<<"sentinel";const bool typedFailed=!exportFile();io.late={};data.materials.front().m_channelFlags=savedFlags;if(!typedFailed||bytes(out)!="sentinel"||!exportFile()||!verify())return 19;
   std::ofstream(out,std::ios::trunc)<<"sentinel";if(io.fileExport(out.string(),DRW::AC1024,binary,&data,false,true)||bytes(out)!="sentinel"||!exportFile()||!verify())return 14;
-  if(argc==1){if(!source(in,binary,8))return 28;dx_data prior;Exporter priorIo;if(!priorIo.fileImport(in.string(),&prior,false)||prior.materials.size()!=3)return 29;std::ofstream(out,std::ios::trunc)<<"sentinel";if(priorIo.fileExport(out.string(),DRW::AC1027,binary,&prior,false,true)||bytes(out)!="sentinel")return 30;for(int mode:{1,2,3,4,5,6,7}){if(!source(in,binary,mode))return 15;dx_data rejected;dx_iface rd;if(rd.fileImport(in.string(),&rejected,false))return 16;}}
+  if(argc==1){if(!source(in,binary,8))return 28;dx_data prior;Exporter priorIo;if(!priorIo.fileImport(in.string(),&prior,false)||prior.materials.size()!=3)return 29;std::ofstream(out,std::ios::trunc)<<"sentinel";if(priorIo.fileExport(out.string(),DRW::AC1027,binary,&prior,false,true)||bytes(out)!="sentinel")return 30;for(int mode:{1,2,3,4,5,6}){if(!source(in,binary,mode))return 15;dx_data rejected;dx_iface rd;if(rd.fileImport(in.string(),&rejected,false))return 16;}
+   if(!source(in,binary,7))return 64;
+   dxfRW ac1024Reader(in.string().c_str()); Old ac1024Old;
+   if(ac1024Reader.read(&ac1024Old,false)||ac1024Old.typed||ac1024Old.raw)return 65;
+   Facet ac1024; ac1024.enabled=false;
+   if(ac1024Reader.read(&ac1024,false)||ac1024.typed||ac1024.raw)return 66;
+   ac1024.enabled=true;
+   if(!ac1024Reader.read(&ac1024,false)||ac1024.typed!=3||ac1024.raw!=3
+      ||!ac1024.last.requiresRawDxfMaterialReplay()||ac1024.last.m_channelFlags!=127)return 67;
+   for(int mode:{1,2,3,4,5,6}){
+    if(!source(in,binary,mode,true))return 70;
+    Facet rejected;
+    if(ac1024Reader.read(&rejected,false)||rejected.typed||rejected.raw)return 71;
+    if(!source(in,binary,7))return 72;
+    Facet retry;
+    if(!ac1024Reader.read(&retry,false)||retry.typed!=3||retry.raw!=3)return 73;
+   }
+   dx_data ac1024Data; Exporter ac1024Io;
+   if(!ac1024Io.fileImport(in.string(),&ac1024Data,false)||ac1024Data.materials.size()!=3)return 68;
+   std::ofstream(out,std::ios::trunc)<<"sentinel";
+   if(ac1024Io.fileExport(out.string(),DRW::AC1024,binary,&ac1024Data,false,true)||bytes(out)!="sentinel")return 69;}
  }
  if(argc==1)for(bool binary:{false,true})for(bool collision:{false,true})
   for(const auto version:{DRW::AC1024,DRW::AC1027})
