@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-dyadic-hatch-association-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "4840f501",
+  "codecCommit": "f5eba6d44",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "scope": "Extend the checked one-loop AC1024 ASCII HATCH/polyline replay from integer to bounded dyadic coordinates.",
+  "checks": [
+    "Scale all finite coordinates exactly by a shared power of two up to 2^20; require every scaled coordinate to be an integer with absolute value at most one million before using the existing int64 intersection and overlap predicates.",
+    "Focused controls cover integer and fractional simple contours, crossings, overlaps, 2^-20 precision, finer and near-half non-dyadic values, scaled-bound overflow and non-finite values. Unsupported source profiles retain deassociation.",
+    "Half-unit and 2^-20 generated sources retain reciprocal links and exact source geometry through export, fresh readback and a second save. Late edits preserve the pre-existing destination; restored source retries succeed.",
+    "The shared-codec focused suite passes 1,024 assertions in seven cases; the bundled suite passes 236 assertions in five cases.",
+    "ezdxf 1.4.5 independently confirms model-space ownership, reciprocal links, matching HATCH/boundary edges and zero audit errors/fixes for both authored outputs and their ODA File Converter 27.1.0 conversions. The half-unit result remains exact. ODA rounds the 2^-20 coordinate by approximately 6.25e-18, while retaining matching edges. No drawing fixture is committed."
+  ],
+  "hashes": {
+    "systemTests": "bc202a60cdd50a58e9ec61735fe4f9efbb0966760d9aac7c2d69264a80df8526",
+    "bundledTests": "666c54af361b9f1add113f3c7a9813e1da9fc6af94607be85b707c15f5887b52",
+    "peerAudit": "15f3729dac140a9e6abd1c1874324c605034541656bdcec3db26a3fc63b5f857"
+  },
+  "limits": [
+    "The source remains limited to one unchanged simple solid straight contour, the checked object graph and a 64 KiB ASCII AC1024 capture. Non-dyadic or out-of-bound coordinates retain deassociation; the selected 0x14 boundary exception is separately qualified.",
+    "The ODA-converted drawings exceed the capture bound, and its 2^-20 coordinate is not bit-exact. Native GUI editing and broad producer/platform compatibility remain unqualified."
+  ]
+}
