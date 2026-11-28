@@ -4830,6 +4830,7 @@ bool dxfRW::inspectDxfHatchOutputLinks(
     if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
         || m_writeError || writer->hasWriteError() || view.version != version
         || view.version < DRW::AC1015 || view.binary != binFile
+        || view.compatibilityProfile != dxfCompatibilityProfile()
         || expected.size() > 4096u)
         return false;
     try {
@@ -5031,6 +5032,65 @@ bool dxfRW::inspectDxfHatchOutputLinks(
             if (foundEdges->second != polyEdges) return false;
         }
         return true;
+    } catch (...) { return false; }
+}
+
+bool dxfRW::inspectDxfHatchOutputIsolation(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfHatchOutputLinks>& expected,
+        bool selectedPresent) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError() || view.version != version
+        || view.version < DRW::AC1015 || view.binary != binFile
+        || view.compatibilityProfile != dxfCompatibilityProfile()
+        || expected.empty() || expected.size() > 4096u)
+        return false;
+    try {
+        const auto profile = view.compatibilityProfile == DxfCompatibilityProfile::StandaloneSafe
+            ? dx_raster_output::Profile::StandaloneSafe
+            : view.compatibilityProfile == DxfCompatibilityProfile::LibreCadMasterLegacy
+                ? dx_raster_output::Profile::LibreCadMasterLegacy
+                : dx_raster_output::Profile::Invalid;
+        if (!dx_raster_output::valid(profile)) return false;
+        std::set<std::uint32_t> targets;
+        for (const auto& link : expected) {
+            if (!link.hatch || !link.boundary || !link.owner || link.hatch == DRW::NoHandle
+                || link.boundary == DRW::NoHandle || link.owner == DRW::NoHandle
+                || !targets.insert(link.hatch).second || !targets.insert(link.boundary).second)
+                return false;
+        }
+        for (const auto& link : expected) if (targets.count(link.owner)) return false;
+        if (selectedPresent && !inspectDxfHatchOutputLinks(view, expected)) return false;
+        return dx_raster_output::inspect(view.bytes, view.binary,
+            [&](std::string_view name, std::uint32_t handle, std::string_view body) {
+                if (targets.count(handle)) return selectedPresent;
+                if (name != "BLOCK" && name != "ENDBLK" && name != "LINE") return false;
+                dx_raster_output::Cursor cursor(body, view.binary, profile);
+                dx_raster_output::Token token;
+                bool reactors = false;
+                unsigned reactorGroups = 0u;
+                while (!cursor.done()) {
+                    if (!cursor.next(token)) return false;
+                    const int code = token.code;
+                    const bool common = code == 5 || code == 330 || code == 100 || code == 8;
+                    const bool allowed = common || (name == "BLOCK" &&
+                        (code == 1 || code == 2 || code == 3 || code == 70 || code == 10 || code == 20 || code == 30))
+                        || (name == "LINE" && (code == 6 || code == 62 || code == 370 || code == 102
+                            || code == 10 || code == 20 || code == 30 || code == 11 || code == 21 || code == 31
+                            || code == 39 || code == 210 || code == 220 || code == 230));
+                    if (!allowed) return false;
+                    if (code == 102) {
+                        if (!reactors && token.text == "{ACAD_REACTORS" && ++reactorGroups == 1u) reactors = true;
+                        else if (reactors && token.text == "}") reactors = false;
+                        else return false;
+                    } else if (reactors && code != 330) return false;
+                    else if (code == 5 || code == 330) {
+                        std::uint32_t value = 0u;
+                        if (!dx_raster_output::integer(token.text, value, 16) || targets.count(value)) return false;
+                    }
+                }
+                return !reactors;
+            }, profile);
     } catch (...) { return false; }
 }
 

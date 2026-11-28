@@ -1,0 +1,36 @@
+{
+  "kind": "libdxfrw-staged-hatch-entity-isolation",
+  "date": "2026-11-28",
+  "implementationDigestSha256": "as an output prerequisite. The [staged entity isolation check](docs/research/p8d-hatch-staged-entity-isolation-2026-11-28.json)\n   also rejects unexpected selected-handle references in its narrow BLOCKS/ENTITIES profile.\n   The [per-loop source identities]",
+  "scope": "In borrowed staged BLOCKS or ENTITIES bodies, validate selected HATCH/polyline links when present and reject references from other records to selected emitted identities. Nonselected records are restricted to a plain BLOCK, ENDBLK and LINE profile with optional LINE reactors.",
+  "focusedTests": {
+    "test": "libdxfrw_dxf_staged_hatch_graph",
+    "profiles": 16,
+    "dimensions": [
+      "AC1015 and AC1024",
+      "ASCII and binary",
+      "StandaloneSafe and LibreCadMasterLegacy",
+      "rotated and reversed boundary ordering"
+    ],
+    "rejectionsAndRetries": "27 per AC1015 profile, 28 per AC1024 profile; unsupported true color is not emitted in AC1015",
+    "result": "pass; destination sentinel preserved and corrected same-writer retry passes"
+  },
+  "sanitizers": {
+    "address": "pass",
+    "undefinedBehavior": "pass",
+    "leakDetection": "disabled"
+  },
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5",
+    "generatedDrawings": 16,
+    "result": "reciprocal HATCH/polyline handles, two LINE records, no audit errors or fixes",
+    "receiptSha256": "6e4d3f4186dbaebeb58d998e51e2668ee8fee17d1aa99ff19f986774d9e5884b"
+  },
+  "limits": [
+    "This checks only bounded staged entity bodies, not HEADER, TABLES or OBJECTS.",
+    "Unknown fields, opaque payloads and nonselected record types outside the narrow profile refuse the witness.",
+    "The consumer still requires source graph, live edits, copy identity, full output finalization and native behavior checks before association replay.",
+    "No support claims promoted; no drawings committed."
+  ],
+  "supportClaimsPromoted": false
+}

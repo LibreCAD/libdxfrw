@@ -17,6 +17,7 @@ struct Exporter : LC3CompatCheck {
     Exporter(dxfRW& output, bool reverse) : output(output), reverse(reverse) {}
     dxfRW& output;
     bool reverse;
+    unsigned extraReference = 0;
     Links links;
     bool ok = false;
 
@@ -50,7 +51,23 @@ struct Exporter : LC3CompatCheck {
             const auto& p = points[reverse ? (6u - i) % 4u : (i + 1u) % 4u];
             boundary.addVertex(DRW_Vertex2D(p.x, p.y, 0));
         }
-        ok = output.writeHatch(&hatch) && output.writeLWPolyline(&boundary);
+        DRW_Line line;
+        line.handle = 0xC1u;
+        line.basePoint = DRW_Coord(20, 20, 0);
+        line.secPoint = DRW_Coord(30, 20, 0);
+        DRW_Line other;
+        other.handle = 0xC2u;
+        other.basePoint = DRW_Coord(20, 30, 0);
+        other.secPoint = DRW_Coord(30, 30, 0);
+        line.reactorHandles = {extraReference == 1u ? hatchSource : extraReference == 2u ? boundarySource : other.handle};
+        if (extraReference == 3u) {
+            line.extData.push_back(std::make_shared<DRW_Variant>(1001, std::string("ACAD")));
+            line.extData.push_back(std::make_shared<DRW_Variant>(1000, std::string("opaque")));
+        }
+        if (extraReference == 4u) line.color24 = 0x112233;
+        ok = output.preallocateEntityHandle(line.handle) && output.preallocateEntityHandle(other.handle)
+            && output.writeHatch(&hatch) && output.writeLWPolyline(&boundary)
+            && output.writeLine(&line) && output.writeLine(&other);
     }
     bool finalizeDxfWrite() override { return ok; }
 };
@@ -147,6 +164,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
     dxfRW writer(path.string().c_str());
     const dxfRW::DxfObjectsWriteView outside{{}, version, binary, {}, profile};
     if (writer.inspectDxfHatchOutputLinks(outside, {})) return false;
+    if (writer.inspectDxfHatchOutputIsolation(outside, {{1, 2, 3}}, false)) return false;
     writer.setDxfCompatibilityProfile(profile);
     writer.setReferenceResolver([&](std::uint32_t source) { return writer.remapEntityHandle(source); });
     Exporter adapter(writer, reverse);
@@ -168,6 +186,19 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             mutationApplied = true;
             return writer.inspectDxfHatchOutputLinks(altered, links);
         }
+        if (section == "ENTITIES" && mode == 28) {
+            auto altered = view;
+            altered.compatibilityProfile = profile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
+                ? dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy
+                : dxfRW::DxfCompatibilityProfile::StandaloneSafe;
+            mutationApplied = true;
+            return writer.inspectDxfHatchOutputLinks(altered, links)
+                || writer.inspectDxfHatchOutputIsolation(altered, links, true);
+        }
+        if (section == "ENTITIES" && mode >= 24 && mode <= 27) {
+            mutationApplied = true;
+            return writer.inspectDxfHatchOutputIsolation(view, links, true);
+        }
         if (section == "ENTITIES" && mode >= 6) {
             std::string changed(view.bytes);
             const auto p = profile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
@@ -178,11 +209,21 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             altered.bytes = changed;
             return writer.inspectDxfHatchOutputLinks(altered, links);
         }
-        return writer.inspectDxfHatchOutputLinks(view, links);
+        if (!writer.inspectDxfHatchOutputLinks(view, links)) return false;
+        if (section == "BLOCKS") {
+            const std::vector<Links> absent{{0xFFF001u, 0xFFF002u, 0xFFF003u}};
+            return !writer.inspectDxfHatchOutputIsolation(view, absent, true)
+                && writer.inspectDxfHatchOutputIsolation(view, absent, false);
+        }
+        if (mode == 0 && (writer.inspectDxfHatchOutputIsolation(view, links, false)
+            || writer.inspectDxfHatchOutputIsolation(view, {links.front(), links.front()}, true))) return false;
+        return writer.inspectDxfHatchOutputIsolation(view, links, true);
     })) return false;
     const std::string sentinel = "preserve destination";
-    for (unsigned fault = 1; fault <= 23; ++fault) {
+    for (unsigned fault = 1; fault <= 28; ++fault) {
+        if (fault == 27 && version < DRW::AC1018) continue; // true color is not written before R2004
         mode = fault;
+        adapter.extraReference = fault >= 24 && fault <= 27 ? fault - 23u : 0u;
         mutationApplied = false;
         write(path, sentinel);
         if (writer.write(&adapter, version, binary) || read(path) != sentinel
@@ -191,6 +232,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             return false;
         }
         mode = 0;
+        adapter.extraReference = 0u;
         if (!writer.write(&adapter, version, binary)) {
             std::cerr << "corrected retry failed after fault " << fault << '\n';
             return false;

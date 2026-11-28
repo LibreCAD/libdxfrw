@@ -114,6 +114,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_RAW_OBJECT_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_ENTITY_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_HATCH_GRAPH_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_HATCH_ISOLATION_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_PHYSICAL_ENTITY_SOURCE_HANDLERS 1
 #define LIBDXFRW_HAS_DXF_PHYSICAL_IDENTITY_SOURCE_HANDLER 1
 #define LIBDXFRW_HAS_DXF_DEFAULT_PLOT_PLACEHOLDER_HANDLE 1
@@ -377,6 +378,17 @@ public:
     bool inspectDxfHatchOutputLinks(
         const DxfObjectsWriteView& view,
         const std::vector<DxfHatchOutputLinks>& expected) const noexcept;
+    /** Check that a staged BLOCKS or ENTITIES body has no other references
+     * to the selected output identities. With selectedPresent, also require
+     * the selected pairs to pass inspectDxfHatchOutputLinks; otherwise reject
+     * their presence in this section. Other records are limited to plain
+     * BLOCK, ENDBLK and LINE fields, with optional LINE reactor groups. This
+     * does not inspect HEADER,
+     * tables or OBJECTS, prove source provenance, or authorize publication. */
+    bool inspectDxfHatchOutputIsolation(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfHatchOutputLinks>& expected,
+        bool selectedPresent) const noexcept;
     struct DxfImageOutputReferences {
         std::uint32_t image{0u};
         std::uint32_t owner{0u};
